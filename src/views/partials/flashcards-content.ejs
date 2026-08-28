@@ -1,386 +1,514 @@
-<!-- Flashcards Section — dossier catalog -->
+<!-- Flashcards Section Content -->
 <div style="height: 100%; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-primary);">
-    <!-- Header — minimal ledger -->
-    <div class="px-6 py-5" style="background: var(--bg-secondary); border-bottom:1.5px solid var(--border-color);">
+    <!-- Header -->
+    <div class="px-6 pt-6 pb-4">
         <div class="flex items-start justify-between gap-4 flex-wrap">
             <div>
-                <div class="mono" style="font-size:10px; font-weight:700; letter-spacing:0.11em; text-transform:uppercase; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem;">
-                    <span style="width:6px;height:6px;border-radius:50%;background:var(--text-primary);opacity:0.9;display:inline-block;"></span>
-                    RETRO <span style="opacity:0.4;">·</span> CARDS
-                    <span id="cardsCount" class="mono" style="margin-left:0.45rem; padding:0.15rem 0.45rem; border-radius:999px; border:1px solid var(--border-color); background:var(--bg-tertiary); color:var(--text-secondary); font-size:10px; font-weight:700; letter-spacing:0.06em;">0</span>
+                <div class="flex items-center gap-3">
+                    <h2 class="text-2xl font-semibold tracking-tight text-gray-800" style="font-family: 'Space Grotesk', sans-serif;">
+                        Flashcards
+                    </h2>
+                    <span id="cardsCount" class="text-xs font-semibold text-gray-600 bg-gray-100 border border-gray-200 rounded-full px-2.5 py-0.5">0</span>
                 </div>
-                <h2 class="accent" style="font-size:1.32rem; font-weight:700; letter-spacing:-0.02em; margin-top:0.35rem; line-height:1;">Flashcards</h2>
-                <p class="mono" style="font-size:11px; color:var(--text-secondary); margin-top:0.2rem;"><span id="cardsSubCount">0 total</span> · tap to flip · pin to keep</p>
+                <p class="text-sm text-gray-500 mt-0.5">
+                    <span id="cardsSubCount">0 cards</span> · Click a card to flip it
+                </p>
             </div>
-            <div class="flex items-center gap-2 flex-wrap justify-end">
+
+            <div class="flex items-center gap-2.5 flex-wrap justify-end">
                 <!-- Search -->
                 <div class="relative">
-                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="font-size:0.85rem; pointer-events:none;"></i>
+                    <i class="fas fa-search absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
                     <input
                         type="text"
                         id="searchInput"
-                        placeholder="Search…"
+                        placeholder="Search cards..."
                         oninput="handleSearch()"
-                        class="w-44 lg:w-56 pl-9 pr-3 py-2 bg-white border text-sm focus:outline-none focus:ring-0"
-                        style="background:var(--bg-secondary); border:1.5px solid var(--border-color); border-radius:12px; color:var(--text-primary); font-family:'IBM Plex Sans',sans-serif;"
+                        class="w-44 lg:w-56 pl-10 pr-4 py-2.5 bg-white border-2 border-gray-200 rounded-full text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-colors duration-200"
+                        style="font-family: 'IBM Plex Sans', sans-serif;"
                     />
                 </div>
 
                 <!-- Difficulty Filter -->
-                <div class="custom-dropdown" id="difficultyDropdownContainer">
-                    <button class="custom-dropdown-btn" id="difficultyDropdownBtn" onclick="toggleCustomDropdown('difficulty')" style="min-width:138px; padding:0.55rem 0.85rem; border-radius:12px; border:1.5px solid var(--border-color); background:var(--bg-secondary);">
-                        <span id="difficultyDropdownText" style="font-size:0.86rem;">All</span>
-                        <i class="fas fa-chevron-down" style="font-size:0.7rem; opacity:0.6;"></i>
+                <div class="fc-dropdown" id="difficultyDropdownContainer">
+                    <button type="button" class="fc-dropdown-btn" id="difficultyDropdownBtn" onclick="toggleCustomDropdown('difficulty')">
+                        <i class="fas fa-signal text-gray-400 text-xs"></i>
+                        <span id="difficultyDropdownText">All levels</span>
+                        <i class="fas fa-chevron-down text-xs opacity-60"></i>
                     </button>
-                    <div class="custom-dropdown-menu" id="difficultyDropdownMenu">
-                        <div class="custom-dropdown-item" onclick="selectDifficultyFilter('', 'All')">All</div>
-                        <div class="custom-dropdown-item" onclick="selectDifficultyFilter('easy', 'Easy')">Easy</div>
-                        <div class="custom-dropdown-item" onclick="selectDifficultyFilter('medium', 'Medium')">Medium</div>
-                        <div class="custom-dropdown-item" onclick="selectDifficultyFilter('hard', 'Hard')">Hard</div>
+                    <div class="fc-dropdown-menu" id="difficultyDropdownMenu">
+                        <div class="fc-dropdown-item" onclick="selectDifficultyFilter('', 'All levels')">All levels</div>
+                        <div class="fc-dropdown-item" onclick="selectDifficultyFilter('easy', 'Easy')"><span class="fc-dot fc-dot--easy"></span>Easy</div>
+                        <div class="fc-dropdown-item" onclick="selectDifficultyFilter('medium', 'Medium')"><span class="fc-dot fc-dot--medium"></span>Medium</div>
+                        <div class="fc-dropdown-item" onclick="selectDifficultyFilter('hard', 'Hard')"><span class="fc-dot fc-dot--hard"></span>Hard</div>
                     </div>
                 </div>
 
                 <!-- Tag Filter -->
-                <div class="custom-dropdown" id="tagDropdownContainer">
-                    <button class="custom-dropdown-btn" id="tagDropdownBtn" onclick="toggleCustomDropdown('tag')" style="min-width:126px; padding:0.55rem 0.85rem; border-radius:12px; border:1.5px solid var(--border-color); background:var(--bg-secondary);">
-                        <span id="tagDropdownText" style="font-size:0.86rem;">Tags</span>
-                        <i class="fas fa-chevron-down" style="font-size:0.7rem; opacity:0.6;"></i>
+                <div class="fc-dropdown" id="tagDropdownContainer">
+                    <button type="button" class="fc-dropdown-btn" id="tagDropdownBtn" onclick="toggleCustomDropdown('tag')">
+                        <i class="fas fa-tag text-gray-400 text-xs"></i>
+                        <span id="tagDropdownText">All tags</span>
+                        <i class="fas fa-chevron-down text-xs opacity-60"></i>
                     </button>
-                    <div class="custom-dropdown-menu" id="tagDropdownMenu">
-                        <div class="custom-dropdown-item" onclick="selectTagFilter('', 'All Tags')">All Tags</div>
+                    <div class="fc-dropdown-menu" id="tagDropdownMenu">
+                        <div class="fc-dropdown-item" onclick="selectTagFilter('', 'All tags')">All tags</div>
                     </div>
                 </div>
 
                 <!-- Actions -->
                 <button
                     onclick="openAIGenerateModal()"
-                    class="flashcard-tooltip flash-header-btn flash-header-btn--ghost"
-                    data-tooltip="Generate from notes"
+                    class="tooltip fc-pill fc-pill--purple"
+                    data-tooltip="Generate flashcards from a note with AI"
                 >
-                    <i class="fas fa-sparkles" style="font-size:0.8rem;"></i>
+                    <i class="fas fa-magic"></i>
                     Generate
                 </button>
 
                 <button
                     id="flashCreateBtn"
                     onclick="openCreateModal()"
-                    class="flashcard-tooltip flash-header-btn flash-header-btn--primary"
-                    data-tooltip="Create card"
+                    class="tooltip fc-pill fc-pill--black"
+                    data-tooltip="Create a new flashcard"
                 >
-                    <i class="fas fa-plus" style="font-size:0.8rem;"></i>
-                    New
+                    <i class="fas fa-plus"></i>
+                    New card
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Cards Grid — catalog deck -->
-    <div class="flex-1 overflow-y-auto p-6" style="min-height: 0; background:var(--bg-primary);">
-        <div id="loadingState" class="text-center py-16">
-            <div style="display:inline-flex; align-items:center; gap:0.7rem; padding:0.7rem 1.1rem; border-radius:999px; border:1px solid var(--border-color); background:var(--bg-secondary);">
-                <i class="fas fa-spinner fa-spin" style="color:var(--text-muted);"></i>
-                <span class="mono" style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-secondary);">Loading deck…</span>
-            </div>
+    <!-- Cards Grid -->
+    <div class="flex-1 overflow-y-auto px-6 pb-6" style="min-height: 0;">
+        <div id="loadingState" class="text-center py-20">
+            <i class="fas fa-circle-notch fa-spin text-2xl text-gray-400"></i>
+            <p class="text-sm text-gray-500 mt-3">Loading your deck…</p>
         </div>
-        <div id="cardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5" style="display: none;">
+        <div id="cardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" style="display: none;">
             <!-- Cards will be rendered here -->
         </div>
         <div id="emptyState" class="text-center py-16" style="display: none;">
-            <div style="max-width:520px; margin:0 auto; background:var(--bg-secondary); border:1.5px solid var(--border-color); border-radius:16px; padding:2rem 1.5rem; box-shadow:0 10px 28px rgba(0,0,0,0.06);">
-                <div class="mono" style="font-size:10px; font-weight:700; letter-spacing:0.11em; text-transform:uppercase; color:var(--text-muted); display:flex; align-items:center; justify-content:center; gap:0.4rem; margin-bottom:0.75rem;">
-                  <span style="width:6px;height:6px;border-radius:50%;background:var(--text-primary);opacity:0.9;display:inline-block;"></span>
-                  RETRO · DECK — EMPTY
+            <div class="max-w-md mx-auto bg-white border-2 border-gray-200 rounded-3xl shadow-lg p-10">
+                <div class="w-16 h-16 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center mx-auto">
+                    <i class="fas fa-clone text-xl text-gray-400"></i>
                 </div>
-                <div style="width:44px;height:44px;border-radius:12px;background:var(--bg-tertiary);border:1px solid var(--border-color);display:grid;place-items:center;margin:0 auto 0.9rem;color:var(--text-muted);">
-                    <i class="fas fa-layer-group" style="font-size:1.1rem;"></i>
-                </div>
-                <h3 class="accent" style="font-size:1.15rem; font-weight:700; letter-spacing:-0.02em; color:var(--text-primary);">No flashcards yet</h3>
-                <p class="mono" style="font-size:11.5px; color:var(--text-secondary); margin:0.35rem 0 1.15rem; line-height:1.5;">Create one or generate from a note — keeps it dossier-clean.</p>
-                <div class="flex gap-2 justify-center flex-wrap">
-                    <button onclick="openCreateModal()" style="padding:0.62rem 1.1rem; border-radius:999px; border:1.5px solid var(--text-primary); background:var(--text-primary); color:var(--bg-secondary); font-family:'Space Grotesk',sans-serif; font-size:0.86rem; font-weight:600; cursor:pointer;">
-                        <i class="fas fa-plus" style="margin-right:0.4rem; font-size:0.8rem;"></i>Create
+                <h3 class="text-lg font-semibold text-gray-800 mt-5" style="font-family: 'Space Grotesk', sans-serif;">No flashcards yet</h3>
+                <p class="text-sm text-gray-500 mt-1.5 mb-6">Create your first card, or let AI turn one of your notes into a deck.</p>
+                <div class="flex gap-3 justify-center flex-wrap">
+                    <button onclick="openCreateModal()" class="fc-pill fc-pill--black">
+                        <i class="fas fa-plus"></i>Create a card
                     </button>
-                    <button onclick="openAIGenerateModal()" style="padding:0.62rem 1.1rem; border-radius:999px; border:1.5px solid #7c3aed; background:#7c3aed; color:white; font-family:'Space Grotesk',sans-serif; font-size:0.86rem; font-weight:600; cursor:pointer;">
-                        <i class="fas fa-sparkles" style="margin-right:0.4rem; font-size:0.8rem;"></i>Generate
+                    <button onclick="openAIGenerateModal()" class="fc-pill fc-pill--purple">
+                        <i class="fas fa-magic"></i>Generate from notes
                     </button>
                 </div>
             </div>
         </div>
         <div id="errorState" class="text-center py-16" style="display: none;">
-            <div style="max-width:520px; margin:0 auto; background:var(--bg-secondary); border:1.5px solid rgba(239,68,68,0.18); border-radius:16px; padding:1.75rem 1.5rem;">
-                <div style="width:44px;height:44px;border-radius:12px;background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.18);display:grid;place-items:center;margin:0 auto 0.9rem;color:#ef4444;">
-                    <i class="fas fa-exclamation-triangle" style="font-size:1.1rem;"></i>
+            <div class="max-w-md mx-auto bg-white border-2 border-gray-200 rounded-3xl shadow-lg p-10">
+                <div class="w-16 h-16 rounded-full bg-red-50 border-2 border-red-100 flex items-center justify-center mx-auto">
+                    <i class="fas fa-exclamation-circle text-xl text-red-500"></i>
                 </div>
-                <h3 class="accent" style="font-size:1.05rem; font-weight:700; color:var(--text-primary);">Can’t load deck</h3>
-                <p class="mono" style="font-size:11.5px; color:var(--text-secondary); margin:0.35rem 0 1rem;" id="errorMessage"></p>
-                <button onclick="loadFlashcards()" style="padding:0.6rem 1rem; border-radius:999px; border:1.5px solid var(--text-primary); background:var(--text-primary); color:var(--bg-secondary); font-family:'Space Grotesk',sans-serif; font-size:0.85rem; font-weight:600; cursor:pointer;">
-                    <i class="fas fa-redo" style="margin-right:0.35rem;"></i>Retry
-            </button>
+                <h3 class="text-lg font-semibold text-gray-800 mt-5" style="font-family: 'Space Grotesk', sans-serif;">Couldn't load your deck</h3>
+                <p class="text-sm text-gray-500 mt-1.5 mb-6" id="errorMessage"></p>
+                <button onclick="loadFlashcards()" class="fc-pill fc-pill--black mx-auto">
+                    <i class="fas fa-redo"></i>Try again
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Flashcard Styles -->
+<!-- Flashcards Styles -->
 <style>
-    /* Custom Dropdown Styles */
-    .custom-dropdown {
+    /* ===== Pill buttons (match chat/notes action buttons) ===== */
+    .fc-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.62rem 1.25rem;
+        border-radius: 9999px;
+        border: 2px solid;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        line-height: 1;
+        background: transparent;
+    }
+
+    .fc-pill i {
+        font-size: 0.75rem;
+    }
+
+    .fc-pill:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
+    }
+
+    .fc-pill--black {
+        background: #000;
+        color: #fff;
+        border-color: #000;
+    }
+
+    .fc-pill--black:hover {
+        background: transparent;
+        color: #000;
+        border-color: #000;
+    }
+
+    .fc-pill--purple {
+        background: #9333ea;
+        color: #fff;
+        border-color: #9333ea;
+    }
+
+    .fc-pill--purple:hover {
+        background: transparent;
+        color: #9333ea;
+        border-color: #9333ea;
+    }
+
+    [data-theme="dark"] .fc-pill--black {
+        background: var(--text-primary);
+        color: var(--bg-secondary);
+        border-color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .fc-pill--black:hover {
+        background: transparent;
+        color: var(--text-primary);
+        border-color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .fc-pill--purple {
+        background: #9333ea;
+        color: #fff;
+        border-color: #9333ea;
+    }
+
+    [data-theme="dark"] .fc-pill--purple:hover {
+        background: transparent;
+        color: #c4b5fd;
+        border-color: #9333ea;
+    }
+
+    /* ===== Custom dropdowns (header + modals) ===== */
+    .fc-dropdown {
         position: relative;
         display: inline-block;
     }
 
-    .custom-dropdown-btn {
+    .fc-dropdown-btn {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.625rem 1rem;
-        background: var(--bg-secondary, #f9fafb);
-        border: 2px solid var(--border-color, #e5e7eb);
+        padding: 0.55rem 1rem;
+        background: white;
+        border: 2px solid #e5e7eb;
         border-radius: 9999px;
-        color: var(--text-primary, #1f2937);
+        color: #1f2937;
         font-size: 0.875rem;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease;
-        min-width: 150px;
+        min-width: 130px;
         justify-content: space-between;
         user-select: none;
         -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
     }
 
-    .custom-dropdown-btn:hover {
-        background: var(--bg-tertiary, #f3f4f6);
-        border-color: var(--text-secondary, #6b7280);
+    .fc-dropdown-btn:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
     }
 
-    .custom-dropdown-btn:focus {
+    .fc-dropdown-btn:focus {
         outline: none;
-        ring: 2px;
-        ring-color: #000;
-        border-color: #000;
+        box-shadow: 0 0 0 2px black;
     }
 
-    .custom-dropdown-btn i {
-        font-size: 0.75rem;
+    .fc-dropdown-btn i {
         transition: transform 0.2s ease;
         pointer-events: none;
     }
 
-    .custom-dropdown.open .custom-dropdown-btn i {
+    .fc-dropdown.open .fc-dropdown-btn i.fa-chevron-down {
         transform: rotate(180deg);
     }
 
-    .custom-dropdown-menu {
+    .fc-dropdown-menu {
         position: absolute;
         top: calc(100% + 0.5rem);
         left: 0;
         right: 0;
-        background: var(--bg-secondary, #fff);
-        border: 2px solid var(--border-color, #e5e7eb);
+        background: white;
+        border: 2px solid #e5e7eb;
         border-radius: 1rem;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         opacity: 0;
         visibility: hidden;
-        transform: translateY(-10px);
+        transform: translateY(-8px);
         transition: all 0.2s ease;
-        z-index: 1000;
+        z-index: 11000;
         max-height: 250px;
         overflow-y: auto;
+        padding: 0.35rem;
         user-select: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
     }
 
-    .custom-dropdown.open .custom-dropdown-menu {
+    .fc-dropdown.open .fc-dropdown-menu {
         opacity: 1;
         visibility: visible;
         transform: translateY(0);
     }
 
-    .custom-dropdown-item {
-        padding: 0.75rem 1rem;
+    .fc-dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.6rem 0.75rem;
+        border-radius: 0.65rem;
         cursor: pointer;
         transition: background 0.15s ease;
-        color: var(--text-primary, #1f2937);
+        color: #1f2937;
         font-size: 0.875rem;
     }
 
-    .custom-dropdown-item:first-child {
-        border-radius: 0.875rem 0.875rem 0 0;
+    .fc-dropdown-item:hover {
+        background: #f3f4f6;
     }
 
-    .custom-dropdown-item:last-child {
-        border-radius: 0 0 0.875rem 0.875rem;
+    .fc-dropdown-item.selected {
+        background: black;
+        color: white;
     }
 
-    .custom-dropdown-item:hover {
-        background: var(--bg-hover, rgba(0, 0, 0, 0.05));
-    }
-
-    [data-theme="dark"] .custom-dropdown-item:hover {
-        background: rgba(255, 255, 255, 0.05);
-    }
-
-    .custom-dropdown-item.selected {
-        background: var(--accent-primary, #000);
-        color: #fff;
-    }
-
-    .custom-dropdown-item.selected:hover {
-        background: var(--accent-secondary, #374151);
-    }
-
-    /* Dark mode support */
-    [data-theme="dark"] .custom-dropdown-btn {
-        background: var(--bg-tertiary);
-        border-color: var(--border-color);
-        color: var(--text-primary);
-    }
-
-    [data-theme="dark"] .custom-dropdown-btn:hover {
-        background: var(--bg-secondary);
-    }
-
-    [data-theme="dark"] .custom-dropdown-menu {
-        background: var(--bg-secondary);
-        border-color: var(--border-color);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    }
-
-    /* Styled scrollbar for custom dropdown menus */
-    .custom-dropdown-menu::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .custom-dropdown-menu::-webkit-scrollbar-track {
-        background: transparent;
-        margin: 4px 0;
-    }
-
-    .custom-dropdown-menu::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-    }
-
-    .custom-dropdown-menu::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-    }
-
-    [data-theme="dark"] .custom-dropdown-menu::-webkit-scrollbar-thumb {
-        background: #4a5568;
-    }
-
-    [data-theme="dark"] .custom-dropdown-menu::-webkit-scrollbar-thumb:hover {
-        background: #718096;
-    }
-
-    /* Styled scrollbar for flashcards grid container */
-    .flex-1.overflow-y-auto.p-8::-webkit-scrollbar {
+    .fc-dot {
         width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    .fc-dot--easy { background: #10b981; }
+    .fc-dot--medium { background: #3b82f6; }
+    .fc-dot--hard { background: #f59e0b; }
+
+    /* ===== Flashcards ===== */
+    .flashcard {
+        perspective: 1400px;
+        height: 210px;
+        cursor: pointer;
+        position: relative;
     }
 
-    .flex-1.overflow-y-auto.p-8::-webkit-scrollbar-track {
-        background: transparent;
-        margin: 8px 0;
+    .card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-style: preserve-3d;
     }
 
-    .flex-1.overflow-y-auto.p-8::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-        border: 2px solid transparent;
-        background-clip: content-box;
+    .flashcard:hover .card-inner {
+        transform: translateY(-3px);
     }
 
-    .flex-1.overflow-y-auto.p-8::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-        background-clip: content-box;
+    .flashcard.flipped .card-inner {
+        transform: rotateY(180deg);
     }
 
-    [data-theme="dark"] .flex-1.overflow-y-auto.p-8::-webkit-scrollbar-thumb {
-        background: #4a5568;
+    .flashcard.flipped:hover .card-inner {
+        transform: rotateY(180deg) translateY(-3px);
     }
 
-    [data-theme="dark"] .flex-1.overflow-y-auto.p-8::-webkit-scrollbar-thumb:hover {
-        background: #718096;
+    .card-face {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        border-radius: 1.5rem;
+        padding: 1.1rem 1.2rem 1.6rem;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        border: 2px solid #e5e7eb;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        transition: box-shadow 0.2s ease;
     }
 
-    /* Firefox scrollbar for flashcards grid */
-    .flex-1.overflow-y-auto.p-8 {
-        scrollbar-width: thin;
-        scrollbar-color: #cbd5e1 transparent;
+    .flashcard:hover .card-face {
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
     }
 
-    [data-theme="dark"] .flex-1.overflow-y-auto.p-8 {
-        scrollbar-color: #4a5568 transparent;
+    /* The back face must be pre-rotated so only one face is ever visible */
+    .card-back {
+        transform: rotateY(180deg);
+        background: #faf9ff;
+        border-color: #ddd6fe;
     }
 
-    /* Styled scrollbar for modal content */
-    .flashcard-modal::-webkit-scrollbar {
-        width: 8px;
+    .card-badges {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        align-items: center;
+        flex-shrink: 0;
     }
 
-    .flashcard-modal::-webkit-scrollbar-track {
-        background: transparent;
-        margin: 8px 0;
+    .difficulty-badge, .tag-badge, .ai-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.2rem 0.65rem;
+        border-radius: 9999px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        line-height: 1.2;
+        border: 1px solid transparent;
     }
 
-    .flashcard-modal::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-        border: 2px solid transparent;
-        background-clip: content-box;
+    .difficulty-easy { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+    .difficulty-medium { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .difficulty-hard { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+
+    .tag-badge {
+        background: #f3f4f6;
+        color: #6b7280;
     }
 
-    .flashcard-modal::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-        background-clip: content-box;
+    .ai-badge {
+        background: #f5f3ff;
+        color: #7c3aed;
+        border-color: #ddd6fe;
     }
 
-    [data-theme="dark"] .flashcard-modal::-webkit-scrollbar-thumb {
-        background: #4a5568;
+    .card-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow-y: auto;
+        width: 100%;
+        padding: 0.75rem 0.25rem 0.25rem;
     }
 
-    [data-theme="dark"] .flashcard-modal::-webkit-scrollbar-thumb:hover {
-        background: #718096;
+    .question, .answer {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.98rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: #1f2937;
+        line-height: 1.5;
+        word-break: break-word;
+        display: -webkit-box;
+        -webkit-line-clamp: 5;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-align: center;
     }
 
-    /* Firefox scrollbar for modal */
-    .flashcard-modal {
-        scrollbar-width: thin;
-        scrollbar-color: #cbd5e1 transparent;
+    .answer {
+        color: #4c1d95;
     }
 
-    [data-theme="dark"] .flashcard-modal {
-        scrollbar-color: #4a5568 transparent;
+    .card-hint {
+        position: absolute;
+        bottom: 0.7rem;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 0.7rem;
+        color: #9ca3af;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
     }
 
-    /* Header action buttons — fixes hover contrast + click */
-    .flash-header-btn{
-        display:inline-flex; align-items:center; gap:0.45rem;
-        padding:0.58rem 0.95rem; border-radius:999px; border:1.5px solid;
-        font-family:'Space Grotesk',sans-serif; font-size:0.84rem; font-weight:600;
-        cursor:pointer; transition:all 0.15s ease; line-height:1;
+    .card-back .card-hint {
+        color: #a78bfa;
     }
-    .flash-header-btn--ghost{ border-color:#7c3aed; background:#7c3aed; color:white; }
-    .flash-header-btn--ghost:hover{ background:transparent !important; color:#7c3aed !important; border-color:#7c3aed !important; }
-    .flash-header-btn--primary{ border-color:var(--text-primary); background:var(--text-primary); color:var(--bg-secondary); }
-    .flash-header-btn--primary:hover{ background:var(--bg-secondary) !important; color:var(--text-primary) !important; border-color:var(--text-primary) !important; }
-    [data-theme="dark"] .flash-header-btn--primary{ background:var(--text-primary); color:#141413; border-color:var(--text-primary); }
-    [data-theme="dark"] .flash-header-btn--primary:hover{ background:#141413 !important; color:var(--text-primary) !important; border-color:var(--border-color) !important; }
+
+    .card-actions {
+        position: absolute;
+        bottom: 0.55rem;
+        left: 0.55rem;
+        right: 0.55rem;
+        display: flex;
+        gap: 0.4rem;
+        justify-content: center;
+        opacity: 0;
+        transform: translateY(4px);
+        transition: opacity 0.18s ease, transform 0.18s ease;
+        z-index: 2;
+    }
+
+    .flashcard:hover .card-actions {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* When hovering a card, hide the hint so it doesn't clash with the actions */
+    .flashcard:hover .card-hint {
+        opacity: 0;
+    }
+
+    .icon-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 9999px;
+        border: 2px solid #e5e7eb;
+        background: white;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.18s ease;
+        font-size: 0.75rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .icon-btn:hover {
+        background: #f3f4f6;
+        color: #1f2937;
+        border-color: #d1d5db;
+        transform: translateY(-1px);
+    }
+
+    .icon-btn.delete:hover {
+        background: #fef2f2;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+
+    .icon-btn.pin.active {
+        background: #fffbeb;
+        color: #b45309;
+        border-color: #fde68a;
+    }
+
+    .icon-btn.favorite.active {
+        background: #fef2f2;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
 
     /* Prevent text selection on interactive elements */
     button,
     .flashcard,
-    .flashcard-option,
-    .set-item,
+    .fc-dropdown-item,
     .modal-overlay,
     i.fas,
     i.far {
         user-select: none;
         -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
     }
 
     /* Ensure icons don't capture pointer events */
@@ -394,250 +522,162 @@
     textarea {
         user-select: text;
         -webkit-user-select: text;
-        -moz-user-select: text;
-        -ms-user-select: text;
     }
 
-    /* Flashcards — dossier catalog */
-    .flashcard {
-        perspective: 1000px;
-        height: 188px;
-        cursor: pointer;
-        position: relative;
+    /* Styled scrollbars */
+    #flashcardsSection .overflow-y-auto::-webkit-scrollbar {
+        width: 8px;
     }
 
-    .card-inner {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        text-align: center;
-        transition: transform 0.55s cubic-bezier(0.34, 1.2, 0.64, 1);
-        transform-style: preserve-3d;
+    #flashcardsSection .overflow-y-auto::-webkit-scrollbar-track {
+        background: transparent;
+        margin: 8px 0;
     }
 
-    .flashcard:hover { transform: translateY(-2px); }
-    .flashcard.flipped { transform: none; }
-    .flashcard.flipped .card-inner { transform: rotateY(180deg); }
-
-    .card-face {
-        position: absolute;
-        inset: 0;
-        backface-visibility: hidden;
-        border-radius: 16px;
-        padding: 1rem 1.1rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        background: var(--bg-secondary, #ffffff);
-        border: 1.5px solid var(--border-color, rgba(0,0,0,0.08));
-        box-shadow: 0 8px 20px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.02);
-        overflow: hidden;
+    #flashcardsSection .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: content-box;
     }
 
-    .card-face::before{
-        content:""; position:absolute; top:0; left:0; right:0; height:3px;
-        background: var(--border-color); opacity:0.9;
-    }
-    .card-front::before{ background: var(--border-color); }
-    .card-back::before{ background: var(--accent-primary, #6366f1); opacity:0.18; }
-
-    .card-back {
-        transform: rotateY(180deg);
+    #flashcardsSection .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+        background-clip: content-box;
     }
 
-    [data-theme="dark"] .card-face{
-        background: #141413;
-        border-color: rgba(194,192,182,0.13);
-        box-shadow: 0 10px 28px rgba(0,0,0,0.38);
+    #flashcardsSection .overflow-y-auto {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
     }
 
-    .card-badges {
-        position: absolute;
-        top: 0.65rem;
-        left: 0.75rem;
-        right: 0.75rem;
-        display: flex;
-        gap: 0.35rem;
-        flex-wrap: wrap;
-        z-index: 1;
-        align-items: center;
-    }
-
-    .difficulty-badge, .tag-badge, .ai-badge{
-        display:inline-flex; align-items:center; gap:0.25rem;
-        padding:0.18rem 0.5rem;
-        border-radius:999px;
-        font-family:"JetBrains Mono", monospace;
-        font-size:10px; font-weight:700;
-        letter-spacing:0.06em; text-transform:uppercase;
-        border:1px solid var(--border-color);
-        line-height:1;
-    }
-
-    .difficulty-badge{ background:var(--bg-tertiary); color:var(--text-secondary); }
-    .difficulty-easy{ background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
-    .difficulty-medium{ background:#eff6ff; border-color:#bfdbfe; color:#1e40af; }
-    .difficulty-hard{ background:#fffbeb; border-color:#fde68a; color:#92400e; }
-    [data-theme="dark"] .difficulty-easy{ background:rgba(16,185,129,0.13); border-color:rgba(16,185,129,0.22); color:#6ee7b7; }
-    [data-theme="dark"] .difficulty-medium{ background:rgba(59,130,246,0.13); border-color:rgba(59,130,246,0.22); color:#93c5fd; }
-    [data-theme="dark"] .difficulty-hard{ background:rgba(245,158,11,0.13); border-color:rgba(245,158,11,0.22); color:#fcd34d; }
-
-    .tag-badge{
-        background:var(--bg-tertiary); color:var(--text-secondary);
-        font-weight:600; letter-spacing:0.04em; text-transform:none;
-        font-family:"IBM Plex Sans", sans-serif; font-size:10.5px;
-    }
-    [data-theme="dark"] .tag-badge{ background:rgba(255,255,255,0.06); color:var(--text-secondary); }
-
-    .ai-badge{
-        background:#f5f3ff; border-color:#ddd6fe; color:#6d28d9;
-    }
-    [data-theme="dark"] .ai-badge{ background:rgba(124,58,237,0.14); border-color:rgba(124,58,237,0.28); color:#c4b5fd; }
-
-    .card-content {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1.4rem 0.6rem 0.6rem;
-        overflow-y: auto;
-        width:100%;
-    }
-
-    .question, .answer {
-        font-family:"Space Grotesk", sans-serif;
-        font-size: 0.96rem;
-        font-weight: 600;
-        letter-spacing:-0.01em;
-        color: var(--text-primary, #1f2937);
-        line-height: 1.45;
-        word-break: break-word;
-        display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden;
-    }
-
-    [data-theme="dark"] .question,
-    [data-theme="dark"] .answer {
+    /* ===== Dark mode ===== */
+    [data-theme="dark"] .fc-dropdown-btn {
+        background: var(--bg-secondary);
+        border-color: var(--border-color);
         color: var(--text-primary);
     }
 
-    .card-actions {
-        position: absolute;
-        bottom: 0.75rem;
-        left: 0.75rem;
-        right: 0.75rem;
-        display: flex;
-        gap: 0.5rem;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity 0.2s;
+    [data-theme="dark"] .fc-dropdown-btn:hover {
+        background: var(--bg-tertiary);
+        border-color: var(--border-color);
     }
 
-    .flashcard:hover .card-actions {
-        opacity: 1;
+    [data-theme="dark"] .fc-dropdown-menu {
+        background: var(--bg-secondary);
+        border-color: var(--border-color);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
     }
 
-    .flashcard.flipped .card-actions {
-        opacity: 0 !important;
-        pointer-events: none;
+    [data-theme="dark"] .fc-dropdown-item {
+        color: var(--text-primary);
     }
 
-    .card-actions {
-        position: absolute;
-        bottom: 0.6rem;
-        left: 0.6rem;
-        right: 0.6rem;
-        display: flex;
-        gap: 0.35rem;
-        justify-content: center;
-        opacity: 0;
-        transform: translateY(4px);
-        transition: opacity 0.18s ease, transform 0.18s ease;
-    }
-    .flashcard:hover .card-actions { opacity: 1; transform: translateY(0); }
-    .icon-btn {
-        width: 30px;
-        height: 30px;
-        border-radius: 9px;
-        border: 1.5px solid var(--border-color, #e5e7eb);
-        background: var(--bg-secondary, white);
-        color: var(--text-secondary, #6b7280);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.18s ease;
-        font-size: 0.78rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-    .icon-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--text-muted); transform: translateY(-1px); }
-    .icon-btn.delete:hover { background: #fee2e2; color: #dc2626; border-color: #fecaca; }
-    .icon-btn.pin.active { background: #fef3c7; color: #b45309; border-color: #fde68a; }
-    .icon-btn.favorite.active { background: #fee2e2; color: #dc2626; border-color: #fecaca; }
-    [data-theme="dark"] .icon-btn { background: var(--bg-tertiary); border-color: rgba(194,192,182,0.14); color: var(--text-secondary); }
-    [data-theme="dark"] .icon-btn:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); border-color: rgba(194,192,182,0.18); }
-    [data-theme="dark"] .icon-btn.pin.active{ background:rgba(245,158,11,0.16); border-color:rgba(245,158,11,0.28); color:#fcd34d; }
-    [data-theme="dark"] .icon-btn.favorite.active{ background:rgba(239,68,68,0.14); border-color:rgba(239,68,68,0.24); color:#fca5a5; }
-
-    /* Custom tooltip for flashcards buttons */
-    .flashcard-tooltip {
-        position: relative;
+    [data-theme="dark"] .fc-dropdown-item:hover {
+        background: var(--bg-tertiary);
     }
 
-    .flashcard-tooltip:hover::before {
-        content: attr(data-tooltip);
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: rgba(0, 0, 0, 0.8);
-        color: white;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        white-space: nowrap;
-        z-index: 10001;
-        margin-top: 8px;
-        opacity: 0;
-        animation: tooltipFadeIn 0.3s ease forwards;
+    [data-theme="dark"] .fc-dropdown-item.selected {
+        background: var(--text-primary);
+        color: var(--bg-secondary);
     }
 
-    .flashcard-tooltip:hover::after {
-        content: "";
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        border: 5px solid transparent;
-        border-bottom-color: rgba(0, 0, 0, 0.8);
-        margin-top: 3px;
-        opacity: 0;
-        z-index: 10001;
-        animation: tooltipFadeIn 0.3s ease forwards;
+    [data-theme="dark"] .card-face {
+        background: var(--bg-secondary);
+        border-color: var(--border-color);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     }
 
-    @keyframes tooltipFadeIn {
-        to {
-            opacity: 1;
-        }
+    [data-theme="dark"] .card-back {
+        background: var(--bg-tertiary);
+        border-color: rgba(139, 92, 246, 0.25);
+    }
+
+    [data-theme="dark"] .question {
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .answer {
+        color: #c4b5fd;
+    }
+
+    [data-theme="dark"] .tag-badge {
+        background: rgba(255, 255, 255, 0.07);
+        color: var(--text-secondary);
+    }
+
+    [data-theme="dark"] .ai-badge {
+        background: rgba(124, 58, 237, 0.15);
+        color: #c4b5fd;
+        border-color: rgba(124, 58, 237, 0.3);
+    }
+
+    [data-theme="dark"] .difficulty-easy { background: rgba(16, 185, 129, 0.13); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.25); }
+    [data-theme="dark"] .difficulty-medium { background: rgba(59, 130, 246, 0.13); color: #93c5fd; border-color: rgba(59, 130, 246, 0.25); }
+    [data-theme="dark"] .difficulty-hard { background: rgba(245, 158, 11, 0.13); color: #fcd34d; border-color: rgba(245, 158, 11, 0.25); }
+
+    [data-theme="dark"] .card-hint {
+        color: var(--text-muted);
+    }
+
+    [data-theme="dark"] .card-back .card-hint {
+        color: #a78bfa;
+    }
+
+    [data-theme="dark"] .icon-btn {
+        background: var(--bg-tertiary);
+        border-color: var(--border-color);
+        color: var(--text-secondary);
+    }
+
+    [data-theme="dark"] .icon-btn:hover {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .icon-btn.delete:hover {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    [data-theme="dark"] .icon-btn.pin.active {
+        background: rgba(245, 158, 11, 0.16);
+        color: #fcd34d;
+        border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    [data-theme="dark"] .icon-btn.favorite.active {
+        background: rgba(239, 68, 68, 0.15);
+        color: #fca5a5;
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    [data-theme="dark"] #flashcardsSection .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #4a5568;
+    }
+
+    [data-theme="dark"] #flashcardsSection .overflow-y-auto {
+        scrollbar-color: #4a5568 transparent;
     }
 </style>
 
 <style>
+    /* ===== Flashcard modals ===== */
     .flashcard-modal-overlay {
         position: fixed;
         inset: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(20, 20, 19, 0.45);
-        backdrop-filter: blur(12px) saturate(1.1);
-        -webkit-backdrop-filter: blur(12px) saturate(1.1);
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 10000;
+        z-index: 12000;
         opacity: 0;
-        transition: opacity 0.28s ease;
+        transition: opacity 0.25s ease;
         padding: 1.25rem;
     }
 
@@ -646,23 +686,17 @@
     }
 
     .flashcard-modal {
-        background: var(--bg-secondary, #ffffff);
-        border: 1.5px solid var(--border-color, rgba(0,0,0,0.08));
-        border-radius: 16px;
-        padding: 1.15rem 1.25rem;
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 1.5rem;
+        padding: 1.75rem;
         max-width: 560px;
         width: 100%;
         max-height: 88vh;
         overflow-y: auto;
-        box-shadow: 0 18px 36px -12px rgba(0, 0, 0, 0.20), 0 0 0 1px rgba(0,0,0,0.03);
-        transform: scale(0.97) translateY(6px);
-        transition: transform 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
-    }
-
-    [data-theme="dark"] .flashcard-modal {
-        background: #141413;
-        border-color: rgba(194,192,182,0.14);
-        box-shadow: 0 25px 60px rgba(0,0,0,0.55);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: scale(0.97) translateY(8px);
+        transition: transform 0.25s cubic-bezier(0.34, 1.3, 0.64, 1);
     }
 
     .flashcard-modal-overlay.active .flashcard-modal {
@@ -670,75 +704,80 @@
     }
 
     .flashcard-modal h2 {
-        font-size: 1.22rem;
-        font-weight: 700;
-        color: var(--text-primary, #1f2937);
-        margin-bottom: 0.9rem;
-        font-family: "Space Grotesk", sans-serif;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.35rem;
+        font-weight: 600;
         letter-spacing: -0.02em;
+        color: #1f2937;
+        margin-bottom: 0.35rem;
         line-height: 1.2;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.6rem;
+    }
+
+    .flashcard-modal .modal-sub {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 1.5rem;
     }
 
     .flashcard-modal label {
         display: block;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.09em;
+        font-size: 0.75rem;
+        font-weight: 600;
         text-transform: uppercase;
-        color: var(--text-muted, #9ca3af);
-        margin-bottom: 0.35rem;
-        margin-top: 0;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+        margin-bottom: 0.4rem;
     }
 
     .flashcard-modal input,
     .flashcard-modal textarea,
     .flashcard-modal select {
         width: 100%;
-        padding: 0.72rem 0.9rem;
-        border: 1.5px solid var(--border-color, #e5e7eb);
-        border-radius: 10px;
-        font-size: 0.92rem;
-        color: var(--text-primary, #1f2937);
-        background: var(--bg-secondary, #ffffff);
+        padding: 0.75rem 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 1rem;
+        font-size: 0.925rem;
+        color: #1f2937;
+        background: white;
         transition: all 0.2s ease;
-        font-family: "IBM Plex Sans", sans-serif;
-        line-height: 1.45;
+        font-family: 'IBM Plex Sans', sans-serif;
+        line-height: 1.5;
     }
 
     .flashcard-modal input:focus,
     .flashcard-modal textarea:focus,
     .flashcard-modal select:focus {
         outline: none;
-        border-color: var(--text-primary, #1a1a1a);
+        border-color: black;
         box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
     }
 
-    [data-theme="dark"] .flashcard-modal input:focus,
-    [data-theme="dark"] .flashcard-modal textarea:focus {
-        box-shadow: 0 0 0 3px rgba(194,192,182,0.12);
+    .flashcard-modal input::placeholder,
+    .flashcard-modal textarea::placeholder {
+        color: #9ca3af;
     }
 
     .flashcard-modal textarea {
         resize: vertical;
-        min-height: 112px;
+        min-height: 104px;
     }
 
     .modal-actions {
         display: flex;
         gap: 0.75rem;
-        margin-top: 2rem;
+        margin-top: 1.75rem;
         justify-content: flex-end;
     }
 
     .modal-actions button {
-        padding: 0.75rem 1.5rem;
+        padding: 0.7rem 1.5rem;
         border-radius: 9999px;
         font-weight: 600;
         font-size: 0.875rem;
+        font-family: 'Space Grotesk', sans-serif;
         cursor: pointer;
         transition: all 0.2s;
         border: 2px solid;
@@ -751,19 +790,20 @@
     }
 
     .modal-actions .btn-cancel:hover {
-        background: #f3f4f6;
+        background: #f9fafb;
         border-color: #d1d5db;
+        color: #374151;
     }
 
     .modal-actions .btn-primary {
-        background: #000;
+        background: black;
         color: white;
-        border-color: #000;
+        border-color: black;
     }
 
     .modal-actions .btn-primary:hover {
         background: transparent;
-        color: #000;
+        color: black;
     }
 
     .modal-actions .btn-danger {
@@ -786,36 +826,38 @@
     .muted-small {
         font-size: 0.75rem;
         color: #9ca3af;
-        margin-top: 0.5rem;
+        margin-top: 0.35rem;
     }
 
     .note-item {
         padding: 1rem;
         border: 2px solid #e5e7eb;
-        border-radius: 0.75rem;
+        border-radius: 1rem;
         cursor: pointer;
         transition: all 0.2s;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.65rem;
     }
 
     .note-item:hover {
-        border-color: #000;
+        border-color: black;
         background: #f9fafb;
     }
 
     .note-item.selected {
-        border-color: #000;
+        border-color: black;
         background: #f3f4f6;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
     }
 
     .note-title {
         font-weight: 600;
         color: #1f2937;
         margin-bottom: 0.25rem;
+        font-size: 0.925rem;
     }
 
     .note-preview {
-        font-size: 0.875rem;
+        font-size: 0.8125rem;
         color: #6b7280;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -825,27 +867,31 @@
     .tag-input-container {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.5rem;
-        padding: 0.75rem;
+        gap: 0.4rem;
+        padding: 0.6rem 0.75rem;
         border: 2px solid #e5e7eb;
-        border-radius: 0.75rem;
+        border-radius: 1rem;
         min-height: 48px;
+        background: white;
+        transition: all 0.2s ease;
     }
 
     .tag-input-container:focus-within {
-        border-color: #000;
-        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+        border-color: black;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
     }
 
     .tag-chip {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.45rem;
         padding: 0.25rem 0.75rem;
         background: #f3f4f6;
         color: #1f2937;
+        border: 1px solid #e5e7eb;
         border-radius: 9999px;
-        font-size: 0.875rem;
+        font-size: 0.8125rem;
+        font-weight: 500;
     }
 
     .tag-chip button {
@@ -854,11 +900,13 @@
         color: #6b7280;
         cursor: pointer;
         padding: 0;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
+        display: flex;
+        align-items: center;
     }
 
     .tag-chip button:hover {
-        color: #1f2937;
+        color: #dc2626;
     }
 
     .tag-input {
@@ -866,40 +914,38 @@
         outline: none;
         flex: 1;
         min-width: 100px;
-        font-size: 1rem;
+        font-size: 0.9rem;
         color: #1f2937;
+        background: transparent;
     }
 
-    /* Dark mode for header elements */
-    [data-theme="dark"] .border-gray-200 {
-        border-color: var(--border-color);
+    /* Modal dropdown widths */
+    .flashcard-modal .fc-dropdown {
+        width: 100%;
     }
 
-    [data-theme="dark"] input[type="text"],
-    [data-theme="dark"] select {
-        background: var(--bg-tertiary);
-        color: var(--text-primary);
-        border-color: var(--border-color);
+    .flashcard-modal .fc-dropdown-btn {
+        width: 100%;
     }
 
-    [data-theme="dark"] input::placeholder {
-        color: var(--text-secondary);
+    .flashcard-modal .fc-dropdown-menu {
+        left: 0;
+        right: 0;
     }
 
-    [data-theme="dark"] .text-gray-400,
-    [data-theme="dark"] .text-gray-500,
-    [data-theme="dark"] .text-gray-600,
-    [data-theme="dark"] .text-gray-300 {
-        color: var(--text-primary);
-    }
-
-    /* Dark mode for modals */
+    /* ===== Dark mode for modals ===== */
     [data-theme="dark"] .flashcard-modal {
         background: var(--bg-secondary);
+        border-color: var(--border-color);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
     }
 
     [data-theme="dark"] .flashcard-modal h2 {
         color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .flashcard-modal .modal-sub {
+        color: var(--text-secondary);
     }
 
     [data-theme="dark"] .flashcard-modal label {
@@ -914,6 +960,17 @@
         color: var(--text-primary);
     }
 
+    [data-theme="dark"] .flashcard-modal input:focus,
+    [data-theme="dark"] .flashcard-modal textarea:focus {
+        border-color: var(--text-primary);
+        box-shadow: 0 0 0 3px rgba(194, 192, 182, 0.12);
+    }
+
+    [data-theme="dark"] .flashcard-modal input::placeholder,
+    [data-theme="dark"] .flashcard-modal textarea::placeholder {
+        color: var(--text-muted);
+    }
+
     [data-theme="dark"] .modal-actions .btn-cancel {
         background: var(--bg-tertiary);
         color: var(--text-secondary);
@@ -922,6 +979,18 @@
 
     [data-theme="dark"] .modal-actions .btn-cancel:hover {
         background: var(--bg-primary);
+        border-color: var(--text-secondary);
+    }
+
+    [data-theme="dark"] .modal-actions .btn-primary {
+        background: var(--text-primary);
+        color: var(--bg-secondary);
+        border-color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .modal-actions .btn-primary:hover {
+        background: transparent;
+        color: var(--text-primary);
     }
 
     [data-theme="dark"] .note-item {
@@ -936,6 +1005,7 @@
     [data-theme="dark"] .note-item.selected {
         border-color: var(--text-primary);
         background: var(--bg-tertiary);
+        box-shadow: 0 0 0 3px rgba(194, 192, 182, 0.1);
     }
 
     [data-theme="dark"] .note-title {
@@ -951,28 +1021,38 @@
         border-color: var(--border-color);
     }
 
+    [data-theme="dark"] .tag-input-container:focus-within {
+        border-color: var(--text-primary);
+        box-shadow: 0 0 0 3px rgba(194, 192, 182, 0.1);
+    }
+
     [data-theme="dark"] .tag-chip {
         background: var(--bg-primary);
         color: var(--text-primary);
+        border-color: var(--border-color);
     }
 
     [data-theme="dark"] .tag-input {
-        background: transparent;
         color: var(--text-primary);
     }
-    /* Modal dropdown specific styles */
-    .modal-dropdown-btn {
-        width: 100%;
-        min-width: auto;
+
+    /* Modal scrollbars */
+    .flashcard-modal::-webkit-scrollbar {
+        width: 8px;
     }
 
-    .flashcard-modal .custom-dropdown {
-        width: 100%;
+    .flashcard-modal::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
     }
 
-    .flashcard-modal .custom-dropdown-menu {
-        left: 0;
-        right: 0;
+    [data-theme="dark"] .flashcard-modal::-webkit-scrollbar-thumb {
+        background: #4a5568;
+    }
+
+    .flashcard-modal {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
     }
 </style>
 
@@ -988,7 +1068,7 @@
         const isOpen = container.classList.contains('open');
 
         // Close all dropdowns first
-        document.querySelectorAll('.custom-dropdown').forEach(dd => {
+        document.querySelectorAll('.fc-dropdown').forEach(dd => {
             dd.classList.remove('open');
         });
 
@@ -1004,8 +1084,8 @@
     }
 
     function closeDropdownOutside(e) {
-        if (!e.target.closest('.custom-dropdown')) {
-            document.querySelectorAll('.custom-dropdown').forEach(dd => {
+        if (!e.target.closest('.fc-dropdown')) {
+            document.querySelectorAll('.fc-dropdown').forEach(dd => {
                 dd.classList.remove('open');
             });
             document.removeEventListener('click', closeDropdownOutside);
@@ -1032,7 +1112,7 @@
         const isOpen = container.classList.contains('open');
 
         // Close all modal dropdowns first
-        document.querySelectorAll('.modal-dropdown').forEach(dd => {
+        document.querySelectorAll('.fc-dropdown').forEach(dd => {
             dd.classList.remove('open');
         });
 
@@ -1051,7 +1131,7 @@
 
         // Update selected state
         const menu = document.getElementById(type + 'DropdownMenu');
-        menu.querySelectorAll('.custom-dropdown-item').forEach(item => {
+        menu.querySelectorAll('.fc-dropdown-item').forEach(item => {
             item.classList.remove('selected');
         });
         event.target.classList.add('selected');
@@ -1083,23 +1163,35 @@
     }
 
     function showToast(message, type = 'success') {
-        // Simple toast notification
+        const palette = {
+            success: { bg: '#ecfdf5', border: '#a7f3d0', text: '#047857' },
+            error: { bg: '#fef2f2', border: '#fecaca', text: '#b91c1c' }
+        };
+        const { bg, border, text } = palette[type] || palette.success;
+
         const toast = document.createElement('div');
         toast.style.cssText = `
             position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 1rem 1.5rem;
-            background: ${type === 'success' ? '#10b981' : '#ef4444'};
-            color: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            z-index: 10001;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 18px;
+            background: ${bg};
+            border: 1px solid ${border};
+            color: ${text};
+            border-radius: 14px;
+            font-size: 0.9rem;
             font-weight: 500;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+            z-index: 13001;
+            max-width: 320px;
+            transition: opacity 0.3s ease;
         `;
         toast.textContent = message;
         document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 
     function showLoading() {
@@ -1117,13 +1209,14 @@
         document.getElementById('errorMessage').textContent = message;
     }
 
-    function updateCardsCount(){
+    function updateCardsCount() {
         const count = flashcards.length;
         const countEl = document.getElementById('cardsCount');
         const subEl = document.getElementById('cardsSubCount');
-        if(countEl) countEl.textContent = String(count);
-        if(subEl) subEl.textContent = count + (count===1 ? ' card' : ' cards');
+        if (countEl) countEl.textContent = String(count);
+        if (subEl) subEl.textContent = count + (count === 1 ? ' card' : ' cards');
     }
+
     function showContent() {
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('errorState').style.display = 'none';
@@ -1197,10 +1290,10 @@
             const menu = document.getElementById('tagDropdownMenu');
             const currentValue = currentTagFilter;
 
-            menu.innerHTML = '<div class="custom-dropdown-item" onclick="selectTagFilter(\'\', \'All Tags\')">All Tags</div>';
+            menu.innerHTML = '<div class="fc-dropdown-item" onclick="selectTagFilter(\'\', \'All tags\')">All tags</div>';
             tags.forEach(tag => {
                 const item = document.createElement('div');
-                item.className = 'custom-dropdown-item';
+                item.className = 'fc-dropdown-item';
                 item.textContent = tag;
                 item.onclick = () => selectTagFilter(tag, tag);
                 if (tag === currentValue) {
@@ -1229,12 +1322,12 @@
             return `
                 <div class="flashcard" data-id="${card._id}">
                     <div class="card-inner">
-                        <!-- Front -->
+                        <!-- Front — question -->
                         <div class="card-face card-front">
                             <div class="card-badges">
                                 <span class="difficulty-badge ${difficultyClass}">${card.difficulty || 'medium'}</span>
-                                ${card.isAIGenerated ? '<span class="ai-badge"><i class="fas fa-sparkles"></i> AI</span>' : ''}
-                                ${firstTag ? `<span class="tag-badge">${escapeHtml(firstTag)}</span>` : ''}
+                                ${firstTag ? `<span class="tag-badge"><i class="fas fa-tag" style="font-size:0.6rem;"></i>${escapeHtml(firstTag)}</span>` : ''}
+                                ${card.isAIGenerated ? '<span class="ai-badge"><i class="fas fa-magic" style="font-size:0.6rem;"></i>AI</span>' : ''}
                             </div>
                             <div class="card-content">
                                 <p class="question">${escapeHtml(card.title)}</p>
@@ -1253,31 +1346,17 @@
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
+                            <div class="card-hint"><i class="fas fa-sync-alt" style="font-size:0.6rem;"></i>Click to reveal answer</div>
                         </div>
-                        <!-- Back -->
+                        <!-- Back — answer -->
                         <div class="card-face card-back">
                             <div class="card-badges">
                                 <span class="difficulty-badge ${difficultyClass}">${card.difficulty || 'medium'}</span>
-                                ${card.isAIGenerated ? '<span class="ai-badge"><i class="fas fa-sparkles"></i> AI</span>' : ''}
-                                ${firstTag ? `<span class="tag-badge">${escapeHtml(firstTag)}</span>` : ''}
                             </div>
                             <div class="card-content">
                                 <p class="answer">${escapeHtml(card.content)}</p>
                             </div>
-                            <div class="card-actions">
-                                <button class="icon-btn pin ${card.isPinned ? 'active' : ''}" onclick="event.stopPropagation(); togglePin('${card._id}')" title="${card.isPinned ? 'Unpin' : 'Pin'}">
-                                    <i class="fas fa-thumbtack"></i>
-                                </button>
-                                <button class="icon-btn favorite ${card.isFavorite ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${card._id}')" title="${card.isFavorite ? 'Unfavorite' : 'Favorite'}">
-                                    <i class="fas fa-heart"></i>
-                                </button>
-                                <button class="icon-btn" onclick="event.stopPropagation(); openEditModal('${card._id}')" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="icon-btn delete" onclick="event.stopPropagation(); openDeleteModal('${card._id}')" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
+                            <div class="card-hint"><i class="fas fa-undo" style="font-size:0.6rem;"></i>Click to flip back</div>
                         </div>
                     </div>
                 </div>
@@ -1285,7 +1364,7 @@
         }).join('');
 
         // Add flip listeners
-        document.querySelectorAll('.flashcard').forEach(card => {
+        document.querySelectorAll('#cardsGrid .flashcard').forEach(card => {
             card.addEventListener('click', async (e) => {
                 if (!e.target.closest('.card-actions')) {
                     card.classList.toggle('flipped');
@@ -1345,57 +1424,53 @@
         setTimeout(() => overlay.style.display = 'none', 200);
     }
 
-    // Create modal — compact tight
+    // Create modal
     function openCreateModal() {
         const modal = `
             <div class="flashcard-modal">
-                <div class="mono" style="font-size:10px; font-weight:700; letter-spacing:0.11em; text-transform:uppercase; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem; margin-bottom:0.35rem;">
-                  <span style="width:6px;height:6px;border-radius:50%;background:var(--text-primary);opacity:0.9;display:inline-block;"></span>
-                  RETRO <span style="opacity:0.4;">·</span> NEW CARD
-                </div>
-                <h2 style="margin-bottom:0.2rem; font-size:1.18rem;">Create flashcard</h2>
-                <p class="mono" style="font-size:10.5px; color:var(--text-secondary); margin-bottom:0.75rem;">Question + answer — one idea.</p>
-                <form onsubmit="event.preventDefault(); createCard()" style="display:flex; flex-direction:column; gap:0.65rem;">
+                <h2><i class="fas fa-plus text-gray-400"></i>Create a flashcard</h2>
+                <p class="modal-sub">One idea per card — a question on the front, the answer on the back.</p>
+                <form onsubmit="event.preventDefault(); createCard()" style="display:flex; flex-direction:column; gap:1rem;">
                     <div>
                       <label>Question <span style="color:#ef4444;">*</span></label>
-                      <textarea id="newTitle" placeholder="What should you recall?" required maxlength="500" rows="2" style="min-height:68px;"></textarea>
-                      <p class="muted-small" style="margin-top:0.25rem;">500 max</p>
+                      <textarea id="newTitle" placeholder="What should you be able to recall?" required maxlength="500" rows="2"></textarea>
+                      <p class="muted-small">Up to 500 characters</p>
                     </div>
 
                     <div>
                       <label>Answer <span style="color:#ef4444;">*</span></label>
-                      <textarea id="newContent" placeholder="Answer in your own words…" required maxlength="2000" rows="3" style="min-height:84px;"></textarea>
-                      <p class="muted-small" style="margin-top:0.25rem;">2000 max</p>
+                      <textarea id="newContent" placeholder="Write the answer in your own words…" required maxlength="2000" rows="3"></textarea>
+                      <p class="muted-small">Up to 2000 characters</p>
                     </div>
 
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.7rem; align-items:start;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; align-items:start;">
                       <div>
                         <label>Difficulty</label>
-                        <div class="custom-dropdown modal-dropdown" id="newDifficultyDropdownContainer" style="margin-top:0.25rem;">
-                            <button type="button" class="custom-dropdown-btn modal-dropdown-btn" id="newDifficultyDropdownBtn" onclick="toggleModalDropdown('newDifficulty')">
+                        <div class="fc-dropdown" id="newDifficultyDropdownContainer">
+                            <button type="button" class="fc-dropdown-btn" id="newDifficultyDropdownBtn" onclick="toggleModalDropdown('newDifficulty')">
                                 <span id="newDifficultyDropdownText">Medium</span>
-                                <i class="fas fa-chevron-down"></i>
+                                <i class="fas fa-chevron-down text-xs opacity-60"></i>
                             </button>
-                            <div class="custom-dropdown-menu" id="newDifficultyDropdownMenu">
-                                <div class="custom-dropdown-item" onclick="selectModalDifficulty('newDifficulty', 'easy', 'Easy')">Easy</div>
-                                <div class="custom-dropdown-item selected" onclick="selectModalDifficulty('newDifficulty', 'medium', 'Medium')">Medium</div>
-                                <div class="custom-dropdown-item" onclick="selectModalDifficulty('newDifficulty', 'hard', 'Hard')">Hard</div>
+                            <div class="fc-dropdown-menu" id="newDifficultyDropdownMenu">
+                                <div class="fc-dropdown-item" onclick="selectModalDifficulty('newDifficulty', 'easy', 'Easy')"><span class="fc-dot fc-dot--easy"></span>Easy</div>
+                                <div class="fc-dropdown-item selected" onclick="selectModalDifficulty('newDifficulty', 'medium', 'Medium')"><span class="fc-dot fc-dot--medium"></span>Medium</div>
+                                <div class="fc-dropdown-item" onclick="selectModalDifficulty('newDifficulty', 'hard', 'Hard')"><span class="fc-dot fc-dot--hard"></span>Hard</div>
                             </div>
                         </div>
                         <input type="hidden" id="newDifficulty" value="medium">
                       </div>
                       <div>
                         <label>Tags</label>
-                        <div class="tag-input-container" id="newTagsContainer" style="margin-top:0.25rem; min-height:40px; padding:0.5rem 0.6rem;">
-                            <input type="text" class="tag-input" id="newTagInput" placeholder="tag + Enter" />
+                        <div class="tag-input-container" id="newTagsContainer">
+                            <input type="text" class="tag-input" id="newTagInput" placeholder="Type a tag, press Enter" />
                         </div>
-                        <p class="muted-small" style="margin-top:0.25rem;">Max 10</p>
+                        <p class="muted-small">Up to 10 tags</p>
                       </div>
                     </div>
 
-                    <div class="modal-actions" style="margin-top:0.15rem; padding-top:0.85rem; border-top:1px solid var(--border-color); gap:0.55rem;">
-                        <button type="button" class="btn-cancel" onclick="closeModal()" style="padding:0.58rem 1rem;">Cancel</button>
-                        <button type="submit" class="btn-primary" style="min-width:116px; padding:0.58rem 1rem;">Create</button>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                        <button type="submit" class="btn-primary">Create card</button>
                     </div>
                 </form>
             </div>
@@ -1482,57 +1557,53 @@
         }
     }
 
-    // Edit modal — compact tight
+    // Edit modal
     function openEditModal(id) {
         const card = flashcards.find(c => c._id === id);
         if (!card) return;
 
         const modal = `
             <div class="flashcard-modal">
-                <div class="mono" style="font-size:10px; font-weight:700; letter-spacing:0.11em; text-transform:uppercase; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem; margin-bottom:0.35rem;">
-                  <span style="width:6px;height:6px;border-radius:50%;background:var(--text-primary);opacity:0.9;display:inline-block;"></span>
-                  RETRO <span style="opacity:0.4;">·</span> EDIT CARD
-                </div>
-                <h2 style="margin-bottom:0.2rem; font-size:1.18rem;">Edit flashcard</h2>
-                <p class="mono" style="font-size:10.5px; color:var(--text-secondary); margin-bottom:0.75rem;">Refine — same card.</p>
-                <form onsubmit="event.preventDefault(); updateCard('${id}')" style="display:flex; flex-direction:column; gap:0.65rem;">
+                <h2><i class="fas fa-edit text-gray-400"></i>Edit flashcard</h2>
+                <p class="modal-sub">Refine the question or the answer.</p>
+                <form onsubmit="event.preventDefault(); updateCard('${id}')" style="display:flex; flex-direction:column; gap:1rem;">
                     <div>
                       <label>Question <span style="color:#ef4444;">*</span></label>
-                      <textarea id="editTitle" required maxlength="500" rows="2" style="min-height:68px;">${escapeHtml(card.title)}</textarea>
+                      <textarea id="editTitle" required maxlength="500" rows="2">${escapeHtml(card.title)}</textarea>
                     </div>
 
                     <div>
                       <label>Answer <span style="color:#ef4444;">*</span></label>
-                      <textarea id="editContent" required maxlength="2000" rows="3" style="min-height:84px;">${escapeHtml(card.content)}</textarea>
+                      <textarea id="editContent" required maxlength="2000" rows="3">${escapeHtml(card.content)}</textarea>
                     </div>
 
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.7rem; align-items:start;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; align-items:start;">
                       <div>
                         <label>Difficulty</label>
-                        <div class="custom-dropdown modal-dropdown" id="editDifficultyDropdownContainer" style="margin-top:0.25rem;">
-                            <button type="button" class="custom-dropdown-btn modal-dropdown-btn" id="editDifficultyDropdownBtn" onclick="toggleModalDropdown('editDifficulty')">
+                        <div class="fc-dropdown" id="editDifficultyDropdownContainer">
+                            <button type="button" class="fc-dropdown-btn" id="editDifficultyDropdownBtn" onclick="toggleModalDropdown('editDifficulty')">
                                 <span id="editDifficultyDropdownText">${card.difficulty.charAt(0).toUpperCase() + card.difficulty.slice(1)}</span>
-                                <i class="fas fa-chevron-down"></i>
+                                <i class="fas fa-chevron-down text-xs opacity-60"></i>
                             </button>
-                            <div class="custom-dropdown-menu" id="editDifficultyDropdownMenu">
-                                <div class="custom-dropdown-item ${card.difficulty === 'easy' ? 'selected' : ''}" onclick="selectModalDifficulty('editDifficulty', 'easy', 'Easy')">Easy</div>
-                                <div class="custom-dropdown-item ${card.difficulty === 'medium' ? 'selected' : ''}" onclick="selectModalDifficulty('editDifficulty', 'medium', 'Medium')">Medium</div>
-                                <div class="custom-dropdown-item ${card.difficulty === 'hard' ? 'selected' : ''}" onclick="selectModalDifficulty('editDifficulty', 'hard', 'Hard')">Hard</div>
+                            <div class="fc-dropdown-menu" id="editDifficultyDropdownMenu">
+                                <div class="fc-dropdown-item ${card.difficulty === 'easy' ? 'selected' : ''}" onclick="selectModalDifficulty('editDifficulty', 'easy', 'Easy')"><span class="fc-dot fc-dot--easy"></span>Easy</div>
+                                <div class="fc-dropdown-item ${card.difficulty === 'medium' ? 'selected' : ''}" onclick="selectModalDifficulty('editDifficulty', 'medium', 'Medium')"><span class="fc-dot fc-dot--medium"></span>Medium</div>
+                                <div class="fc-dropdown-item ${card.difficulty === 'hard' ? 'selected' : ''}" onclick="selectModalDifficulty('editDifficulty', 'hard', 'Hard')"><span class="fc-dot fc-dot--hard"></span>Hard</div>
                             </div>
                         </div>
                         <input type="hidden" id="editDifficulty" value="${card.difficulty}">
                       </div>
                       <div>
                         <label>Tags</label>
-                        <div class="tag-input-container" id="editTagsContainer" style="margin-top:0.25rem; min-height:40px; padding:0.5rem 0.6rem;">
-                            <input type="text" class="tag-input" id="editTagInput" placeholder="tag + Enter" />
+                        <div class="tag-input-container" id="editTagsContainer">
+                            <input type="text" class="tag-input" id="editTagInput" placeholder="Type a tag, press Enter" />
                         </div>
                       </div>
                     </div>
 
-                    <div class="modal-actions" style="margin-top:0.15rem; padding-top:0.85rem; border-top:1px solid var(--border-color); gap:0.55rem;">
-                        <button type="button" class="btn-cancel" onclick="closeModal()" style="padding:0.58rem 1rem;">Cancel</button>
-                        <button type="submit" class="btn-primary" style="min-width:116px; padding:0.58rem 1rem;">Update</button>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                        <button type="submit" class="btn-primary">Save changes</button>
                     </div>
                 </form>
             </div>
@@ -1596,15 +1667,13 @@
 
         const modal = `
             <div class="flashcard-modal">
-                <h2><i class="fas fa-trash mr-2"></i>Delete Flashcard</h2>
-                <p style="color: #6b7280; margin-bottom: 1.5rem;">
-                    Are you sure you want to delete this flashcard? This action cannot be undone.
-                </p>
-                <div style="background: #f9fafb; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem;">
-                    <p style="font-weight: 600; color: #1f2937; margin-bottom: 0.5rem;">
+                <h2><i class="fas fa-trash text-gray-400"></i>Delete flashcard</h2>
+                <p class="modal-sub">This action cannot be undone.</p>
+                <div style="background:#f9fafb; border:1px solid #e5e7eb; padding:1rem; border-radius:1rem; margin-bottom:0.5rem;">
+                    <p style="font-weight:600; color:#1f2937; margin-bottom:0.35rem;">
                         ${escapeHtml(card.title)}
                     </p>
-                    <p style="font-size: 0.875rem; color: #6b7280;">
+                    <p style="font-size:0.8125rem; color:#6b7280;">
                         Difficulty: ${card.difficulty || 'medium'}
                     </p>
                 </div>
@@ -1666,17 +1735,15 @@
 
             const modal = `
                 <div class="flashcard-modal">
-                    <h2><i class="fas fa-sparkles mr-2"></i>AI Generate Flashcards</h2>
-                    <p style="color: #6b7280; margin-bottom: 1.5rem;">
-                        Select a note to generate flashcards from using AI.
-                    </p>
+                    <h2><i class="fas fa-magic text-purple-500"></i>Generate flashcards</h2>
+                    <p class="modal-sub">Pick a note and AI will turn it into a set of flashcards.</p>
 
-                    <label>Select Note <span style="color: #dc2626;">*</span></label>
-                    <div id="notesList" style="max-height: 400px; overflow-y: auto; margin-top: 0.5rem;">
+                    <label>Select a note <span style="color:#dc2626;">*</span></label>
+                    <div id="notesList" style="max-height: 380px; overflow-y: auto; margin-top:0.5rem;">
                         ${notes.map(note => `
                             <div class="note-item" onclick="selectNote('${note._id}')">
                                 <div class="note-title">${escapeHtml(note.title || 'Untitled')}</div>
-                                <div class="note-preview">${escapeHtml((note.plainText || '').substring(0, 100))}...</div>
+                                <div class="note-preview">${escapeHtml((note.plainText || '').substring(0, 100))}…</div>
                             </div>
                         `).join('')}
                     </div>
@@ -1684,7 +1751,7 @@
                     <div class="modal-actions">
                         <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
                         <button type="button" class="btn-primary" id="generateBtn" disabled onclick="generateFlashcardsFromNote()">
-                            <i class="fas fa-sparkles mr-2"></i>Generate Flashcards
+                            <i class="fas fa-magic"></i>Generate flashcards
                         </button>
                     </div>
                 </div>
@@ -1719,7 +1786,7 @@
 
         const btn = document.getElementById('generateBtn');
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>Generating…';
 
         try {
             const response = await apiRequest(`${API_BASE}/ai`, {
@@ -1736,7 +1803,7 @@
         } catch (error) {
             showToast(error.message || 'Failed to generate flashcards', 'error');
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-sparkles mr-2"></i>Generate Flashcards';
+            btn.innerHTML = '<i class="fas fa-magic"></i>Generate flashcards';
         }
     }
 
