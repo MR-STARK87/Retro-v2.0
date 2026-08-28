@@ -14,6 +14,7 @@ import cookieParser from "cookie-parser";
 import chatSessionRoutes from "./routes/chatSessionRoutes.js";
 import musicRoutes from "./routes/musicRoutes.js";
 import subscriptionRoutes from "./routes/subscriptionRoutes.js";
+import onboardingRoutes from "./routes/onboardingRoutes.js";
 
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -82,6 +83,7 @@ app.use("/api/v1/cards", cardRoutes);
 app.use("/api/v1/chat-sessions", chatSessionRoutes);
 app.use("/api/v1/music", musicRoutes);
 app.use("/api/v1/subscription", subscriptionRoutes);
+app.use("/api/v1/onboarding", onboardingRoutes);
 
 // View routes (must be after API routes to avoid conflicts)
 app.use("/", viewRoutes);

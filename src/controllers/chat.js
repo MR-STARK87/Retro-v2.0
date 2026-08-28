@@ -70,6 +70,15 @@ export const chat = asyncHandler(async (req, res) => {
     },
   ];
 
+  // Setup profile is authoritative: if it conflicts with the mutable
+  // context below, the profile wins. Injected before the learned context.
+  if (userContext.stableContext && userContext.stableContext.trim() !== "") {
+    answeringMessages.push({
+      role: "system",
+      content: `User Profile (authoritative, set by user at setup): ${userContext.stableContext}`,
+    });
+  }
+
   // Add user context if it exists
   if (userContext.context && userContext.context.trim() !== "") {
     answeringMessages.push({
@@ -253,6 +262,13 @@ export const chatWithNote = asyncHandler(async (req, res) => {
   // Step 3: Get the note reference prompt and prepare note context
   const noteReferencePrompt = getPrompt(PROMPTS.NOTE_REFERENCE);
 
+  // Inject the user's setup profile so note chat is personalized too
+  const setupContext = await UserContext.findOne({ userId }).lean();
+  const stableProfile =
+    setupContext?.stableContext?.trim() !== ""
+      ? `\n\nUser Profile (authoritative, set by user at setup): ${setupContext.stableContext}`
+      : "";
+
   // Build note context section
   const noteContext = `
 **ATTACHED NOTE CONTENT:**
@@ -267,7 +283,7 @@ ${noteContent}
 `;
 
   // Combine the base prompt with note-specific context
-  const systemPrompt = `${noteReferencePrompt}
+  const systemPrompt = `${noteReferencePrompt}${stableProfile}
 
 ${noteContext}`;
 

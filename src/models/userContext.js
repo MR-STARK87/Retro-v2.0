@@ -16,6 +16,20 @@ const contextSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    // Setup wizard data — never written by the context generator, only by the
+    // onboarding flow, so these facts are durable and cannot be "forgotten".
+    displayName: {
+      type: String,
+      default: "",
+    },
+    stableContext: {
+      type: String,
+      default: "",
+    },
+    setupCompleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

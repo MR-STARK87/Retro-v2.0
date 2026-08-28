@@ -1,6 +1,7 @@
 import express from "express";
 import viewTokenChecker from "../middlewares/viewTokenChecker.js";
 import redirectIfAuthenticated from "../middlewares/redirectIfAuthenticated.js";
+import UserContext from "../models/userContext.js";
 
 const router = express.Router();
 
@@ -19,8 +20,30 @@ router.get("/signup", redirectIfAuthenticated, (req, res) => {
   });
 });
 
+// Helper: has the user completed the post-signup setup wizard?
+const hasCompletedSetup = async (userId) => {
+  const userContext = await UserContext.findOne({ userId })
+    .select("setupCompleted")
+    .lean();
+  return Boolean(userContext?.setupCompleted);
+};
+
+// Protected setup wizard (post-signup onboarding)
+router.get("/setup", viewTokenChecker, async (req, res) => {
+  if (await hasCompletedSetup(req.user._id)) {
+    return res.redirect("/app");
+  }
+  res.render("setup", {
+    title: "Welcome | Retro",
+    user: req.user,
+  });
+});
+
 // Protected app route (combines chat and notes with horizontal navigation)
-router.get("/app", viewTokenChecker, (req, res) => {
+router.get("/app", viewTokenChecker, async (req, res) => {
+  if (!(await hasCompletedSetup(req.user._id))) {
+    return res.redirect("/setup");
+  }
   res.render("app", {
     title: "My App - Chat & Notes",
     user: req.user,
