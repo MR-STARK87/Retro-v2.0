@@ -78,17 +78,21 @@ export const chat = asyncHandler(async (req, res) => {
     });
   }
 
-  // Add user's message
-  answeringMessages.push({
-    role: "user",
-    content: message,
-  });
+  // Push the actual conversation history (capped to keep payloads sane)
+  const HISTORY_LIMIT = 40;
+  const history = currentSession.messages.slice(-HISTORY_LIMIT);
+  for (const msg of history) {
+    answeringMessages.push({
+      role: msg.sender === "user" ? "user" : "assistant",
+      content: msg.content,
+    });
+  }
 
-  // Step 4: Make first API call to get the answer
-  let answerResponse;
+  // Step 4: Make the API call to get the answer (plain text, no JSON wrapper)
+  let answer;
   try {
     const apiResponse = await chatCompletion(answeringMessages);
-    answerResponse = extractMessageContent(apiResponse);
+    answer = extractMessageContent(apiResponse);
   } catch (error) {
     console.error("Error getting answer from OpenAI:", error);
     return res.status(500).json({
@@ -98,39 +102,28 @@ export const chat = asyncHandler(async (req, res) => {
     });
   }
 
-  // Step 5: Parse the JSON response from the answering model
-  let parsedAnswer;
-  try {
-    parsedAnswer = JSON.parse(answerResponse);
-
-    if (!parsedAnswer.response || !parsedAnswer.meta) {
-      throw new Error(
-        "Invalid response format: missing 'response' or 'meta' field",
-      );
-    }
-  } catch (error) {
-    console.error("Error parsing answer response:", error);
+  if (!answer || answer.trim() === "") {
+    console.error("Empty answer received from AI");
     return res.status(500).json({
       success: false,
-      message: "Invalid response format from AI",
-      error: error.message,
+      message: "Empty response from AI",
     });
   }
 
   currentSession.messages.push({
     sender: "ai",
-    content: parsedAnswer.response,
+    content: answer,
   });
+  currentSession.updatedAt = Date.now();
   await currentSession.save();
 
-  // Step 6: Send the answer to the user
+  // Step 5: Send the answer to the user
   res.status(200).json({
     success: true,
-    response: parsedAnswer.response,
-    meta: parsedAnswer.meta,
+    response: answer,
   });
 
-  // Step 7: Make second API call to update context (async, don't wait)
+  // Step 6: Make second API call to update context (async, don't wait)
   (async () => {
     try {
       const contextMessages = [
@@ -170,7 +163,7 @@ export const chat = asyncHandler(async (req, res) => {
  */
 export const chatWithNote = asyncHandler(async (req, res) => {
   const userId = req.user._id;
-  const { message, noteId } = req.body;
+  const { message, noteId, chatSessionId } = req.body;
 
   // Validate message
   if (!message || typeof message !== "string" || message.trim() === "") {
@@ -186,6 +179,34 @@ export const chatWithNote = asyncHandler(async (req, res) => {
       success: false,
       message: "Note ID is required",
     });
+  }
+
+  // Validate chatSessionId and load the session (scoped to this user)
+  if (!chatSessionId || typeof chatSessionId !== "string") {
+    return res.status(400).json({
+      success: false,
+      message: "Chat session ID is required",
+    });
+  }
+  const currentSession = await ChatSession.findOne({
+    _id: chatSessionId,
+    userId,
+  });
+  if (!currentSession) {
+    return res.status(404).json({
+      success: false,
+      message: "Chat session not found",
+    });
+  }
+
+  // Auto-generate title from first message (first 6 words)
+  if (
+    currentSession.messages.length === 0 &&
+    currentSession.title === "New Chat"
+  ) {
+    const words = message.trim().split(/\s+/);
+    const titleWords = words.slice(0, 6).join(" ");
+    currentSession.title = titleWords + (words.length > 6 ? "..." : "");
   }
 
   // Step 1: Retrieve the note from database
@@ -217,6 +238,11 @@ export const chatWithNote = asyncHandler(async (req, res) => {
     });
   }
 
+  // Persist the user's message before calling the AI
+  currentSession.messages.push({ sender: "user", content: message });
+  currentSession.updatedAt = Date.now();
+  await currentSession.save();
+
   // Step 2: Extract plain text from note content
   let noteContent = note.plainText || note.extractPlainText();
 
@@ -245,23 +271,28 @@ ${noteContent}
 
 ${noteContext}`;
 
-  // Step 4: Prepare messages for the AI
+  // Step 4: Prepare messages for the AI — note context first, then conversation history
   const messages = [
     {
       role: "system",
       content: systemPrompt,
     },
-    {
-      role: "user",
-      content: message,
-    },
   ];
 
-  // Step 5: Make API call to get the answer
-  let aiResponse;
+  const HISTORY_LIMIT = 40;
+  const history = currentSession.messages.slice(-HISTORY_LIMIT);
+  for (const msg of history) {
+    messages.push({
+      role: msg.sender === "user" ? "user" : "assistant",
+      content: msg.content,
+    });
+  }
+
+  // Step 5: Make API call to get the answer (plain text, no JSON wrapper)
+  let answer;
   try {
     const apiResponse = await chatCompletion(messages);
-    aiResponse = extractMessageContent(apiResponse);
+    answer = extractMessageContent(apiResponse);
   } catch (error) {
     console.error("Error getting answer from OpenAI:", error);
     return res.status(500).json({
@@ -271,30 +302,26 @@ ${noteContext}`;
     });
   }
 
-  // Step 6: Parse the JSON response
-  let parsedAnswer;
-  try {
-    parsedAnswer = JSON.parse(aiResponse);
-
-    if (!parsedAnswer.response || !parsedAnswer.meta) {
-      throw new Error(
-        "Invalid response format: missing 'response' or 'meta' field",
-      );
-    }
-  } catch (error) {
-    console.error("Error parsing AI response:", error);
+  if (!answer || answer.trim() === "") {
+    console.error("Empty answer received from AI");
     return res.status(500).json({
       success: false,
-      message: "Invalid response format from AI",
-      error: error.message,
+      message: "Empty response from AI",
     });
   }
 
-  // Step 7: Send the answer to the user
+  // Persist the AI's reply
+  currentSession.messages.push({
+    sender: "ai",
+    content: answer,
+  });
+  currentSession.updatedAt = Date.now();
+  await currentSession.save();
+
+  // Step 6: Send the answer to the user
   res.status(200).json({
     success: true,
-    response: parsedAnswer.response,
-    meta: parsedAnswer.meta,
+    response: answer,
     noteReference: {
       noteId: note._id,
       noteTitle: note.title,

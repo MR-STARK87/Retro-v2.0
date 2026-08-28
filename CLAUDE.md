@@ -122,7 +122,7 @@ When adding a new route group: create a router file in `src/routes/`, import it 
 - Success (notes/cards/health/subscription): `{ success: true, message, data }` (HTTP 200/201).
 - Errors: `{ success: false, message, errors? }` — JSON; auth verification uses non-JSON `sendFile` for `email-verification-error.html`/`email-verified.html`.
 - Auth endpoints: `register` returns `{ user, message }` (201), `login`/`logout`/`refresh-token`/`forgot-password` return `{ message }` and set HTTP-only cookies (`accessToken`, `refreshToken`); `GET /auth/me` returns `{ user, memory, message }`.
-- Chat endpoints return `{ success, response, meta }` (`chatWithNote` also includes `noteReference`).
+- Chat endpoints return `{ success, response }` (`chatWithNote` also includes `noteReference`). Responses are plain text from the model — the old JSON `{response, meta}` wrapper and meta-based context were removed; conversation history (last 40 messages) is pushed directly to the model instead.
 
 ## Common tasks
 
