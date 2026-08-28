@@ -1,0 +1,962 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Notes - Smart Note Taking</title>
+
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <link
+            href="https://cdn.quilljs.com/1.3.6/quill.snow.css"
+            rel="stylesheet"
+        />
+
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+
+    <body class="bg-gray-50 text-gray-900 min-h-screen overflow-hidden">
+        <!-- Hidden Navigation Dock -->
+        <nav class="nav-dock" id="navDock" aria-hidden="true">
+            <div class="nav-dock-wrapper">
+                <div class="nav-dock-hint">
+                    <span
+                        >Navigate with ← → arrows | Enter to select | Shift+Tab
+                        to close</span
+                    >
+                </div>
+                <ul class="nav-dock-menu" id="navDockMenu">
+                    <li class="nav-dock-item">
+                        <a
+                            href="index.html"
+                            class="nav-dock-link"
+                            data-index="0"
+                        >
+                            <i class="fas fa-comments"></i>
+                            <span class="nav-dock-label">Chat</span>
+                        </a>
+                    </li>
+                    <li class="nav-dock-item">
+                        <a
+                            href="cards.html"
+                            class="nav-dock-link"
+                            data-index="1"
+                        >
+                            <i class="fas fa-cards-blank"></i>
+                            <span class="nav-dock-label">Cards</span>
+                        </a>
+                    </li>
+                    <li class="nav-dock-item">
+                        <a
+                            href="notesFinal.html"
+                            class="nav-dock-link"
+                            data-index="2"
+                        >
+                            <i class="fas fa-note-sticky"></i>
+                            <span class="nav-dock-label">Notes</span>
+                        </a>
+                    </li>
+                    <li class="nav-dock-item">
+                        <a
+                            href="pomodoro-focus.html"
+                            class="nav-dock-link"
+                            data-index="3"
+                        >
+                            <i class="fas fa-hourglass-half"></i>
+                            <span class="nav-dock-label">Den</span>
+                        </a>
+                    </li>
+                </ul>
+                <button
+                    class="theme-toggle nav-dock-theme"
+                    type="button"
+                    aria-label="Toggle theme"
+                    onclick="toggleTheme()"
+                    tabindex="-1"
+                >
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Reserved space for future navbar -->
+        <div style="height: 80px; width: 100%"></div>
+
+        <div class="flex" style="height: calc(100vh - 80px)">
+            <div
+                class="w-80 bg-gray-100 border-r border-gray-200 flex flex-col rounded-r-3xl h-full"
+            >
+                <div
+                    class="p-6 border-b border-gray-200 bg-white rounded-tr-3xl"
+                >
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold text-gray-800">
+                            Notes
+                        </h2>
+                        <button
+                            onclick="createNewNote()"
+                            class="tooltip flex items-center justify-center w-10 h-10 text-center text-white duration-200 bg-black border-2 border-black rounded-full hover:bg-transparent hover:border-black hover:text-black focus:outline-none text-sm"
+                            data-tooltip="Create a new note"
+                        >
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+
+                    <div class="relative">
+                        <i
+                            class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        ></i>
+                        <input
+                            type="text"
+                            placeholder="Search notes..."
+                            class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-full text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                            id="searchInput"
+                        />
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4">
+                    <div
+                        class="h-full overflow-y-auto"
+                        style="max-height: calc(100vh - 20rem)"
+                    >
+                        <div class="space-y-4" id="notesList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col bg-gray-50 p-6">
+                <div
+                    class="flex flex-col bg-white rounded-3xl shadow-lg h-full"
+                >
+                    <div class="px-8 py-6 border-b border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <input
+                                type="text"
+                                value=""
+                                placeholder="Untitled Note"
+                                class="text-2xl font-medium tracking-tighter text-gray-800 bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500 rounded px-2 py-1"
+                                id="noteTitle"
+                            />
+
+                            <div class="flex items-center space-x-3">
+                                <button
+                                    onclick="enhanceWithRetro()"
+                                    class="tooltip flex items-center justify-center px-6 py-2.5 text-center text-white duration-200 bg-black border-2 border-black rounded-full hover:bg-transparent hover:border-black hover:text-black focus:outline-none focus-visible:outline-black text-sm focus-visible:ring-black"
+                                    data-tooltip="Enhance your note with AI assistance"
+                                >
+                                    <i class="fas fa-magic mr-2"></i>
+                                    Enhance with AI
+                                </button>
+
+                                <button
+                                    class="tooltip flex items-center justify-center px-6 py-2.5 text-center text-gray-700 duration-200 bg-gray-100 border-2 border-gray-100 rounded-full hover:bg-transparent hover:border-gray-300 hover:text-gray-800 focus:outline-none text-sm"
+                                    data-tooltip="Export note to PDF or other formats"
+                                >
+                                    <i class="fas fa-download mr-2"></i>
+                                    Export
+                                </button>
+
+                                <button
+                                    onclick="syncNotes()"
+                                    class="tooltip flex items-center justify-center px-6 py-2.5 text-center text-white duration-200 bg-purple-600 border-2 border-purple-600 rounded-full hover:bg-transparent hover:border-purple-600 hover:text-purple-600 focus:outline-none text-sm"
+                                    data-tooltip="Sync your notes across devices"
+                                >
+                                    <i class="fas fa-sync-alt mr-2"></i>
+                                    Sync
+                                </button>
+                                <button
+                                    onclick="saveNote()"
+                                    class="tooltip flex items-center justify-center px-6 py-2.5 text-center text-white duration-200 bg-green-600 border-2 border-green-600 rounded-full hover:bg-transparent hover:border-green-600 hover:text-green-600 focus:outline-none focus-visible:outline-green-600 text-sm"
+                                    data-tooltip="Save your note locally and to the server"
+                                >
+                                    <i class="fas fa-save mr-2"></i>
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="flex-1 p-8 relative overflow-hidden"
+                        style="padding-top: 24px"
+                    >
+                        <div
+                            id="editor"
+                            class="h-full bg-transparent rounded-2xl overflow-hidden"
+                            style="
+                                min-height: 400px;
+                                max-height: calc(100vh - 300px);
+                            "
+                        ></div>
+
+                        <button
+                            onclick="openReadMode()"
+                            class="tooltip absolute flex items-center justify-center px-6 py-2.5 text-center text-white duration-200 bg-purple-600 border-2 border-purple-600 rounded-full hover:bg-transparent hover:border-purple-600 hover:text-purple-600 focus:outline-none shadow-lg hover:shadow-xl transition-all text-sm"
+                            style="bottom: 42px; right: 42px"
+                            data-tooltip="Open in read mode"
+                        >
+                            <i class="fas fa-book-open mr-2"></i>
+                            Read
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="readModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="flex items-center justify-between w-full">
+                        <div class="flex items-center space-x-3">
+                            <i
+                                class="fas fa-book-open text-purple-600 text-xl"
+                            ></i>
+                            <h2 class="text-xl font-semibold text-gray-800">
+                                Read Mode
+                            </h2>
+                            <span class="text-gray-400">-</span>
+                            <h3
+                                id="readModeHeaderTitle"
+                                class="text-lg font-medium text-gray-700"
+                            >
+                                Untitled Note
+                            </h3>
+                        </div>
+                        <button
+                            onclick="closeReadMode()"
+                            class="flex items-center justify-center w-10 h-10 text-center text-gray-500 duration-200 bg-gray-100 border-2 border-gray-100 rounded-full hover:bg-transparent hover:border-gray-300 hover:text-gray-700 focus:outline-none"
+                        >
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div
+                        id="readModeContent"
+                        class="prose prose-lg max-w-none"
+                    ></div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+        <script>
+            function toggleTheme() {
+                const body = document.body;
+                const themeToggleIcon =
+                    document.querySelector(".theme-toggle i");
+                const isDark = body.getAttribute("data-theme") === "dark";
+                body.setAttribute("data-theme", isDark ? "light" : "dark");
+                if (themeToggleIcon) {
+                    themeToggleIcon.className = isDark
+                        ? "fas fa-moon"
+                        : "fas fa-sun";
+                }
+                localStorage.setItem("theme", isDark ? "light" : "dark");
+            }
+
+            function loadSavedTheme() {
+                const savedTheme = localStorage.getItem("theme") || "light";
+                document.body.setAttribute("data-theme", savedTheme);
+                const themeToggleIcon =
+                    document.querySelector(".theme-toggle i");
+                if (themeToggleIcon) {
+                    themeToggleIcon.className =
+                        savedTheme === "dark" ? "fas fa-sun" : "fas fa-moon";
+                }
+            }
+
+            function initNavigation() {
+                const menu = document.querySelector(".nav-menu");
+                const toggle = document.querySelector(".nav-toggle");
+                if (!menu || !toggle) return;
+
+                const icon = toggle.querySelector("i");
+
+                const closeMenu = () => {
+                    menu.classList.remove("nav-menu--open");
+                    toggle.setAttribute("aria-expanded", "false");
+                    if (icon) icon.className = "fas fa-bars";
+                };
+
+                toggle.addEventListener("click", () => {
+                    const isExpanded =
+                        toggle.getAttribute("aria-expanded") === "true";
+                    if (isExpanded) {
+                        closeMenu();
+                    } else {
+                        menu.classList.add("nav-menu--open");
+                        toggle.setAttribute("aria-expanded", "true");
+                        if (icon) icon.className = "fas fa-times";
+                    }
+                });
+
+                window.addEventListener("resize", () => {
+                    if (window.innerWidth > 768) {
+                        closeMenu();
+                    }
+                });
+
+                menu.querySelectorAll("a").forEach((link) => {
+                    link.addEventListener("click", () => {
+                        if (window.innerWidth <= 768) {
+                            closeMenu();
+                        }
+                    });
+                });
+            }
+
+            loadSavedTheme();
+            initNavigation();
+
+            // Initialize Quill Editor
+            var quill = new Quill("#editor", {
+                theme: "snow",
+                placeholder: "Start writing your notes...",
+                modules: {
+                    toolbar: [
+                        // Text Formatting
+                        ["bold", "italic", "underline", "strike"],
+
+                        // Headers and Structure
+                        [
+                            { header: 1 },
+                            { header: 2 },
+                            { header: [1, 2, 3, 4, 5, 6, false] },
+                        ],
+
+                        // Lists and Indentation
+                        [{ list: "ordered" }, { list: "bullet" }],
+                        [{ indent: "-1" }, { indent: "+1" }],
+
+                        // Text Style and Formatting
+                        [{ size: ["small", false, "large", "huge"] }],
+                        [{ font: [] }],
+                        [{ color: [] }, { background: [] }],
+
+                        // Alignment and Direction
+                        [{ align: [] }],
+                        [{ direction: "rtl" }],
+
+                        // Special Elements
+                        ["blockquote", "code-block"],
+                        [{ script: "sub" }, { script: "super" }],
+
+                        // Media and Links
+                        ["link", "image", "video"],
+
+                        // Clean
+                        ["clean"],
+                    ],
+                },
+            });
+
+            // Cleared sample content initialization
+            // quill.setContents([]);
+
+            // JavaScript functions for buttons
+            /*********************************
+             * Local Storage + Save Handling *
+             *********************************/
+            const LS_KEY = "retroNotes";
+            let currentNoteId = null; // Track the note currently being edited
+
+            function getStoredNotes() {
+                try {
+                    return JSON.parse(localStorage.getItem(LS_KEY)) || [];
+                } catch (e) {
+                    console.warn("Failed to parse notes from localStorage", e);
+                    return [];
+                }
+            }
+
+            function storeNotes(notes) {
+                localStorage.setItem(LS_KEY, JSON.stringify(notes));
+            }
+
+            function generateId() {
+                return (
+                    "note_" +
+                    Date.now() +
+                    "_" +
+                    Math.random().toString(36).slice(2, 8)
+                );
+            }
+
+            function stripHtml(html) {
+                const div = document.createElement("div");
+                div.innerHTML = html;
+                return div.textContent || div.innerText || "";
+            }
+
+            function renderNotesList() {
+                const notes = getStoredNotes();
+                const list = document.getElementById("notesList");
+                list.innerHTML = "";
+                notes
+                    .sort(
+                        (a, b) =>
+                            new Date(b.updatedAt || b.createdAt) -
+                            new Date(a.updatedAt || a.createdAt),
+                    )
+                    .forEach((note) => {
+                        const item = document.createElement("div");
+                        item.className =
+                            "note-item flex flex-col bg-white rounded-3xl cursor-pointer transform transition-all duration-200 hover:-translate-y-1 hover:shadow-xl";
+                        item.onclick = () => openNote(note.id);
+                        const dateStr = new Date(
+                            note.updatedAt || note.createdAt,
+                        ).toLocaleDateString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                        });
+                        const snippet =
+                            stripHtml(note.html).slice(0, 160) +
+                            (stripHtml(note.html).length > 160 ? "…" : "");
+                        item.innerHTML = `
+              <div class="px-6 py-6">
+                <div class="grid items-center justify-center w-full grid-cols-1 text-left">
+                  <div>
+                    <h3 class="text-lg font-medium tracking-tighter text-gray-800 mb-2">${
+                        note.title || "Untitled Note"
+                    }</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">${
+                        snippet || "No content yet."
+                    }</p>
+                  </div>
+                  <div class="mt-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                      <div class="flex items-center text-xs text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full">
+                        <i class="fas fa-calendar text-purple-500 mr-2"></i>
+                        <span class="font-medium">${dateStr}</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <button class="tooltip flex items-center justify-center w-8 h-8 text-center text-red-500 duration-200 bg-red-50 border-2 border-red-50 rounded-full hover:bg-transparent hover:border-red-500 hover:text-red-600 focus:outline-none text-xs" data-tooltip="Delete note" onclick="deleteNote(event)">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>`;
+                        item.dataset.noteId = note.id;
+                        list.appendChild(item);
+                    });
+            }
+
+            function openNote(id) {
+                const notes = getStoredNotes();
+                const note = notes.find((n) => n.id === id);
+                if (!note) return;
+                currentNoteId = note.id;
+                document.getElementById("noteTitle").value = note.title || "";
+                try {
+                    if (note.delta) {
+                        quill.setContents(note.delta);
+                    } else {
+                        quill.root.innerHTML = note.html || "";
+                    }
+                } catch (e) {
+                    quill.root.innerHTML = note.html || "";
+                }
+            }
+
+            async function saveNote(skipIfEmpty = false) {
+                const titleInput = document.getElementById("noteTitle");
+                const title = titleInput.value.trim();
+                const html = quill.root.innerHTML.trim();
+                const delta = quill.getContents();
+                const plain = stripHtml(html).trim();
+
+                if (skipIfEmpty && !title && !plain) {
+                    return; // nothing to save
+                }
+
+                if (!title && !plain) {
+                    // Don't save a completely empty note
+                    console.log("Empty note not saved.");
+                    return;
+                }
+
+                const notes = getStoredNotes();
+                let note;
+                const now = new Date().toISOString();
+                if (currentNoteId) {
+                    note = notes.find((n) => n.id === currentNoteId);
+                    if (note) {
+                        note.title = title || "Untitled Note";
+                        note.html = html;
+                        note.delta = delta;
+                        note.updatedAt = now;
+                    }
+                }
+                if (!note) {
+                    note = {
+                        id: generateId(),
+                        title: title || "Untitled Note",
+                        html,
+                        delta,
+                        createdAt: now,
+                        updatedAt: now,
+                    };
+                    notes.push(note);
+                    currentNoteId = note.id;
+                }
+                storeNotes(notes);
+                renderNotesList();
+                console.log("Note saved locally", note);
+
+                // Fire & forget POST to backend placeholder
+                try {
+                    fetch("http://localhost:3000/notes", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            id: note.id,
+                            title: note.title,
+                            html: note.html, // includes formatting
+                            delta: note.delta, // structured formatting
+                            createdAt: note.createdAt,
+                            updatedAt: note.updatedAt,
+                        }),
+                    })
+                        .then((r) => r.json().catch(() => null))
+                        .then((resp) => {
+                            console.log(
+                                "Server save response (placeholder):",
+                                resp,
+                            );
+                        })
+                        .catch((err) => console.warn("POST failed", err));
+                } catch (err) {
+                    console.warn("Error sending note to server", err);
+                }
+            }
+
+            function createNewNote() {
+                console.log("Creating new note...");
+                // Save current note before clearing (skip if empty)
+                saveNote(true);
+                // Reset for new note
+                currentNoteId = null;
+                document.getElementById("noteTitle").value = "";
+                quill.setContents([]);
+                quill.focus();
+            }
+
+            // Expose saveNote globally for button onclick
+            window.saveNote = saveNote;
+
+            function enhanceWithRetro() {
+                // Save current note first (if it has content) so backend can optionally store enhanced version
+                saveNote(true);
+                const titleInput = document.getElementById("noteTitle");
+                const title = titleInput.value.trim() || "Untitled Note";
+                const html = quill.root.innerHTML;
+                const delta = quill.getContents();
+                const noteId = currentNoteId; // may be null for brand-new unsaved note
+
+                // Simple loading overlay
+                let overlay = document.getElementById("enhance-overlay");
+                if (!overlay) {
+                    overlay = document.createElement("div");
+                    overlay.id = "enhance-overlay";
+                    overlay.style.cssText = `position:fixed;inset:0;background:rgba(255,255,255,0.75);backdrop-filter:saturate(180%) blur(4px);display:flex;align-items:center;justify-content:center;z-index:2000;`;
+                    overlay.innerHTML = `<div style="text-align:center;font-family:'Space Grotesk',sans-serif;">
+              <div class="animate-spin" style="width:54px;height:54px;border:5px solid #ddd;border-top-color:#7e22ce;border-radius:50%;margin:0 auto 1.25rem"></div>
+              <h3 style="margin:0 0 .5rem;font-size:1.15rem;color:#333;font-weight:600;">Enhancing note…</h3>
+              <p style="margin:0;color:#555;font-size:.9rem;max-width:360px;">Polishing wording while preserving your voice. This usually takes a few seconds.</p>
+          </div>`;
+                    document.body.appendChild(overlay);
+                }
+
+                fetch("http://localhost:3000/notes/enhance", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: noteId, title, html, delta }),
+                })
+                    .then((r) => {
+                        if (!r.ok) throw new Error("Enhance request failed");
+                        return r.json();
+                    })
+                    .then((data) => {
+                        if (!data || !data.success)
+                            throw new Error("Invalid enhance response");
+                        const md = data.enhancedMarkdown || stripHtml(html);
+                        // Convert markdown to HTML using marked (full fidelity) & set content
+                        try {
+                            const rendered = marked.parse(md);
+                            quill.root.innerHTML = rendered; // Replace editor contents
+                            // Rebuild delta from the new HTML (basic approach: let Quill parse innerHTML)
+                            // Quill doesn't have official HTML->delta parser here, but setHTML equivalent by innerHTML assignment already done.
+                            // Force a save to persist enhanced version
+                            saveNote(true);
+                        } catch (e) {
+                            console.warn(
+                                "Markdown render failed, fallback to text",
+                                e,
+                            );
+                        }
+                    })
+                    .catch((err) => {
+                        console.error("Enhance error", err);
+                        // Non-intrusive toast
+                        const toast = document.createElement("div");
+                        toast.style.cssText = `position:fixed;bottom:24px;right:24px;background:#ef4444;color:#fff;padding:12px 18px;border-radius:14px;font-size:.85rem;font-weight:500;box-shadow:0 6px 20px -4px rgba(0,0,0,.25);z-index:2100;`;
+                        toast.textContent = "AI enhancement failed";
+                        document.body.appendChild(toast);
+                        setTimeout(() => toast.remove(), 3200);
+                    })
+                    .finally(() => {
+                        if (overlay) overlay.remove();
+                    });
+            }
+
+            function syncNotes() {
+                console.log("Syncing notes...");
+                // Implementation for syncing notes
+            }
+
+            function deleteNote(event) {
+                event.stopPropagation(); // Prevent triggering note selection
+
+                // Find the note item element
+                const noteItem = event.target.closest(".note-item");
+                if (!noteItem) {
+                    console.error("Note item not found");
+                    return;
+                }
+
+                // Get note title for display in confirmation
+                const noteTitle = noteItem.querySelector("h3")
+                    ? noteItem.querySelector("h3").textContent
+                    : "Untitled Note";
+
+                // Create confirmation modal
+                const modal = document.createElement("div");
+                modal.className = "delete-confirmation-modal";
+                modal.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+        `;
+
+                // Create modal content
+                const modalContent = document.createElement("div");
+                modalContent.style.cssText = `
+          background: white;
+          border-radius: 24px;
+          padding: 2rem;
+          max-width: 400px;
+          width: 90%;
+          text-align: center;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        `;
+
+                modalContent.innerHTML = `
+          <div style="margin-bottom: 1.5rem;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ef4444; margin-bottom: 1rem;"></i>
+            <h2 style="margin: 0 0 1rem 0; color: #333; font-family: 'Space Grotesk', sans-serif;">Delete Note?</h2>
+            <p style="margin: 0 0 1rem 0; color: #666; line-height: 1.5;">Are you sure you want to delete this note? This action cannot be undone.</p>
+            <div style="background: #f8f9fa; border-radius: 12px; padding: 1rem; margin: 1rem 0; border-left: 4px solid #ef4444;">
+              <strong style="color: #333;">${noteTitle}</strong>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button id="cancel-delete-note" style="padding: 0.75rem 1.5rem; background: #f3f4f6; color: #374151; border: 2px solid #d1d5db; border-radius: 12px; cursor: pointer; font-size: 1rem; transition: all 0.2s;">
+              Cancel
+            </button>
+            <button id="confirm-delete-note" style="padding: 0.75rem 1.5rem; background: #ef4444; color: white; border: 2px solid #ef4444; border-radius: 12px; cursor: pointer; font-size: 1rem; transition: all 0.2s;">
+              <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>
+              Delete Note
+            </button>
+          </div>
+        `;
+
+                modal.appendChild(modalContent);
+                document.body.appendChild(modal);
+
+                // Handle cancel button
+                document
+                    .getElementById("cancel-delete-note")
+                    .addEventListener("click", () => {
+                        document.body.removeChild(modal);
+                    });
+
+                // Handle confirm delete button
+                document
+                    .getElementById("confirm-delete-note")
+                    .addEventListener("click", () => {
+                        // Add fade out animation
+                        noteItem.style.transition =
+                            "opacity 0.3s ease, transform 0.3s ease";
+                        noteItem.style.opacity = "0";
+                        noteItem.style.transform = "translateX(-20px)";
+
+                        // Remove the element after animation
+                        setTimeout(() => {
+                            noteItem.remove();
+                            console.log("Note deleted successfully");
+                        }, 300);
+
+                        document.body.removeChild(modal);
+                    });
+
+                // Close modal when clicking outside
+                modal.addEventListener("click", (e) => {
+                    if (e.target === modal) {
+                        document.body.removeChild(modal);
+                    }
+                });
+
+                // Add hover effects for buttons
+                const cancelBtn = document.getElementById("cancel-delete-note");
+                const confirmBtn = document.getElementById(
+                    "confirm-delete-note",
+                );
+
+                cancelBtn.addEventListener("mouseenter", () => {
+                    cancelBtn.style.background = "#e5e7eb";
+                    cancelBtn.style.borderColor = "#9ca3af";
+                });
+
+                cancelBtn.addEventListener("mouseleave", () => {
+                    cancelBtn.style.background = "#f3f4f6";
+                    cancelBtn.style.borderColor = "#d1d5db";
+                });
+
+                confirmBtn.addEventListener("mouseenter", () => {
+                    confirmBtn.style.background = "#dc2626";
+                });
+
+                confirmBtn.addEventListener("mouseleave", () => {
+                    confirmBtn.style.background = "#ef4444";
+                });
+            }
+
+            function openReadMode() {
+                const modal = document.getElementById("readModal");
+                const titleInput = document.getElementById("noteTitle");
+                const title = titleInput.value.trim() || titleInput.placeholder; // Use placeholder if empty
+                const readModeHeaderTitle = document.getElementById(
+                    "readModeHeaderTitle",
+                );
+                const readModeContent =
+                    document.getElementById("readModeContent");
+
+                // Set the title in header
+                readModeHeaderTitle.textContent = title;
+
+                // Get the content from Quill editor and convert to HTML
+                const content = quill.root.innerHTML;
+                readModeContent.innerHTML = content;
+
+                // Show the modal
+                modal.classList.add("active");
+                document.body.style.overflow = "hidden";
+            }
+
+            function closeReadMode() {
+                const modal = document.getElementById("readModal");
+                modal.classList.remove("active");
+                document.body.style.overflow = "auto";
+            }
+
+            // Close modal when clicking outside
+            document
+                .getElementById("readModal")
+                .addEventListener("click", function (e) {
+                    if (e.target === this) {
+                        closeReadMode();
+                    }
+                });
+
+            // Close modal with Escape key
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape") {
+                    closeReadMode();
+                }
+            });
+
+            // Search functionality
+            document
+                .getElementById("searchInput")
+                .addEventListener("input", function (e) {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const noteItems = document.querySelectorAll(".note-item");
+
+                    noteItems.forEach((item) => {
+                        const titleElement = item.querySelector("h3");
+                        const contentElement = item.querySelector("p");
+
+                        if (titleElement && contentElement) {
+                            const title =
+                                titleElement.textContent.toLowerCase();
+                            const content =
+                                contentElement.textContent.toLowerCase();
+
+                            if (
+                                title.includes(searchTerm) ||
+                                content.includes(searchTerm)
+                            ) {
+                                item.style.display = "block";
+                            } else {
+                                item.style.display = "none";
+                            }
+                        }
+                    });
+                });
+
+            // Auto-save functionality
+            let autoSaveTimeout;
+            quill.on("text-change", function () {
+                clearTimeout(autoSaveTimeout);
+                autoSaveTimeout = setTimeout(function () {
+                    console.log("Auto-saving...");
+                    // Auto-save updates existing note silently (avoid creating blank ones)
+                    if (currentNoteId) {
+                        saveNote(true);
+                    }
+                }, 2000);
+            });
+
+            // Initial load of stored notes on page ready
+            window.addEventListener("DOMContentLoaded", () => {
+                renderNotesList();
+            });
+
+            // Navigation Dock Controller
+            (function () {
+                const dock = document.getElementById("navDock");
+                const dockLinks = document.querySelectorAll(".nav-dock-link");
+                let currentIndex = 0;
+                let isDockOpen = false;
+
+                const currentPage =
+                    window.location.pathname.split("/").pop() || "index.html";
+                dockLinks.forEach((link, index) => {
+                    const href = link.getAttribute("href");
+                    if (href === currentPage) {
+                        currentIndex = index;
+                    }
+                });
+
+                function showDock() {
+                    isDockOpen = true;
+                    dock.classList.add("nav-dock--visible");
+                    dock.setAttribute("aria-hidden", "false");
+                    updateFocus();
+                }
+
+                function hideDock() {
+                    isDockOpen = false;
+                    dock.classList.remove("nav-dock--visible");
+                    dock.setAttribute("aria-hidden", "true");
+                    dockLinks.forEach((link) =>
+                        link.classList.remove("nav-dock-link--focused"),
+                    );
+                }
+
+                function updateFocus() {
+                    dockLinks.forEach((link, index) => {
+                        if (index === currentIndex) {
+                            link.classList.add("nav-dock-link--focused");
+                            link.focus();
+                        } else {
+                            link.classList.remove("nav-dock-link--focused");
+                        }
+                    });
+                }
+
+                function navigateLeft() {
+                    currentIndex =
+                        (currentIndex - 1 + dockLinks.length) %
+                        dockLinks.length;
+                    updateFocus();
+                }
+
+                function navigateRight() {
+                    currentIndex = (currentIndex + 1) % dockLinks.length;
+                    updateFocus();
+                }
+
+                function selectCurrent() {
+                    const currentLink = dockLinks[currentIndex];
+                    if (currentLink) {
+                        window.location.href = currentLink.getAttribute("href");
+                    }
+                }
+
+                document.addEventListener("keydown", (e) => {
+                    if (e.shiftKey && e.key === "Tab") {
+                        e.preventDefault();
+                        if (isDockOpen) {
+                            hideDock();
+                        } else {
+                            showDock();
+                        }
+                        return;
+                    }
+
+                    if (!isDockOpen) return;
+
+                    switch (e.key) {
+                        case "ArrowLeft":
+                            e.preventDefault();
+                            navigateLeft();
+                            break;
+                        case "ArrowRight":
+                            e.preventDefault();
+                            navigateRight();
+                            break;
+                        case "Enter":
+                            e.preventDefault();
+                            selectCurrent();
+                            break;
+                        case "Escape":
+                            e.preventDefault();
+                            hideDock();
+                            break;
+                    }
+                });
+
+                dock.addEventListener("click", (e) => {
+                    if (e.target === dock) {
+                        hideDock();
+                    }
+                });
+
+                dockLinks.forEach((link, index) => {
+                    link.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        currentIndex = index;
+                        selectCurrent();
+                    });
+                });
+            })();
+        </script>
+    </body>
+</html>

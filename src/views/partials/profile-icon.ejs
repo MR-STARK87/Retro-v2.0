@@ -1,0 +1,1475 @@
+<!-- 3-Dot Menu Icon Button -->
+<button
+    class="menu-icon"
+    onclick="toggleMenuDropdown()"
+    aria-label="Menu"
+    id="menuIcon"
+>
+    <i class="fas fa-ellipsis-v"></i>
+</button>
+
+<!-- Menu Dropdown — minimal -->
+<div id="menuDropdown" class="menu-dropdown" style="display: none;" role="menu" aria-hidden="true">
+    <div class="menu-dropdown-content">
+        <div class="menu-tier-badge" id="menuTierBadge">
+            <i class="fas fa-user"></i>
+            <span id="tierBadgeText">Free Tier</span>
+        </div>
+
+        <div class="menu-item" onclick="openProfile()" role="menuitem">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+
+        <div class="menu-item" onclick="openMemory()" role="menuitem">
+            <i class="fas fa-brain"></i>
+            <span>Memory</span>
+        </div>
+
+        <div class="menu-item" onclick="toggleThemeSubmenu()" role="menuitem" aria-haspopup="true">
+            <i class="fas fa-palette"></i>
+            <span>Theme</span>
+            <i class="fas fa-chevron-right menu-item-arrow"></i>
+        </div>
+
+        <div id="themeSubmenu" class="theme-submenu" style="display: none;">
+            <div class="menu-item theme-option" onclick="setTheme('light')">
+                <i class="fas fa-sun"></i>
+                <span>Light</span>
+                <i class="fas fa-check theme-check" id="lightCheck" style="display: none;"></i>
+            </div>
+            <div class="menu-item theme-option" onclick="setTheme('dark')">
+                <i class="fas fa-moon"></i>
+                <span>Dark</span>
+                <i class="fas fa-check theme-check" id="darkCheck" style="display: none;"></i>
+            </div>
+        </div>
+
+        <div class="menu-item menu-item-upgrade" id="upgradeMenuItem" onclick="openUpgrade()" style="display: none;" role="menuitem">
+            <i class="fas fa-star"></i>
+            <span>Upgrade to Pro</span>
+        </div>
+
+        <div class="menu-item menu-item-danger" onclick="handleLogout()" role="menuitem">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Sign out</span>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Modal — Retro Dossier -->
+<div id="profileModal" class="profile-modal" style="display: none;" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
+    <div class="profile-modal-content retro-dossier">
+        <!-- Top rule / eyebrow -->
+        <div class="dossier-topbar">
+            <div class="dossier-eyebrow">
+                <span class="eyebrow-mark"></span>
+                <span>RETRO</span>
+                <span class="eyebrow-dot">·</span>
+                <span>IDENTITY</span>
+                <span class="eyebrow-catalog" id="profileCatalogNo">DOSSIER — 001</span>
+            </div>
+            <button onclick="closeProfile()" class="dossier-close" aria-label="Close profile">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Hero -->
+        <div class="dossier-hero">
+            <div class="avatar-wrap">
+                <div class="profile-avatar" id="profileAvatar">
+                    <span id="profileInitials" class="avatar-initials">R</span>
+                    <i id="profileAvatarIcon" class="fas fa-user avatar-icon" style="display:none;"></i>
+                </div>
+                <span class="avatar-tier-dot tier-free" id="profileTierDot" aria-hidden="true"></span>
+            </div>
+            <div class="hero-copy">
+                <div class="hero-name-row">
+                    <h2 id="profileName" class="dossier-name">Loading...</h2>
+                    <span id="profileVerified" class="verified-pill" style="display: none;">
+                        <i class="fas fa-check"></i> Verified
+                    </span>
+                </div>
+                <p id="profileUsername" class="dossier-username">@username</p>
+                <p id="profileEmailHero" class="dossier-email-hero">email@example.com</p>
+            </div>
+        </div>
+
+        <!-- Ledger -->
+        <div class="dossier-ledger">
+            <div class="ledger-row">
+                <div class="ledger-cell">
+                    <span class="ledger-label">EMAIL</span>
+                    <span class="ledger-value" id="profileEmail">email@example.com</span>
+                </div>
+                <div class="ledger-cell">
+                    <span class="ledger-label">MEMBER SINCE</span>
+                    <span class="ledger-value" id="profileJoined">—</span>
+                </div>
+            </div>
+            <div class="ledger-row">
+                <div class="ledger-cell">
+                    <span class="ledger-label">TIER</span>
+                    <span class="ledger-value ledger-tier">
+                        <i id="profileTierIcon" class="fas fa-user tier-icon"></i>
+                        <span id="profileTier">Free Tier</span>
+                    </span>
+                </div>
+                <div class="ledger-cell">
+                    <span class="ledger-label">STATUS</span>
+                    <span class="ledger-value" id="profileStatus">Active</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tier CTA strip -->
+        <div class="dossier-tier-strip tier-free" id="profileTierStrip">
+            <div class="tier-strip-copy">
+                <i id="profileTierStripIcon" class="fas fa-leaf"></i>
+                <div>
+                    <p class="tier-strip-title" id="profileTierStripTitle">Free — Starter dossier</p>
+                    <p class="tier-strip-sub" id="profileTierStripSub">25 notes · 100 cards · Basic chat</p>
+                </div>
+            </div>
+            <button class="tier-strip-action" id="profileTierAction" onclick="openUpgrade()">
+                <span id="profileTierActionText">Upgrade</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- Footer actions -->
+        <div class="dossier-footer">
+            <span class="footer-hint">Signed in as <strong id="profileFooterUser">@user</strong></span>
+            <div class="footer-actions">
+                <button class="footer-link" onclick="closeProfile(); openMemory();">Memory</button>
+                <span class="footer-dot">·</span>
+                <button class="footer-link footer-link-danger" onclick="handleLogout()">Sign out</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Memory Modal — Dossier Archive -->
+<div id="memoryModal" class="profile-modal" style="display: none;" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="memoryModalTitle">
+    <div class="profile-modal-content retro-dossier">
+        <div class="dossier-topbar">
+            <div class="dossier-eyebrow">
+                <span class="eyebrow-mark"></span>
+                <span>RETRO</span>
+                <span class="eyebrow-dot">·</span>
+                <span>MEMORY</span>
+            </div>
+            <button onclick="closeMemory()" class="dossier-close" aria-label="Close memory">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="memory-ledger minimal">
+            <div class="memory-text dossier-memory-text" id="memoryText">
+                <p>Loading...</p>
+            </div>
+        </div>
+
+        <div class="dossier-footer">
+            <span class="footer-hint">Updates after each chat</span>
+            <div class="footer-actions">
+                <button class="footer-link" onclick="closeMemory()">Done</button>
+                <span class="footer-dot">·</span>
+                <button class="footer-link footer-link-danger" onclick="handleClearMemory()">Clear</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Menu — minimal */
+    .menu-icon {
+        position: fixed;
+        top: 1.5rem;
+        right: 2rem;
+        z-index: 1001;
+        background: var(--bg-secondary);
+        border: 1.5px solid var(--border-color);
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.07);
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+    }
+    .menu-icon:hover { transform: scale(1.05); box-shadow: 0 8px 18px rgba(0,0,0,0.12); }
+    .menu-icon:active { transform: scale(0.97); }
+    .menu-icon i { font-size: 1.1rem; color: var(--text-primary); pointer-events: none; }
+    .menu-dropdown {
+        position: fixed;
+        top: 4.9rem;
+        right: 2rem;
+        z-index: 1002;
+        background: var(--bg-secondary);
+        border: 1.5px solid var(--border-color);
+        border-radius: 14px;
+        min-width: 230px;
+        box-shadow: 0 16px 36px rgba(0,0,0,0.14), 0 0 0 1px rgba(0,0,0,0.03);
+        opacity: 0;
+        transform: translateY(-6px);
+        transition: opacity 0.22s ease, transform 0.24s ease;
+        pointer-events: none;
+        overflow: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+    }
+    [data-theme="dark"] .menu-dropdown { background: #141413; border-color: rgba(194,192,182,0.13); box-shadow: 0 20px 44px rgba(0,0,0,0.5); }
+    .menu-dropdown.active { opacity: 1; transform: translateY(0); pointer-events: all; }
+    .menu-tier-badge {
+        margin: 0.7rem 0.7rem 0.55rem;
+        padding: 0.55rem 0.8rem;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        border: 1px solid var(--border-color);
+    }
+    .menu-tier-badge.tier-free { background: #f3f4f6; color: #4b5563; }
+    .menu-tier-badge.tier-pro { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+    .menu-tier-badge.tier-premium { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+    [data-theme="dark"] .menu-tier-badge.tier-free { background: #1e1e1d; color: #a1a1aa; border-color: rgba(194,192,182,0.12); }
+    .menu-tier-badge i { font-size: 0.9rem; }
+    .menu-dropdown-content { padding: 0.35rem 0.4rem 0.45rem; }
+    .menu-item {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        padding: 0.6rem 0.75rem;
+        border-radius: 9px;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        color: var(--text-primary);
+        font-size: 0.92rem;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+    }
+    .menu-item:hover { background: var(--bg-tertiary); }
+    [data-theme="dark"] .menu-item:hover { background: rgba(255,255,255,0.06); }
+    .menu-item i:first-child { font-size: 0.95rem; color: var(--text-secondary); width: 1.15rem; text-align: center; }
+    .menu-item span { flex: 1; }
+    .menu-item-arrow { font-size: 0.7rem !important; color: var(--text-muted) !important; margin-left: auto; }
+    .menu-item-danger { color: #ef4444; }
+    .menu-item-danger i { color: #ef4444 !important; }
+    .menu-item-danger:hover { background: rgba(239,68,68,0.08); }
+    .menu-item-upgrade {
+        background: var(--text-primary);
+        color: var(--bg-secondary) !important;
+        margin: 0.4rem 0.2rem;
+        border-radius: 9px;
+        font-weight: 600;
+    }
+    .menu-item-upgrade i, .menu-item-upgrade span { color: var(--bg-secondary) !important; }
+    [data-theme="dark"] .menu-item-upgrade { background: #f5f5f3; color: #141413 !important; }
+    [data-theme="dark"] .menu-item-upgrade i, [data-theme="dark"] .menu-item-upgrade span { color: #141413 !important; }
+    .menu-item-upgrade:hover { background: var(--text-primary) !important; color: var(--bg-secondary) !important; opacity: 1; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0,0,0,0.12); }
+    .menu-item-upgrade:hover i, .menu-item-upgrade:hover span { color: var(--bg-secondary) !important; }
+    [data-theme="dark"] .menu-item-upgrade:hover { background: #f5f5f3 !important; color: #141413 !important; }
+    [data-theme="dark"] .menu-item-upgrade:hover i, [data-theme="dark"] .menu-item-upgrade:hover span { color: #141413 !important; }
+    .theme-submenu {
+        margin: 0.2rem 0 0.2rem 0.85rem;
+        padding-left: 0.85rem;
+        border-left: 1.5px solid var(--border-color);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.28s ease;
+        opacity: 0.98;
+    }
+    .theme-submenu.active { max-height: 160px; }
+    .theme-option { padding: 0.45rem 0.65rem; font-size: 0.86rem; border-radius: 8px; }
+    .theme-check { color: #10b981 !important; font-size: 0.82rem !important; }
+    .menu-version { display: none; }
+
+    /* ── Profile Modal — Dossier ── */
+    .profile-modal {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(20, 20, 19, 0.45);
+        backdrop-filter: blur(12px) saturate(1.1);
+        -webkit-backdrop-filter: blur(12px) saturate(1.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.28s ease, visibility 0.28s ease;
+        padding: 1.5rem;
+    }
+
+    .profile-modal.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .profile-modal-content.retro-dossier {
+        background: var(--bg-secondary);
+        border: 1.5px solid var(--border-color);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0,0,0,0.04);
+        transform: scale(0.96) translateY(10px);
+        transition: transform 0.36s cubic-bezier(0.34, 1.2, 0.64, 1);
+        overflow: hidden;
+    }
+
+    [data-theme="dark"] .profile-modal-content.retro-dossier {
+        background: #141413;
+        border-color: rgba(194, 192, 182, 0.14);
+        box-shadow: 0 25px 60px rgba(0,0,0,0.55);
+    }
+
+    .profile-modal.active .profile-modal-content.retro-dossier {
+        transform: scale(1) translateY(0);
+    }
+
+    /* top bar */
+    .dossier-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.95rem 1.25rem 0.9rem;
+        border-bottom: 1.5px solid var(--border-color);
+        background: linear-gradient(to bottom, var(--bg-secondary), var(--bg-tertiary));
+    }
+
+    [data-theme="dark"] .dossier-topbar {
+        background: #1a1a18;
+    }
+
+    .dossier-eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+    }
+
+    .eyebrow-mark {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--text-primary);
+        opacity: 0.9;
+    }
+
+    .eyebrow-dot {
+        opacity: 0.4;
+    }
+
+    .eyebrow-catalog {
+        margin-left: 0.75rem;
+        padding-left: 0.75rem;
+        border-left: 1px solid var(--border-color);
+        font-weight: 400;
+        letter-spacing: 0.1em;
+        opacity: 0.7;
+    }
+
+    .dossier-close {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color);
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .dossier-close:hover {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        border-color: var(--text-muted);
+        transform: rotate(90deg);
+    }
+
+    [data-theme="dark"] .dossier-close {
+        background: rgba(255,255,255,0.06);
+        border-color: rgba(194,192,182,0.12);
+    }
+
+    /* hero */
+    .dossier-hero {
+        display: flex;
+        gap: 1.15rem;
+        align-items: flex-start;
+        padding: 1.4rem 1.5rem 1.25rem;
+    }
+
+    .avatar-wrap {
+        position: relative;
+        flex-shrink: 0;
+        width: 64px;
+        height: 64px;
+    }
+
+    .profile-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: #c2c0b6;
+        border: 3px solid var(--bg-secondary);
+        box-shadow: 0 0 0 1.5px var(--border-color), 0 8px 20px rgba(0,0,0,0.08);
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+    }
+
+    .avatar-initials {
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 700;
+        font-size: 1.35rem;
+        letter-spacing: -0.02em;
+        color: #141413;
+        line-height: 1;
+    }
+
+    .avatar-icon {
+        font-size: 1.6rem;
+        color: #141413;
+    }
+
+    .avatar-tier-dot {
+        position: absolute;
+        right: -1px;
+        bottom: -1px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2.5px solid var(--bg-secondary);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .avatar-tier-dot.tier-free { background: #9ca3af; }
+    .avatar-tier-dot.tier-pro { background: #3b82f6; }
+    .avatar-tier-dot.tier-premium { background: #f59e0b; }
+
+    [data-theme="dark"] .avatar-tier-dot { border-color: #141413; }
+
+    .hero-copy {
+        min-width: 0;
+        flex: 1;
+        padding-top: 0.15rem;
+    }
+
+    .hero-name-row {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .dossier-name {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+    }
+
+    .verified-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.32rem;
+        padding: 0.22rem 0.55rem;
+        border-radius: 999px;
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        color: #065f46;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .verified-pill i { font-size: 9px; }
+
+    [data-theme="dark"] .verified-pill {
+        background: rgba(16,185,129,0.12);
+        border-color: rgba(16,185,129,0.28);
+        color: #6ee7b7;
+    }
+
+    .dossier-username {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+        margin: 0.28rem 0 0 0;
+        letter-spacing: -0.01em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .dossier-email-hero {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin: 0.12rem 0 0 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* ledger */
+    .dossier-ledger {
+        border-top: 1.5px solid var(--border-color);
+        border-bottom: 1.5px solid var(--border-color);
+        background: var(--bg-tertiary);
+        display: flex;
+        flex-direction: column;
+    }
+
+    [data-theme="dark"] .dossier-ledger {
+        background: rgba(255,255,255,0.03);
+    }
+
+    .ledger-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        min-height: 0;
+    }
+
+    .ledger-row + .ledger-row {
+        border-top: 1px solid var(--border-color);
+    }
+
+    .ledger-cell {
+        padding: 0.95rem 1.25rem;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.32rem;
+    }
+
+    .ledger-cell + .ledger-cell {
+        border-left: 1px solid var(--border-color);
+    }
+
+    .ledger-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        line-height: 1;
+    }
+
+    .ledger-value {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.92rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        line-height: 1.3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .ledger-tier {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .tier-icon { font-size: 0.9rem; opacity: 0.9; }
+    .ledger-tier .tier-icon.tier-free { color: #6b7280; }
+    .ledger-tier .tier-icon.tier-pro { color: #2563eb; }
+    .ledger-tier .tier-icon.tier-premium { color: #d97706; }
+
+    /* tier strip — signature element */
+    .dossier-tier-strip {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.95rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .dossier-tier-strip.tier-free {
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    }
+
+    .dossier-tier-strip.tier-pro {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        border-color: #bfdbfe;
+    }
+
+    .dossier-tier-strip.tier-premium {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        border-color: #fde68a;
+    }
+
+    [data-theme="dark"] .dossier-tier-strip.tier-free {
+        background: #1e1e1d;
+        border-color: rgba(194,192,182,0.1);
+    }
+
+    [data-theme="dark"] .dossier-tier-strip.tier-pro {
+        background: linear-gradient(135deg, rgba(59,130,246,0.14) 0%, rgba(59,130,246,0.08) 100%);
+        border-color: rgba(59,130,246,0.22);
+    }
+
+    [data-theme="dark"] .dossier-tier-strip.tier-premium {
+        background: linear-gradient(135deg, rgba(245,158,11,0.14) 0%, rgba(245,158,11,0.08) 100%);
+        border-color: rgba(245,158,11,0.22);
+    }
+
+    .tier-strip-copy {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        min-width: 0;
+    }
+
+    .tier-strip-copy > i {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .tier-free .tier-strip-copy > i { background: #e5e7eb; color: #6b7280; }
+    .tier-pro .tier-strip-copy > i { background: #3b82f6; color: white; }
+    .tier-premium .tier-strip-copy > i { background: #f59e0b; color: white; }
+
+    .tier-strip-title {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 0.92rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        color: var(--text-primary);
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .tier-strip-sub {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin: 0.12rem 0 0 0;
+        opacity: 0.85;
+    }
+
+    .tier-strip-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.58rem 0.95rem;
+        border-radius: 999px;
+        border: 1.5px solid var(--text-primary);
+        background: var(--text-primary);
+        color: var(--bg-secondary);
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 0.84rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .tier-strip-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    }
+
+    .tier-strip-action:active { transform: translateY(0); }
+
+    [data-theme="dark"] .tier-strip-action {
+        background: var(--text-primary);
+        color: #141413;
+        border-color: var(--text-primary);
+    }
+
+    .tier-strip-action i { font-size: 0.75rem; }
+
+    /* footer */
+    .dossier-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.9rem 1.25rem;
+        background: var(--bg-secondary);
+    }
+
+    [data-theme="dark"] .dossier-footer { background: #141413; }
+
+    .footer-hint {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--text-muted);
+        letter-spacing: -0.01em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .footer-hint strong { color: var(--text-secondary); font-weight: 600; }
+
+    .footer-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        flex-shrink: 0;
+    }
+
+    .footer-link {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        opacity: 0.9;
+        transition: opacity 0.15s ease;
+    }
+
+    .footer-link:hover { opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
+
+    .footer-link-danger { color: #ef4444; }
+
+    .footer-dot { color: var(--text-muted); font-size: 0.8rem; }
+
+    /* fallback legacy profile-modal header/body for memory modal */
+    .profile-modal-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .profile-modal-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        font-family: "Space Grotesk", sans-serif;
+    }
+
+    .profile-close-btn {
+        background: transparent;
+        border: none;
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .profile-close-btn:hover {
+        background: var(--bg-hover, rgba(0, 0, 0, 0.05));
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .profile-close-btn:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .profile-modal-body {
+        padding: 2rem;
+    }
+
+    /* Memory — dossier archive */
+    .memory-dossier-hero {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 1.35rem 1.5rem 1.15rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .memory-seal {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        box-shadow: 0 8px 18px rgba(99,102,241,0.28);
+    }
+
+    .memory-seal i { color: white; font-size: 1.25rem; }
+
+    .memory-hero-copy { min-width: 0; }
+
+    .memory-title {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        color: var(--text-primary);
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .memory-subtitle {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.84rem;
+        color: var(--text-secondary);
+        margin: 0.28rem 0 0 0;
+        line-height: 1.5;
+    }
+
+    .memory-ledger {
+        background: var(--bg-tertiary);
+        border-bottom: 1.5px solid var(--border-color);
+    }
+
+    [data-theme="dark"] .memory-ledger {
+        background: rgba(255,255,255,0.03);
+    }
+
+    .memory-ledger-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.72rem 1.25rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+    }
+
+    [data-theme="dark"] .memory-ledger-label { background: rgba(255,255,255,0.02); }
+
+    .memory-ledger-label i { margin-right: 0.35rem; }
+
+    .ledger-count {
+        font-weight: 600;
+        color: var(--text-secondary);
+        letter-spacing: 0.08em;
+    }
+
+    .dossier-memory-text {
+        background: repeating-linear-gradient(to bottom, transparent 0 28px, rgba(0,0,0,0.04) 28px 29px);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin: 1rem 1.25rem 0.75rem;
+        padding: 1rem 1.15rem;
+        min-height: 132px;
+        max-height: 260px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border-color) transparent;
+    }
+
+    [data-theme="dark"] .dossier-memory-text {
+        background: rgba(255,255,255,0.03);
+        background-image: repeating-linear-gradient(to bottom, transparent 0 28px, rgba(255,255,255,0.04) 28px 29px);
+    }
+
+    .dossier-memory-text p {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.94rem;
+        color: var(--text-primary);
+        margin: 0;
+        line-height: 28px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .dossier-memory-text.empty p {
+        color: var(--text-secondary);
+        font-style: italic;
+        opacity: 0.9;
+    }
+
+    .memory-ledger-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.55rem 1.25rem 0.85rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+    }
+
+    .memory-chars { color: var(--text-secondary); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .menu-icon {
+            top: 1rem;
+            right: 1rem;
+            width: 44px;
+            height: 44px;
+        }
+
+        .menu-dropdown {
+            top: 4.5rem;
+            right: 1rem;
+            min-width: 200px;
+        }
+
+        .profile-modal { padding: 1rem; }
+
+        .profile-modal-content.retro-dossier {
+            max-width: 100%;
+        }
+
+        .dossier-hero { padding: 1.15rem 1.15rem 1rem; }
+
+        .ledger-cell { padding: 0.85rem 1rem; }
+
+        .dossier-tier-strip { padding: 0.85rem 1rem; }
+
+        .dossier-footer { flex-direction: column; align-items: stretch; gap: 0.7rem; }
+
+        .footer-actions { justify-content: space-between; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .profile-modal, .profile-modal-content.retro-dossier, .dossier-close, .tier-strip-action { transition: none; }
+    }
+</style>
+
+<script>
+    let menuDropdownOpen = false;
+    let themeSubmenuOpen = false;
+    let userProfileData = null;
+    let userMemoryData = null;
+
+    // Toggle menu dropdown
+    function toggleMenuDropdown() {
+        const dropdown = document.getElementById('menuDropdown');
+        menuDropdownOpen = !menuDropdownOpen;
+
+        if (menuDropdownOpen) {
+            dropdown.classList.add('active');
+            dropdown.style.display = 'block';
+            if (!userProfileData) {
+                loadUserProfile();
+            }
+            updateThemeCheckmarks();
+        } else {
+            dropdown.classList.remove('active');
+            if (themeSubmenuOpen) {
+                toggleThemeSubmenu();
+            }
+            setTimeout(() => {
+                dropdown.style.display = 'none';
+            }, 300);
+        }
+    }
+
+    // Toggle theme submenu
+    function toggleThemeSubmenu() {
+        const submenu = document.getElementById('themeSubmenu');
+        themeSubmenuOpen = !themeSubmenuOpen;
+
+        if (themeSubmenuOpen) {
+            submenu.classList.add('active');
+            submenu.style.display = 'block';
+            updateThemeCheckmarks();
+        } else {
+            submenu.classList.remove('active');
+            setTimeout(() => {
+                submenu.style.display = 'none';
+            }, 300);
+        }
+    }
+
+    // Set theme
+    function setTheme(theme) {
+        const body = document.body;
+
+        if (theme === 'dark') {
+            body.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            body.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+        }
+
+        updateThemeCheckmarks();
+    }
+
+    // Update theme checkmarks
+    function updateThemeCheckmarks() {
+        const lightCheck = document.getElementById('lightCheck');
+        const darkCheck = document.getElementById('darkCheck');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+
+        if (currentTheme === 'dark') {
+            lightCheck.style.display = 'none';
+            darkCheck.style.display = 'block';
+        } else {
+            lightCheck.style.display = 'block';
+            darkCheck.style.display = 'none';
+        }
+    }
+
+    // Open profile modal
+    function openProfile() {
+        const modal = document.getElementById('profileModal');
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+
+        if (menuDropdownOpen) {
+            toggleMenuDropdown();
+        }
+
+        if (!userProfileData) {
+            loadUserProfile();
+        } else {
+            // refresh initials in case tier changed
+            displayTierBadge(userProfileData.subscription?.tier || 'free');
+        }
+
+        // ESC to close
+        document.addEventListener('keydown', escCloseProfile);
+    }
+
+    function escCloseProfile(e) {
+        if (e.key === 'Escape') closeProfile();
+    }
+
+    // Close profile modal
+    function closeProfile() {
+        const modal = document.getElementById('profileModal');
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        document.removeEventListener('keydown', escCloseProfile);
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 280);
+    }
+
+    // Handle logout
+    async function handleLogout() {
+        try {
+            const response = await fetch('/api/v1/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                window.location.href = '/';
+            } else {
+                console.error('Logout failed');
+                alert('Failed to logout. Please try again.');
+            }
+        } catch (error) {
+            console.error('Logout error:', error);
+            alert('An error occurred during logout.');
+        }
+    }
+
+    // Load user profile data
+    async function loadUserProfile() {
+        try {
+            const response = await fetch('/api/v1/auth/me', {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                userProfileData = data.user;
+                userMemoryData = data.memory || null;
+                displayUserProfile(data.user);
+                // tier may be inside user object already
+                if (data.user?.subscription?.tier) displayTierBadge(data.user.subscription.tier);
+            } else {
+                displayDefaultProfile();
+            }
+        } catch (error) {
+            console.error('Failed to load user profile:', error);
+            displayDefaultProfile();
+        }
+    }
+
+    // Display user profile data — dossier style
+    function displayUserProfile(user) {
+        const nameEl = document.getElementById('profileName');
+        const usernameEl = document.getElementById('profileUsername');
+        const emailEl = document.getElementById('profileEmail');
+        const emailHeroEl = document.getElementById('profileEmailHero');
+        const joinedEl = document.getElementById('profileJoined');
+        const verifiedEl = document.getElementById('profileVerified');
+        const initialsEl = document.getElementById('profileInitials');
+        const iconEl = document.getElementById('profileAvatarIcon');
+        const footerUserEl = document.getElementById('profileFooterUser');
+        const catalogEl = document.getElementById('profileCatalogNo');
+        const statusEl = document.getElementById('profileStatus');
+
+        const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
+        nameEl.textContent = fullName || user.username || 'User';
+        usernameEl.textContent = user.username ? `@${user.username}` : '@user';
+        emailEl.textContent = user.email || '—';
+        if (emailHeroEl) emailHeroEl.textContent = user.email || '—';
+        if (footerUserEl) footerUserEl.textContent = user.username ? `@${user.username}` : '@user';
+
+        // initials
+        let initials = 'R';
+        if (user.firstName || user.lastName) {
+            initials = `${(user.firstName?.[0] || '')}${(user.lastName?.[0] || '')}`.toUpperCase().trim() || (user.username?.[0]?.toUpperCase() || 'R');
+        } else if (user.username) {
+            initials = user.username.slice(0,2).toUpperCase();
+        }
+        if (initialsEl) {
+            initialsEl.textContent = initials.slice(0,2);
+            initialsEl.style.display = 'block';
+            if (iconEl) iconEl.style.display = 'none';
+        }
+
+        // joined
+        if (user.createdAt) {
+            const d = new Date(user.createdAt);
+            const str = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            joinedEl.textContent = str;
+            if (catalogEl) {
+                const id = user._id ? String(user._id).slice(-4).toUpperCase() : '001';
+                catalogEl.textContent = `DOSSIER — ${id}`;
+            }
+        } else {
+            joinedEl.textContent = 'Recently';
+        }
+
+        // verified
+        if (user.isEmailVerified) {
+            verifiedEl.style.display = 'inline-flex';
+            if (statusEl) statusEl.textContent = 'Verified';
+        } else {
+            verifiedEl.style.display = 'none';
+            if (statusEl) statusEl.textContent = 'Unverified';
+        }
+    }
+
+    // Display default profile when not authenticated
+    function displayDefaultProfile() {
+        const nameEl = document.getElementById('profileName');
+        const usernameEl = document.getElementById('profileUsername');
+        const emailEl = document.getElementById('profileEmail');
+        const emailHeroEl = document.getElementById('profileEmailHero');
+        const joinedEl = document.getElementById('profileJoined');
+        const verifiedEl = document.getElementById('profileVerified');
+        const initialsEl = document.getElementById('profileInitials');
+        const footerUserEl = document.getElementById('profileFooterUser');
+
+        if (nameEl) nameEl.textContent = 'Guest User';
+        if (usernameEl) usernameEl.textContent = '@guest';
+        if (emailEl) emailEl.textContent = 'Not signed in';
+        if (emailHeroEl) emailHeroEl.textContent = 'Sign in to sync';
+        if (joinedEl) joinedEl.textContent = '—';
+        if (verifiedEl) verifiedEl.style.display = 'none';
+        if (initialsEl) initialsEl.textContent = 'G';
+        if (footerUserEl) footerUserEl.textContent = '@guest';
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('menuDropdown');
+        const icon = document.getElementById('menuIcon');
+
+        if (menuDropdownOpen && dropdown && icon) {
+            if (!dropdown.contains(e.target) && !icon.contains(e.target)) {
+                toggleMenuDropdown();
+            }
+        }
+    });
+
+    // Open memory modal — dossier archive
+    function openMemory() {
+        const modal = document.getElementById('memoryModal');
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('keydown', escCloseMemory);
+
+        if (menuDropdownOpen) {
+            toggleMenuDropdown();
+        }
+
+        if (!userMemoryData) {
+            loadMemoryData();
+        } else {
+            displayMemory(userMemoryData);
+        }
+    }
+
+    function escCloseMemory(e) { if (e.key === 'Escape') closeMemory(); }
+
+    // Close memory modal
+    function closeMemory() {
+        const modal = document.getElementById('memoryModal');
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        document.removeEventListener('keydown', escCloseMemory);
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 280);
+    }
+
+    async function handleClearMemory() {
+        if (!confirm('Clear Retro’s memory? This keeps your chats but resets what it remembers about you.')) return;
+        const el = document.getElementById('memoryText');
+        const countEl = document.getElementById('memoryCount');
+        const charsEl = document.getElementById('memoryChars');
+        const catalogEl = document.getElementById('memoryCatalog');
+        if (el) {
+            el.innerHTML = '<p>No memories stored yet. Chat with Retro to build memories!</p>';
+            el.classList.add('empty');
+        }
+        if (countEl) countEl.textContent = '0 entries';
+        if (charsEl) charsEl.textContent = '';
+        if (catalogEl) catalogEl.textContent = 'ARCHIVE — 000';
+        userMemoryData = null;
+        // Best-effort: if backend adds /api/v1/auth/clear-memory later, it will persist
+        try {
+            await fetch('/api/v1/auth/clear-memory', { method: 'POST', credentials: 'include' }).catch(()=>{});
+        } catch {}
+    }
+
+    // Load memory data
+    async function loadMemoryData() {
+        try {
+            const response = await fetch('/api/v1/auth/me', {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                userMemoryData = data.memory || null;
+                displayMemory(userMemoryData);
+            } else {
+                displayMemory(null);
+            }
+        } catch (error) {
+            console.error('Failed to load memory data:', error);
+            displayMemory(null);
+        }
+    }
+
+    // Display memory data — ledger meta
+    function displayMemory(memory) {
+        const memoryTextElement = document.getElementById('memoryText');
+        const catalogEl = document.getElementById('memoryCatalog');
+        const countEl = document.getElementById('memoryCount');
+        const charsEl = document.getElementById('memoryChars');
+
+        const isPopulated = memory && memory.trim() !== '';
+        const chars = isPopulated ? memory.trim().length : 0;
+        const words = isPopulated ? memory.trim().split(/\s+/).length : 0;
+
+        if (catalogEl) {
+            const code = isPopulated ? String(chars % 999).padStart(3, '0') : '000';
+            catalogEl.textContent = `ARCHIVE — ${code}`;
+        }
+        if (countEl) countEl.textContent = isPopulated ? `${words} words` : '0 entries';
+        if (charsEl) charsEl.textContent = isPopulated ? `${chars} chars` : '';
+
+        if (isPopulated) {
+            memoryTextElement.innerHTML = `<p>${escapeHtml(memory)}</p>`;
+            memoryTextElement.classList.remove('empty');
+        } else {
+            memoryTextElement.innerHTML = '<p>No memories stored yet. Chat with Retro to build memories!</p>';
+            memoryTextElement.classList.add('empty');
+        }
+    }
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Close modals when clicking backdrop
+    document.addEventListener('click', (e) => {
+        const profileModal = document.getElementById('profileModal');
+        const memoryModal = document.getElementById('memoryModal');
+
+        if (profileModal && profileModal.classList.contains('active') && e.target === profileModal) {
+            closeProfile();
+        }
+
+        if (memoryModal && memoryModal.classList.contains('active') && e.target === memoryModal) {
+            closeMemory();
+        }
+    });
+
+    // Load saved theme on page load
+    function loadSavedTheme() {
+        const savedTheme = localStorage.getItem('theme');
+
+        if (savedTheme === 'dark') {
+            document.body.setAttribute('data-theme', 'dark');
+        }
+
+        updateThemeCheckmarks();
+    }
+
+    // Open upgrade page
+    function openUpgrade() {
+        window.location.href = '/upgrade';
+    }
+
+    // Fetch and display subscription tier — drives both menu + dossier
+    async function loadSubscriptionTier() {
+        try {
+            const response = await fetch('/api/v1/subscription/status', {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const tier = data.subscription?.tier || 'free';
+                displayTierBadge(tier);
+            } else {
+                displayTierBadge('free');
+            }
+        } catch (error) {
+            console.error('Failed to load subscription tier:', error);
+            displayTierBadge('free');
+        }
+    }
+
+    // Display tier badge in menu and dossier
+    function displayTierBadge(tier) {
+        const menuBadge = document.getElementById('menuTierBadge');
+        const badgeText = document.getElementById('tierBadgeText');
+        const upgradeMenuItem = document.getElementById('upgradeMenuItem');
+        const profileTier = document.getElementById('profileTier');
+        const profileTierIcon = document.getElementById('profileTierIcon');
+        const profileTierDot = document.getElementById('profileTierDot');
+        const profileTierStrip = document.getElementById('profileTierStrip');
+        const stripIcon = document.getElementById('profileTierStripIcon');
+        const stripTitle = document.getElementById('profileTierStripTitle');
+        const stripSub = document.getElementById('profileTierStripSub');
+        const stripAction = document.getElementById('profileTierAction');
+        const stripActionText = document.getElementById('profileTierActionText');
+
+        const tierNames = {
+            free: 'Free Tier',
+            pro: 'Pro Tier',
+            premium: 'Premium Tier'
+        };
+
+        const tierIcons = {
+            free: 'fa-user',
+            pro: 'fa-star',
+            premium: 'fa-crown'
+        };
+
+        const stripConfig = {
+            free: { icon: 'fa-leaf', title: 'Free — Starter dossier', sub: '25 notes · 100 cards · 20 chats/mo', action: 'Upgrade', showAction: true },
+            pro: { icon: 'fa-bolt', title: 'Pro — Expanded study', sub: '500 notes · 2k cards · 300 chats/mo', action: 'Manage', showAction: true },
+            premium: { icon: 'fa-crown', title: 'Premium — Unlimited', sub: 'Unlimited notes · cards · chats', action: 'Manage', showAction: true }
+        };
+
+        // Update menu badge
+        if (menuBadge && badgeText) {
+            menuBadge.className = `menu-tier-badge tier-${tier}`;
+            badgeText.textContent = tierNames[tier] || 'Free Tier';
+            const i = menuBadge.querySelector('i');
+            if (i) i.className = `fas ${tierIcons[tier] || 'fa-user'}`;
+        }
+
+        // Show/hide upgrade menu item
+        if (upgradeMenuItem) {
+            upgradeMenuItem.style.display = tier === 'free' ? 'flex' : 'none';
+        }
+
+        // Update dossier tier
+        if (profileTier) profileTier.textContent = tierNames[tier] || 'Free Tier';
+        if (profileTierIcon) {
+            profileTierIcon.className = `fas ${tierIcons[tier] || 'fa-user'} tier-icon tier-${tier}`;
+        }
+        if (profileTierDot) {
+            profileTierDot.className = `avatar-tier-dot tier-${tier}`;
+        }
+
+        // Strip
+        if (profileTierStrip) {
+            profileTierStrip.className = `dossier-tier-strip tier-${tier}`;
+        }
+        const cfg = stripConfig[tier] || stripConfig.free;
+        if (stripIcon) stripIcon.className = `fas ${cfg.icon}`;
+        if (stripTitle) stripTitle.textContent = cfg.title;
+        if (stripSub) stripSub.textContent = cfg.sub;
+        if (stripActionText) stripActionText.textContent = cfg.action;
+        if (stripAction) {
+            stripAction.style.display = cfg.showAction ? 'inline-flex' : 'none';
+            stripAction.onclick = tier === 'free' ? openUpgrade : () => window.location.href = '/upgrade';
+        }
+    }
+
+    // Load profile data and theme on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        loadUserProfile();
+        loadSavedTheme();
+        loadSubscriptionTier();
+    });
+</script>

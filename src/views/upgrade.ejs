@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upgrade | Retro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-muted: #9a9a9a;
+            --border-color: rgba(0,0,0,0.08);
+            --shadow: rgba(0,0,0,0.08);
+            --shadow-lg: rgba(0,0,0,0.14);
+        }
+        [data-theme="dark"] {
+            --bg-primary: #262624;
+            --bg-secondary: #141413;
+            --bg-tertiary: #1a1a18;
+            --text-primary: #c2c0b6;
+            --text-secondary: #a8a6a0;
+            --text-muted: #888682;
+            --border-color: rgba(194,192,182,0.13);
+            --shadow: rgba(0,0,0,0.35);
+            --shadow-lg: rgba(0,0,0,0.5);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+        body::-webkit-scrollbar{ display:none; }
+        body{ scrollbar-width:none; -ms-overflow-style:none; }
+        .mono{ font-family:'JetBrains Mono', monospace; }
+        .accent{ font-family:'Space Grotesk', sans-serif; }
+
+        /* top */
+        .upgrade-topbar{
+            max-width:1128px; margin:0 auto; padding:1.1rem 1rem 0;
+            display:flex; align-items:center; justify-content:space-between; gap:1rem;
+        }
+        .back-pill{
+            display:inline-flex; align-items:center; gap:0.55rem;
+            padding:0.55rem 0.95rem; border-radius:999px;
+            border:1.5px solid var(--border-color);
+            background:var(--bg-secondary); color:var(--text-primary);
+            font-family:'Space Grotesk',sans-serif; font-size:0.86rem; font-weight:600;
+            cursor:pointer; box-shadow:0 4px 10px var(--shadow);
+            transition:transform 0.18s ease, box-shadow 0.18s ease;
+        }
+        .back-pill:hover{ transform:translateY(-1px); box-shadow:0 8px 18px var(--shadow-lg); }
+        .theme-toggle-dossier{
+            width:40px; height:40px; border-radius:50%;
+            border:1.5px solid var(--border-color); background:var(--bg-secondary);
+            display:grid; place-items:center; cursor:pointer; box-shadow:0 4px 10px var(--shadow);
+            transition:transform 0.18s ease;
+        }
+        .theme-toggle-dossier:hover{ transform:rotate(14deg) scale(1.05); }
+        .theme-toggle-dossier i{ color:var(--text-primary); font-size:0.95rem; }
+
+        /* header */
+        .upgrade-head{
+            max-width:1128px; margin:1.4rem auto 1.6rem; padding:0 1rem;
+        }
+        .eyebrow{
+            display:inline-flex; align-items:center; gap:0.45rem;
+            font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700;
+            letter-spacing:0.14em; text-transform:uppercase; color:var(--text-muted);
+        }
+        .eyebrow-mark{ width:8px; height:8px; border-radius:50%; background:var(--text-primary); }
+        .head-title{
+            margin-top:0.7rem;
+            font-family:'Space Grotesk',sans-serif;
+            font-size:clamp(2.1rem,5vw,3.4rem); font-weight:700;
+            letter-spacing:-0.035em; line-height:0.95;
+        }
+        .head-sub{
+            margin-top:0.65rem; max-width:560px;
+            font-size:1.02rem; line-height:1.55; color:var(--text-secondary);
+        }
+        .billing-row{
+            margin-top:1.4rem; display:flex; flex-wrap:wrap; align-items:center; gap:0.9rem;
+        }
+        .billing-toggle{
+            display:inline-flex; gap:0.25rem; padding:0.28rem;
+            border-radius:999px; background:var(--bg-tertiary);
+            border:1.5px solid var(--border-color);
+        }
+        .billing-option{
+            padding:0.5rem 1.05rem; border-radius:999px; cursor:pointer;
+            font-family:'Space Grotesk',sans-serif; font-size:0.86rem; font-weight:600;
+            color:var(--text-secondary); transition:all 0.2s ease;
+        }
+        .billing-option.active{ background:var(--text-primary); color:var(--bg-primary); box-shadow:0 4px 10px var(--shadow); }
+        .save-badge{
+            font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700;
+            letter-spacing:0.06em; text-transform:uppercase;
+            padding:0.16rem 0.4rem; border-radius:999px;
+            background:#10b981; color:white; margin-left:0.35rem;
+        }
+        .billing-option.active .save-badge{ background:#a7f3d0; color:#065f46; }
+        .current-pill{
+            display:inline-flex; align-items:center; gap:0.5rem;
+            padding:0.45rem 0.85rem; border-radius:999px;
+            border:1px solid var(--border-color); background:var(--bg-secondary);
+            font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700;
+            letter-spacing:0.06em; text-transform:uppercase; color:var(--text-secondary);
+        }
+        .tier-dot{ width:7px; height:7px; border-radius:50%; }
+        .tier-dot.free{ background:#9ca3af; } .tier-dot.pro{ background:#3b82f6; } .tier-dot.premium{ background:#f59e0b; }
+
+        /* spec table — the 2026 move: one ledger, not three cards */
+        .spec-wrap{
+            max-width:1128px; margin:0 auto; padding:0 1rem 2rem;
+            overflow-x:auto; scrollbar-width:thin;
+        }
+        .spec-table{
+            min-width:720px;
+            border:1.5px solid var(--border-color);
+            border-radius:16px; overflow:hidden;
+            background:var(--bg-secondary);
+            box-shadow:0 14px 32px rgba(0,0,0,0.06);
+        }
+        [data-theme="dark"] .spec-table{ box-shadow:0 18px 40px rgba(0,0,0,0.42); }
+        .spec-row{
+            display:grid;
+            grid-template-columns: 1.25fr 0.9fr 1fr 0.9fr;
+            align-items:stretch;
+        }
+        .spec-row + .spec-row{ border-top:1px solid var(--border-color); }
+        .spec-cell{
+            padding:0.9rem 1rem;
+            display:flex; align-items:center;
+            min-width:0;
+        }
+        .spec-cell + .spec-cell{ border-left:1px solid var(--border-color); }
+        .spec-feature{ font-size:0.9rem; color:var(--text-primary); }
+        .spec-feature .mono-label{
+            display:block; font-family:'JetBrains Mono', monospace;
+            font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
+            color:var(--text-muted); margin-bottom:0.18rem;
+        }
+        .spec-feature strong{ font-weight:700; letter-spacing:-0.01em; }
+        .spec-tier-head{
+            flex-direction:column; align-items:flex-start; justify-content:flex-start;
+            gap:0.45rem; padding:1rem 1rem 0.9rem; position:relative;
+            background:var(--bg-secondary);
+        }
+        .spec-tier-head.featured{
+            background:linear-gradient(to bottom, #f8fafc, #ffffff);
+            box-shadow:inset 0 0 0 1px rgba(59,130,246,0.18);
+        }
+        [data-theme="dark"] .spec-tier-head.featured{
+            background:linear-gradient(to bottom, rgba(59,130,246,0.10), rgba(59,130,246,0.04));
+        }
+        .tier-badge-mini{
+            font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700;
+            letter-spacing:0.09em; text-transform:uppercase;
+            padding:0.18rem 0.5rem; border-radius:999px; border:1px solid var(--border-color);
+        }
+        .tier-free .tier-badge-mini{ background:#f3f4f6; color:#4b5563; }
+        .tier-pro .tier-badge-mini{ background:#eff6ff; color:#1e40af; border-color:#bfdbfe; }
+        .tier-premium .tier-badge-mini{ background:#fffbeb; color:#92400e; border-color:#fde68a; }
+        [data-theme="dark"] .tier-free .tier-badge-mini{ background:#1e1e1d; color:#a1a1aa; }
+        .tier-name{
+            font-family:'Space Grotesk', sans-serif; font-size:1.15rem; font-weight:700;
+            letter-spacing:-0.02em; line-height:1;
+        }
+        .spec-price{ display:flex; align-items:baseline; gap:0.3rem; margin-top:0.15rem; }
+        .price-amount{ font-family:'Space Grotesk', sans-serif; font-size:1.55rem; font-weight:700; letter-spacing:-0.03em; }
+        .price-meta{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--text-muted); }
+        .cta-btn{
+            width:100%; margin-top:0.55rem;
+            padding:0.62rem 0.9rem; border-radius:999px;
+            border:1.5px solid var(--text-primary); background:var(--text-primary);
+            color:var(--bg-secondary);
+            font-family:'Space Grotesk',sans-serif; font-size:0.88rem; font-weight:700;
+            cursor:pointer; transition:transform 0.15s ease, opacity 0.15s ease;
+            display:inline-flex; align-items:center; justify-content:center; gap:0.45rem;
+        }
+        .cta-btn:hover{ transform:translateY(-1px); background:var(--text-primary) !important; color:var(--bg-secondary) !important; border-color:var(--text-primary) !important; box-shadow:0 8px 18px rgba(0,0,0,0.16); }
+        .cta-btn:hover i, .cta-btn:hover span{ color:var(--bg-secondary) !important; }
+        .cta-btn:disabled{ opacity:0.5; cursor:not-allowed; transform:none; }
+        [data-theme="dark"] .cta-btn{ background:var(--text-primary); color:#141413; }
+        [data-theme="dark"] .cta-btn:hover{ background:var(--text-primary) !important; color:#141413 !important; border-color:var(--text-primary) !important; }
+        [data-theme="dark"] .cta-btn:hover i, [data-theme="dark"] .cta-btn:hover span{ color:#141413 !important; }
+        .cta-ghost{ background:transparent; color:var(--text-primary); }
+        .cta-ghost:hover{ background:var(--bg-tertiary) !important; color:var(--text-primary) !important; border-color:var(--border-color) !important; }
+        [data-theme="dark"] .cta-ghost{ color:var(--text-primary); border-color:var(--border-color); }
+        .popular-pill{
+            position:absolute; top:0.7rem; right:0.7rem;
+            font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700;
+            letter-spacing:0.07em; text-transform:uppercase;
+            background:#f59e0b; color:#1a1a1a; padding:0.2rem 0.5rem; border-radius:999px;
+        }
+        .spec-value{
+            font-size:0.92rem; font-weight:500; color:var(--text-primary);
+            width:100%; justify-content:center; text-align:center;
+        }
+        .spec-value.muted{ color:var(--text-muted); }
+        .check{ width:20px; height:20px; border-radius:6px; display:grid; place-items:center; font-size:0.7rem; }
+        .check.ok{ background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; }
+        [data-theme="dark"] .check.ok{ background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.22); color:#6ee7b7; }
+        .check.no{ background:transparent; border:1px dashed var(--border-color); color:var(--text-muted); }
+
+        /* mobile: stack as cards */
+        @media (max-width: 840px){
+            .spec-wrap{ min-width:0; }
+            .spec-table{ min-width:0; }
+            .spec-row{ grid-template-columns: 1fr; }
+            .spec-cell + .spec-cell{ border-left:none; border-top:1px solid var(--border-color); }
+            .spec-feature{ padding:0.85rem 1rem 0.2rem; background:var(--bg-tertiary); }
+            [data-theme="dark"] .spec-feature{ background:rgba(255,255,255,0.03); }
+            .spec-row.spec-head{ display:grid; grid-template-columns:1fr; }
+            .spec-tier-head{ border-top:1px solid var(--border-color); }
+            .spec-row:not(.spec-head) .spec-value{ justify-content:flex-start; }
+        }
+
+        /* message */
+        #messageContainer{ max-width:1128px; margin:0 auto; padding:0 1rem; }
+
+        /* FAQ minimal */
+        .faq-wrap{ max-width:860px; margin:0 auto; padding:0 1rem 3rem; }
+        .faq-card{
+            background:var(--bg-secondary); border:1.5px solid var(--border-color);
+            border-radius:16px; overflow:hidden; box-shadow:0 10px 24px rgba(0,0,0,0.05);
+        }
+        [data-theme="dark"] .faq-card{ box-shadow:0 14px 32px rgba(0,0,0,0.38); }
+        .faq-head{
+            padding:1.1rem 1.25rem; border-bottom:1.5px solid var(--border-color);
+            background:linear-gradient(to bottom, var(--bg-secondary), var(--bg-tertiary));
+            display:flex; align-items:center; gap:0.6rem;
+        }
+        [data-theme="dark"] .faq-head{ background:#1a1a18; }
+        .faq-title{ font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:700; letter-spacing:-0.02em; }
+        .faq-item{ border-bottom:1px solid var(--border-color); }
+        .faq-item:last-child{ border-bottom:none; }
+        .faq-item summary{
+            list-style:none; cursor:pointer; padding:0.95rem 1.2rem;
+            display:flex; align-items:center; justify-content:space-between; gap:1rem;
+            font-family:'Space Grotesk',sans-serif; font-size:0.94rem; font-weight:600; letter-spacing:-0.01em;
+        }
+        .faq-item summary::-webkit-details-marker{ display:none; }
+        .faq-item summary i{ font-size:0.78rem; color:var(--text-muted); transition:transform 0.2s ease; }
+        .faq-item[open] summary i{ transform:rotate(180deg); }
+        .faq-item p{ padding:0 1.2rem 0.95rem; font-size:0.92rem; line-height:1.6; color:var(--text-secondary); }
+
+        .loading-spinner{
+            width:16px; height:16px; border:2.5px solid rgba(0,0,0,0.12);
+            border-top-color:currentColor; border-radius:50%; animation:spin 0.8s linear infinite;
+        }
+        @keyframes spin{ to{ transform:rotate(360deg); } }
+        .success-animation{ animation:pop 0.35s cubic-bezier(0.34,1.2,0.64,1); }
+        @keyframes pop{ from{ transform:scale(0.97); opacity:0 } to{ transform:scale(1); opacity:1 } }
+    </style>
+</head>
+<body>
+    <div class="upgrade-topbar">
+        <button onclick="window.location.href='/app'" class="back-pill">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to App</span>
+        </button>
+        <button class="theme-toggle-dossier" type="button" aria-label="Toggle theme" onclick="toggleTheme()">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+
+    <div id="messageContainer"></div>
+
+    <div class="upgrade-head">
+        <div class="eyebrow">
+            <span class="eyebrow-mark"></span>
+            <span>RETRO</span>
+            <span style="opacity:0.4;">·</span>
+            <span>PLANS</span>
+        </div>
+        <h1 class="head-title">Capacity,<br>not clutter.</h1>
+        <p class="head-sub">One ledger to compare. Pick the shelf you need — upgrade only lifts limits.</p>
+        <div class="billing-row">
+            <div class="billing-toggle" role="tablist" aria-label="Billing">
+                <div class="billing-option active" data-cycle="monthly" role="tab" aria-selected="true" tabindex="0">Monthly</div>
+                <div class="billing-option" data-cycle="yearly" role="tab" aria-selected="false" tabindex="0">Yearly <span class="save-badge">Save 35%</span></div>
+            </div>
+            <div id="currentTierBadge"></div>
+        </div>
+    </div>
+
+    <!-- Single ledger table — not three strips -->
+    <div class="spec-wrap">
+        <div class="spec-table" role="table" aria-label="Plan comparison">
+            <!-- header -->
+            <div class="spec-row spec-head" role="row">
+                <div class="spec-cell" style="background:transparent; border:none;"></div>
+                <div class="spec-cell spec-tier-head tier-free" role="columnheader">
+                    <span class="tier-badge-mini">FREE</span>
+                    <span class="tier-name">Free</span>
+                    <div class="spec-price"><span class="price-amount">$0</span><span class="price-meta">forever</span></div>
+                    <button class="cta-btn cta-ghost" disabled>Current</button>
+                </div>
+                <div class="spec-cell spec-tier-head tier-pro featured" role="columnheader">
+                    <span class="popular-pill">Most chosen</span>
+                    <span class="tier-badge-mini">PRO</span>
+                    <span class="tier-name">Pro</span>
+                    <div class="spec-price">
+                        <span class="price-amount monthly-price">$7.99</span>
+                        <span class="price-amount yearly-price hidden">$4.99</span>
+                        <span class="price-meta"> <span class="billing-period monthly-period">/mo</span><span class="billing-period yearly-period hidden">/mo · yearly</span></span>
+                    </div>
+                    <button class="cta-btn upgrade-btn" data-tier="pro">Upgrade to Pro</button>
+                </div>
+                <div class="spec-cell spec-tier-head tier-premium" role="columnheader">
+                    <span class="tier-badge-mini">PREMIUM</span>
+                    <span class="tier-name">Premium</span>
+                    <div class="spec-price">
+                        <span class="price-amount monthly-price">$14.99</span>
+                        <span class="price-amount yearly-price hidden">$9.99</span>
+                        <span class="price-meta"> <span class="billing-period monthly-period">/mo</span><span class="billing-period yearly-period hidden">/mo · yearly</span></span>
+                    </div>
+                    <button class="cta-btn upgrade-btn" data-tier="premium">Upgrade to Premium</button>
+                </div>
+            </div>
+
+            <!-- rows -->
+            <div class="spec-row" role="row">
+                <div class="spec-cell spec-feature"><span><span class="mono-label">CAPACITY</span><strong>Notes</strong></span></div>
+                <div class="spec-cell spec-value">25</div>
+                <div class="spec-cell spec-value"><strong>500</strong></div>
+                <div class="spec-cell spec-value"><strong>Unlimited</strong></div>
+            </div>
+            <div class="spec-row" role="row">
+                <div class="spec-cell spec-feature"><span><span class="mono-label">CAPACITY</span><strong>Flashcards</strong></span></div>
+                <div class="spec-cell spec-value">100</div>
+                <div class="spec-cell spec-value"><strong>2,000</strong></div>
+                <div class="spec-cell spec-value"><strong>Unlimited</strong></div>
+            </div>
+            <div class="spec-row" role="row">
+                <div class="spec-cell spec-feature"><span><span class="mono-label">AI</span><strong>Chat messages</strong></span></div>
+                <div class="spec-cell spec-value">20 /mo</div>
+                <div class="spec-cell spec-value"><strong>300 /mo</strong></div>
+                <div class="spec-cell spec-value"><strong>Unlimited</strong></div>
+            </div>
+            <div class="spec-row" role="row">
+                <div class="spec-cell spec-feature"><span><span class="mono-label">AI</span><strong>Chat with note</strong></span></div>
+                <div class="spec-cell spec-value">5 /mo</div>
+                <div class="spec-cell spec-value"><strong>100 /mo</strong></div>
+                <div class="spec-cell spec-value"><strong>Unlimited</strong></div>
+            </div>
+            <div class="spec-row" role="row">
+                <div class="spec-cell spec-feature"><span><span class="mono-label">AI</span><strong>Flashcard gens</strong></span></div>
+                <div class="spec-cell spec-value">2 /mo</div>
+                <div class="spec-cell spec-value"><strong>30 /mo</strong></div>
+                <div class="spec-cell spec-value"><strong>Unlimited</strong></div>
+            </div>
+            <div class="spec-row" role="row">
+                <div class="spec-cell spec-feature"><span><span class="mono-label">SPACE</span><strong>Ambient</strong></span></div>
+                <div class="spec-cell spec-value muted"><span class="check no"><i class="fas fa-minus"></i></span></div>
+                <div class="spec-cell spec-value"><span class="check ok"><i class="fas fa-check"></i></span></div>
+                <div class="spec-cell spec-value"><span class="check ok"><i class="fas fa-check"></i></span></div>
+            </div>
+            <div class="spec-row" role="row">
+                <div class="spec-cell spec-feature"><span><span class="mono-label">SPACE</span><strong>Music library</strong></span></div>
+                <div class="spec-cell spec-value">Basic</div>
+                <div class="spec-cell spec-value">Full</div>
+                <div class="spec-cell spec-value">Full + upload</div>
+            </div>
+            <div class="spec-row" role="row">
+                <div class="spec-cell spec-feature"><span><span class="mono-label">MODEL</span><strong>AI quality</strong></span></div>
+                <div class="spec-cell spec-value">Standard</div>
+                <div class="spec-cell spec-value"><strong>Smarter</strong></div>
+                <div class="spec-cell spec-value"><strong>Smartest</strong></div>
+            </div>
+            <div class="spec-row" role="row">
+                <div class="spec-cell spec-feature"><span><span class="mono-label">EXPORT</span><strong>Note export</strong></span></div>
+                <div class="spec-cell spec-value muted"><span class="check no"><i class="fas fa-minus"></i></span></div>
+                <div class="spec-cell spec-value"><span class="check ok"><i class="fas fa-check"></i></span></div>
+                <div class="spec-cell spec-value"><span class="check ok"><i class="fas fa-check"></i></span></div>
+            </div>
+            <div class="spec-row" role="row">
+                <div class="spec-cell spec-feature"><span><span class="mono-label">MEMORY</span><strong>Retro remembers</strong></span></div>
+                <div class="spec-cell spec-value muted"><span class="check no"><i class="fas fa-minus"></i></span></div>
+                <div class="spec-cell spec-value muted"><span class="check no"><i class="fas fa-minus"></i></span></div>
+                <div class="spec-cell spec-value"><span class="check ok"><i class="fas fa-check"></i></span></div>
+            </div>
+            <div class="spec-row" role="row">
+                <div class="spec-cell spec-feature"><span><span class="mono-label">ACCESS</span><strong>Support · API · Analytics</strong></span></div>
+                <div class="spec-cell spec-value muted">—</div>
+                <div class="spec-cell spec-value">Priority</div>
+                <div class="spec-cell spec-value"><strong>Priority + API + Analytics</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="faq-wrap">
+        <div class="faq-card">
+            <div class="faq-head">
+                <div style="width:28px;height:28px;border-radius:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);display:grid;place-items:center;">
+                    <i class="fas fa-question" style="font-size:0.8rem;color:var(--text-secondary);"></i>
+                </div>
+                <h2 class="faq-title">Questions</h2>
+                <span class="mono" style="margin-left:auto;font-size:10px;letter-spacing:0.09em;text-transform:uppercase;color:var(--text-muted);">5</span>
+            </div>
+            <details class="faq-item" open>
+                <summary>Can I switch plans later? <i class="fas fa-chevron-down"></i></summary>
+                <p>Yes — upgrade, downgrade or cancel anytime. Changes apply at the end of your billing period.</p>
+            </details>
+            <details class="faq-item">
+                <summary>What happens past limits? <i class="fas fa-chevron-down"></i></summary>
+                <p>You'll see a ledger warning at 80%. At 100% we gate the feature until the monthly reset or an upgrade.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Payment methods? <i class="fas fa-chevron-down"></i></summary>
+                <p>All major cards via Stripe. If Stripe isn't configured, tier switching still works locally.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Student discount? <i class="fas fa-chevron-down"></i></summary>
+                <p>30% off any plan with a <span class="mono" style="font-weight:600;">.edu</span> — mail support@retro.local.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Cancel anytime? <i class="fas fa-chevron-down"></i></summary>
+                <p>Absolutely. Cancel here or in the portal — access stays until the period ends.</p>
+            </details>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme(){
+            const body=document.body;
+            const icon=document.querySelector('.theme-toggle-dossier i');
+            const isDark=body.getAttribute('data-theme')==='dark';
+            const next=isDark?'light':'dark';
+            if(next==='dark') body.setAttribute('data-theme','dark'); else body.removeAttribute('data-theme');
+            if(icon) icon.className=next==='dark'?'fas fa-sun':'fas fa-moon';
+            localStorage.setItem('theme',next);
+        }
+        function loadSavedTheme(){
+            const saved=localStorage.getItem('theme')||'light';
+            document.body.setAttribute('data-theme', saved==='dark'?'dark':'light');
+            if(saved==='light') document.body.removeAttribute('data-theme');
+            const icon=document.querySelector('.theme-toggle-dossier i');
+            if(icon) icon.className=saved==='dark'?'fas fa-sun':'fas fa-moon';
+        }
+        let currentBillingCycle='monthly';
+        let currentTier='free';
+        const priceIds={
+            pro:{ monthly:'<%= process.env.STRIPE_PRICE_PRO_MONTHLY || "price_pro_monthly" %>', yearly:'<%= process.env.STRIPE_PRICE_PRO_YEARLY || "price_pro_yearly" %>' },
+            premium:{ monthly:'<%= process.env.STRIPE_PRICE_PREMIUM_MONTHLY || "price_premium_monthly" %>', yearly:'<%= process.env.STRIPE_PRICE_PREMIUM_YEARLY || "price_premium_yearly" %>' }
+        };
+        document.addEventListener('DOMContentLoaded', async()=>{
+            loadSavedTheme();
+            const params=new URLSearchParams(window.location.search);
+            if(params.get('success')==='true') showMessage('success','Payment successful — upgraded.');
+            else if(params.get('canceled')==='true') showMessage('error','Payment cancelled.');
+            await fetchSubscriptionStatus();
+            setupBillingToggle();
+            setupUpgradeButtons();
+        });
+        function setupBillingToggle(){
+            const opts=document.querySelectorAll('.billing-option');
+            opts.forEach(opt=>{
+                const activate=()=>{
+                    opts.forEach(o=>{ o.classList.remove('active'); o.setAttribute('aria-selected','false'); });
+                    opt.classList.add('active'); opt.setAttribute('aria-selected','true');
+                    currentBillingCycle=opt.dataset.cycle; updatePrices();
+                };
+                opt.addEventListener('click',activate);
+                opt.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); activate(); }});
+            });
+        }
+        function updatePrices(){
+            const isYearly=currentBillingCycle==='yearly';
+            document.querySelectorAll('.monthly-price').forEach(el=>el.classList.toggle('hidden',isYearly));
+            document.querySelectorAll('.yearly-price').forEach(el=>el.classList.toggle('hidden',!isYearly));
+            document.querySelectorAll('.monthly-period').forEach(el=>el.classList.toggle('hidden',isYearly));
+            document.querySelectorAll('.yearly-period').forEach(el=>el.classList.toggle('hidden',!isYearly));
+        }
+        function setupUpgradeButtons(){
+            document.querySelectorAll('.upgrade-btn').forEach(btn=>{
+                btn.addEventListener('click', async e=>{
+                    const tier=e.currentTarget.dataset.tier;
+                    await handleUpgrade(tier, e.currentTarget);
+                });
+            });
+        }
+        async function handleUpgrade(tier, button){
+            const original=button.innerHTML;
+            button.disabled=true;
+            button.innerHTML='<span class="loading-spinner"></span><span>Opening…</span>';
+            try{
+                const priceId=priceIds[tier][currentBillingCycle];
+                const res=await fetch('/api/v1/subscription/checkout',{
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    credentials:'include',
+                    body:JSON.stringify({ priceId, tier, billingCycle:currentBillingCycle })
+                });
+                const data=await res.json();
+                if(data.success && data.url) window.location.href=data.url;
+                else throw new Error(data.message||'Failed to create checkout');
+            }catch(err){
+                console.error(err);
+                showMessage('error', err.message||'Checkout failed. Check Stripe config.');
+                button.disabled=false; button.innerHTML=original;
+            }
+        }
+        async function fetchSubscriptionStatus(){
+            try{
+                const res=await fetch('/api/v1/subscription/status',{ method:'GET', credentials:'include' });
+                if(res.ok){ const data=await res.json(); currentTier=data.subscription?.tier||'free'; updateUIForTier(currentTier); }
+            }catch(e){ console.error(e); }
+        }
+        function updateUIForTier(tier){
+            const badge=document.getElementById('currentTierBadge');
+            const names={ free:'Free', pro:'Pro', premium:'Premium' };
+            const dot=tier==='premium'?'premium':tier==='pro'?'pro':'free';
+            if(badge){
+                if(tier!=='free') badge.innerHTML=`<span class="current-pill"><span class="tier-dot ${dot}"></span>Current — ${names[tier]}</span>`;
+                else badge.innerHTML=`<span class="current-pill"><span class="tier-dot free"></span>On Free</span>`;
+            }
+            document.querySelectorAll('.upgrade-btn').forEach(btn=>{
+                const bt=btn.dataset.tier;
+                if(tier===bt){
+                    btn.innerHTML='<i class="fas fa-check"></i> Current';
+                    btn.disabled=true;
+                    btn.style.opacity='0.6';
+                } else if(tier==='premium' || (tier==='pro' && bt==='pro')){
+                    btn.innerHTML='Manage <i class="fas fa-external-link-alt" style="font-size:0.75rem;"></i>';
+                    btn.disabled=false; btn.style.opacity='1';
+                    btn.onclick=async()=>{ await openPortal(btn); };
+                }
+            });
+            // also update the free card ghost button
+            const freeBtn=document.querySelector('.spec-tier-head.tier-free .cta-ghost');
+            if(freeBtn){
+                if(tier==='free'){ freeBtn.textContent='Current'; freeBtn.disabled=true; }
+                else { freeBtn.textContent='Downgrade'; freeBtn.disabled=false; freeBtn.onclick=async()=>{ await openPortal(freeBtn); }; }
+            }
+        }
+        async function openPortal(button){
+            const orig=button.innerHTML;
+            button.disabled=true; button.innerHTML='<span class="loading-spinner"></span> Opening…';
+            try{
+                const res=await fetch('/api/v1/subscription/portal',{ method:'POST', credentials:'include' });
+                const data=await res.json();
+                if(data.success && data.url) window.location.href=data.url;
+                else throw new Error(data.message||'Portal failed');
+            }catch(err){
+                console.error(err);
+                showMessage('error','Failed to open portal.');
+                button.disabled=false; button.innerHTML=orig;
+            }
+        }
+        function showMessage(type, message){
+            const container=document.getElementById('messageContainer');
+            const border=type==='success'?'#10b981':'#ef4444';
+            const icon=type==='success'?'check-circle':'exclamation-circle';
+            const iconColor=type==='success'?'#10b981':'#ef4444';
+            container.innerHTML=`
+                <div class="success-animation" style="max-width:1128px;margin:0 auto;padding:0 0 1rem;">
+                    <div style="display:flex;align-items:center;gap:0.75rem;padding:0.85rem 1rem;border-radius:12px;background:var(--bg-secondary);border:1.5px solid ${border};box-shadow:0 8px 18px var(--shadow);">
+                        <i class="fas fa-${icon}" style="color:${iconColor};"></i>
+                        <span style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.92rem;">${message}</span>
+                    </div>
+                </div>
+            `;
+            setTimeout(()=>{ container.innerHTML=''; },5000);
+        }
+    </script>
+</body>
+</html>

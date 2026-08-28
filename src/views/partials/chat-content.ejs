@@ -1,0 +1,1782 @@
+<!-- Chat History Sidebar Toggle Button -->
+<button id="chatHistoryToggle" class="chat-history-toggle" aria-label="Toggle chat history">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- Chat History Sidebar -->
+<div id="chatHistorySidebar" class="chat-history-sidebar">
+    <div class="chat-history-header">
+        <h3>Chat History</h3>
+        <button id="closeSidebar" class="close-sidebar-btn" aria-label="Close sidebar">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <button id="newChatBtn" class="new-chat-btn">
+        <i class="fas fa-plus"></i>
+        New Chat
+    </button>
+
+    <div class="chat-sessions-list" id="chatSessionsList">
+        <!-- Chat sessions will be loaded here -->
+    </div>
+</div>
+
+<!-- Sidebar Overlay -->
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+<!-- Chat Section Content -->
+<div class="vh-shell" style="height: 100%; display: flex; flex-direction: column;">
+    <div class="content-wrapper" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+        <div class="chat-card rounded-3xl overflow-hidden" style="flex: 1; display: flex; flex-direction: column; min-height: 0; background: transparent; box-shadow: none;">
+            <div class="chat-messages">
+                <!-- Dynamic User Greeting -->
+                <div id="userGreeting" class="user-greeting" style="display: none;">
+                    <h1 class="greeting-text"></h1>
+                </div>
+                <div class="chat-thread">
+                    <!-- Chat messages will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <div class="flex gap-4 w-full">
+                    <div class="flex-1 flex gap-3 chat-input-group">
+                        <button
+                            class="flex items-center justify-center px-4 py-3 text-center text-gray-700 duration-200 bg-gray-100 border-2 border-gray-200 rounded-full hover:bg-gray-200 hover:border-gray-300 focus:outline-none attachment-btn"
+                            aria-label="Attach note"
+                            title="Attach a note"
+                            onclick="toggleAttachment()"
+                            id="attachmentBtn"
+                        >
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <div class="input-wrap flex-1">
+                            <textarea
+                                placeholder="Type your message..."
+                                class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-3xl resize-none focus:outline-none focus:border-black transition-colors duration-200 chat-textarea"
+                                rows="1"
+                            ></textarea>
+                        </div>
+                        <button
+                            class="flex items-center justify-center px-6 py-3 text-center text-white duration-200 bg-black border-2 border-black rounded-full hover:bg-transparent hover:border-black hover:text-black focus:outline-none focus-visible:outline-black chat-send-btn"
+                            aria-label="Send message"
+                            disabled
+                        >
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notes Popup Window -->
+<div id="notesPopup" class="notes-popup" style="display: none;">
+    <div class="notes-popup-header">
+        <h3 class="text-sm font-semibold text-gray-800">Attach Note</h3>
+        <button onclick="closeNotesPopup()" class="close-popup-btn">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="notes-popup-body">
+        <div id="notesListPopup" class="notes-list-container">
+            <!-- Notes will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- Chat Styles -->
+<style>
+    /* Attachment Button */
+    .attachment-btn {
+        min-height: 44px;
+        min-width: 44px;
+        transition:
+            transform 120ms ease,
+            box-shadow 150ms ease,
+            background-color 150ms ease;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+    }
+
+    .attachment-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    [data-theme="dark"] .attachment-btn {
+        background-color: var(--bg-tertiary);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .attachment-btn:hover {
+        background-color: var(--bg-secondary);
+    }
+
+    .attachment-btn.has-attachment {
+        background-color: #10b981 !important;
+        border-color: #10b981 !important;
+        color: white !important;
+    }
+
+    .attachment-btn.has-attachment i {
+        color: white !important;
+    }
+
+    .attachment-btn.has-attachment:hover {
+        background-color: #059669 !important;
+        border-color: #059669 !important;
+    }
+
+    [data-theme="dark"] .attachment-btn.has-attachment {
+        background-color: #10b981 !important;
+        border-color: #10b981 !important;
+        color: white !important;
+    }
+
+    [data-theme="dark"] .attachment-btn.has-attachment i {
+        color: white !important;
+    }
+
+    [data-theme="dark"] .attachment-btn.has-attachment:hover {
+        background-color: #059669 !important;
+        border-color: #059669 !important;
+        color: white !important;
+    }
+
+    /* Chat History Sidebar Styles */
+    .chat-history-toggle {
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        width: 44px;
+        height: 44px;
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        z-index: 100;
+        color: #1f2937;
+    }
+
+    .chat-history-toggle:hover {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+    }
+
+    [data-theme="dark"] .chat-history-toggle {
+        background: var(--bg-secondary);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .chat-history-toggle:hover {
+        background: var(--bg-tertiary);
+    }
+
+    .chat-history-sidebar {
+        position: fixed;
+        top: 0;
+        left: -320px;
+        width: 320px;
+        height: 100vh;
+        background: white;
+        box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        transition: left 0.3s ease;
+    }
+
+    .chat-history-sidebar.open {
+        left: 0;
+    }
+
+    [data-theme="dark"] .chat-history-sidebar {
+        background: var(--bg-secondary);
+        border-right: 1px solid var(--border-color);
+    }
+
+    .chat-history-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    [data-theme="dark"] .chat-history-header {
+        border-bottom-color: var(--border-color);
+    }
+
+    .chat-history-header h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    [data-theme="dark"] .chat-history-header h3 {
+        color: var(--text-primary);
+    }
+
+    .close-sidebar-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #f3f4f6;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #6b7280;
+    }
+
+    .close-sidebar-btn:hover {
+        background: #e5e7eb;
+        color: #1f2937;
+    }
+
+    [data-theme="dark"] .close-sidebar-btn {
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+    }
+
+    [data-theme="dark"] .close-sidebar-btn:hover {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+    }
+
+    .new-chat-btn {
+        margin: 1rem;
+        padding: 0.75rem 1rem;
+        background: #000;
+        color: white;
+        border: 2px solid #000;
+        border-radius: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .new-chat-btn:hover {
+        background: transparent;
+        color: #000;
+    }
+
+    [data-theme="dark"] .new-chat-btn {
+        background: var(--text-primary);
+        color: var(--bg-primary);
+        border-color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .new-chat-btn:hover {
+        background: transparent;
+        color: var(--text-primary);
+    }
+
+    .chat-sessions-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 1rem 1rem 1rem;
+    }
+
+    .chat-session-item {
+        padding: 0.875rem 1rem;
+        margin-bottom: 0.5rem;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .chat-session-item:hover {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+    }
+
+    .chat-session-item.active {
+        background: #eff6ff;
+        border-color: #3b82f6;
+    }
+
+    [data-theme="dark"] .chat-session-item {
+        background: var(--bg-tertiary);
+        border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .chat-session-item:hover {
+        background: var(--bg-primary);
+    }
+
+    [data-theme="dark"] .chat-session-item.active {
+        background: rgba(59, 130, 246, 0.1);
+        border-color: #3b82f6;
+    }
+
+    .chat-session-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    [data-theme="dark"] .chat-session-title {
+        color: var(--text-primary);
+    }
+
+    .chat-session-preview {
+        font-size: 0.75rem;
+        color: #6b7280;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    [data-theme="dark"] .chat-session-preview {
+        color: var(--text-secondary);
+    }
+
+    .chat-session-delete {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        width: 24px;
+        height: 24px;
+        background: #fee2e2;
+        color: #dc2626;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        opacity: 0;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+    }
+
+    .chat-session-item:hover .chat-session-delete {
+        opacity: 1;
+    }
+
+    .chat-session-delete:hover {
+        background: #fecaca;
+    }
+
+    [data-theme="dark"] .chat-session-delete {
+        background: rgba(220, 38, 38, 0.2);
+        color: #f87171;
+    }
+
+    [data-theme="dark"] .chat-session-delete:hover {
+        background: rgba(220, 38, 38, 0.3);
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .sessions-loading,
+    .sessions-empty {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    [data-theme="dark"] .sessions-loading,
+    [data-theme="dark"] .sessions-empty {
+        color: var(--text-secondary);
+    }
+
+    @media (max-width: 768px) {
+        .chat-history-sidebar {
+            width: 280px;
+            left: -280px;
+        }
+    }
+
+    /* Notes Popup Window */
+    .notes-popup {
+        position: absolute;
+        bottom: 80px;
+        left: 2rem;
+        width: 320px;
+        max-height: 400px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        animation: popupSlideUp 0.2s ease;
+    }
+
+    @keyframes popupSlideUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    [data-theme="dark"] .notes-popup {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+    }
+
+    .notes-popup-header {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    [data-theme="dark"] .notes-popup-header {
+        border-bottom-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .notes-popup-header h3 {
+        color: var(--text-primary);
+    }
+
+    .close-popup-btn {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #f3f4f6;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.75rem;
+    }
+
+    .close-popup-btn:hover {
+        background: #e5e7eb;
+    }
+
+    [data-theme="dark"] .close-popup-btn {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .close-popup-btn:hover {
+        background: var(--bg-primary);
+    }
+
+    .notes-popup-body {
+        padding: 0.75rem;
+        overflow-y: auto;
+        flex: 1;
+        max-height: 340px;
+    }
+
+    @media (max-width: 768px) {
+        .notes-popup {
+            left: 1rem;
+            right: 1rem;
+            width: auto;
+            bottom: 70px;
+        }
+    }
+
+    .notes-list-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .note-item-popup {
+        padding: 0.75rem 1rem;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .note-item-popup:hover {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+        transform: translateX(2px);
+    }
+
+    [data-theme="dark"] .note-item-popup {
+        background: var(--bg-tertiary);
+        border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .note-item-popup:hover {
+        background: var(--bg-primary);
+    }
+
+    .note-item-popup h4 {
+        margin: 0 0 0.25rem 0;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    [data-theme="dark"] .note-item-popup h4 {
+        color: var(--text-primary);
+    }
+
+    .note-item-popup p {
+        margin: 0;
+        font-size: 0.75rem;
+        color: #6b7280;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    [data-theme="dark"] .note-item-popup p {
+        color: var(--text-secondary);
+    }
+
+    .notes-loading {
+        text-align: center;
+        padding: 2rem;
+        color: #6b7280;
+    }
+
+    [data-theme="dark"] .notes-loading {
+        color: var(--text-secondary);
+    }
+
+    .notes-error {
+        text-align: center;
+        padding: 2rem;
+        color: #ef4444;
+    }
+
+    .notes-empty {
+        text-align: center;
+        padding: 2rem;
+        color: #6b7280;
+    }
+
+    [data-theme="dark"] .notes-empty {
+        color: var(--text-secondary);
+    }
+    .vh-shell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        width: 100%;
+        height: 100%;
+    }
+
+    @media (max-width: 768px) {
+        .vh-shell {
+            padding: 1rem;
+        }
+    }
+
+    .content-wrapper {
+        width: 100%;
+        max-width: 900px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .chat-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        border: none;
+        min-height: 0;
+    }
+
+
+    .chat-messages {
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 1.5rem 1.75rem;
+        flex: 1;
+        min-height: 0;
+        position: relative;
+    }
+
+
+    @media (max-width: 768px) {
+        .chat-messages {
+            padding: 1rem;
+        }
+    }
+
+    .chat-thread {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+    }
+
+    @media (min-width: 768px) {
+        .chat-thread {
+            gap: 0.9rem;
+        }
+    }
+
+    .bubble-wrap {
+        max-width: 75%;
+        display: inline-flex;
+        width: auto;
+        flex: 0 1 auto;
+    }
+
+    @media (max-width: 768px) {
+        .bubble-wrap {
+            max-width: 90%;
+        }
+    }
+
+    .chat-bubble {
+        word-wrap: break-word;
+        white-space: pre-wrap;
+        display: inline-flex;
+        flex-direction: column;
+        width: fit-content;
+        max-width: 100%;
+        min-width: 0;
+        padding: 0.85rem 1.15rem;
+        line-height: 1.45;
+        font-size: 0.95rem;
+        gap: 0.25rem;
+        box-shadow: var(--shadow-subtle);
+    }
+
+    .chat-bubble p {
+        margin: 0;
+    }
+
+    /* Chat Input */
+    .chat-input-container {
+        align-items: flex-end;
+        padding: 1.5rem 2rem 2rem;
+        border-top: 1px solid transparent;
+        box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.15);
+        position: relative;
+    }
+
+    [data-theme="dark"] .chat-input-container {
+        border-top: 1px solid transparent;
+        box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    @media (max-width: 768px) {
+        .chat-input-container {
+            padding: 1rem 1.5rem 1.5rem;
+            flex-direction: column !important;
+            gap: 0.75rem !important;
+            align-items: stretch;
+        }
+
+        .chat-input-group {
+            flex-direction: column !important;
+            gap: 0.75rem !important;
+        }
+    }
+
+    .input-wrap {
+        position: relative;
+        display: flex;
+        flex: 1;
+    }
+
+    .chat-textarea {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        line-height: 1.5;
+        min-height: 44px;
+        max-height: 72px;
+        overflow-y: auto;
+        box-shadow: var(--shadow-subtle);
+        border-width: 1px !important;
+        border-style: solid;
+        border-color: rgba(0, 0, 0, 0.08);
+        width: 100%;
+    }
+
+    [data-theme="dark"] .chat-textarea {
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .chat-textarea::placeholder {
+        color: var(--text-muted);
+    }
+
+    .chat-textarea:focus {
+        border-color: var(--text-primary) !important;
+        box-shadow:
+            0 0 0 3px rgba(99, 102, 241, 0.12),
+            0 6px 18px -8px var(--shadow-lg);
+    }
+
+    .chat-textarea::-webkit-scrollbar {
+        width: 0px;
+    }
+
+    .chat-textarea::-webkit-scrollbar-thumb {
+        background: transparent;
+        border-radius: 4px;
+    }
+
+    .chat-textarea::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chat-textarea {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .chat-send-btn {
+        align-self: flex-start;
+        min-height: 44px;
+        transition:
+            transform 120ms ease,
+            box-shadow 150ms ease,
+            background-color 150ms ease,
+            color 150ms ease;
+        box-shadow: var(--shadow-subtle);
+    }
+
+    .chat-send-btn.is-active {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 28px -12px var(--shadow-lg);
+    }
+
+    .chat-send-btn[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+        filter: grayscale(10%);
+    }
+
+    /* Hide scrollbar for chat messages while keeping it scrollable */
+    .chat-messages::-webkit-scrollbar {
+        display: none;
+    }
+
+    .chat-messages {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+
+    /* Styled scrollbar for chat history sidebar */
+    .chat-sessions-list::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .chat-sessions-list::-webkit-scrollbar-track {
+        background: transparent;
+        margin: 8px 0;
+    }
+
+    .chat-sessions-list::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+    }
+
+    .chat-sessions-list::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+        background-clip: content-box;
+    }
+
+    [data-theme="dark"] .chat-sessions-list::-webkit-scrollbar-thumb {
+        background: #4a5568;
+    }
+
+    [data-theme="dark"] .chat-sessions-list::-webkit-scrollbar-thumb:hover {
+        background: #718096;
+    }
+
+    /* Firefox scrollbar for chat history sidebar */
+    .chat-sessions-list {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+
+    [data-theme="dark"] .chat-sessions-list {
+        scrollbar-color: #4a5568 transparent;
+    }
+
+    /* Styled scrollbar for notes popup */
+    .notes-popup-body::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .notes-popup-body::-webkit-scrollbar-track {
+        background: transparent;
+        margin: 8px 0;
+    }
+
+    .notes-popup-body::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+    }
+
+    .notes-popup-body::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+        background-clip: content-box;
+    }
+
+    [data-theme="dark"] .notes-popup-body::-webkit-scrollbar-thumb {
+        background: #4a5568;
+    }
+
+    [data-theme="dark"] .notes-popup-body::-webkit-scrollbar-thumb:hover {
+        background: #718096;
+    }
+
+    /* Firefox scrollbar for notes popup */
+    .notes-popup-body {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+
+    [data-theme="dark"] .notes-popup-body {
+        scrollbar-color: #4a5568 transparent;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .message-fade-in {
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 0.4;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+    }
+
+    /* Dark theme adjustments for backgrounds */
+    [data-theme="dark"] .bg-white {
+        background-color: var(--bg-secondary) !important;
+    }
+
+    [data-theme="dark"] .bg-gray-100 {
+        background-color: var(--bg-tertiary) !important;
+    }
+
+    [data-theme="dark"] .text-gray-600 {
+        color: var(--text-primary) !important;
+    }
+
+    [data-theme="dark"] .text-gray-500 {
+        color: var(--text-secondary) !important;
+    }
+
+    [data-theme="dark"] .text-gray-800 {
+        color: var(--text-primary) !important;
+    }
+
+    [data-theme="dark"] .border-gray-200 {
+        border-color: var(--border-color) !important;
+    }
+
+    [data-theme="dark"] .border-gray-100 {
+        border-color: var(--border-color) !important;
+    }
+
+    [data-theme="dark"] .border-2.border-gray-200 {
+        border-color: var(--border-color) !important;
+    }
+
+    /* Chat card - keep transparent in both themes */
+    [data-theme="dark"] .chat-card {
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    /* Ensure greeting background matches theme */
+    [data-theme="dark"] .user-greeting {
+        background: var(--bg-primary);
+    }
+
+    /* User Greeting Styles */
+    .user-greeting {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        animation: greetingFadeIn 0.8s ease;
+        background: var(--bg-primary);
+        z-index: 10;
+        pointer-events: none;
+    }
+
+    .user-greeting[style*="display: flex"] {
+        display: flex !important;
+        pointer-events: auto;
+    }
+
+    .greeting-text {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #000000;
+        text-align: center;
+        line-height: 1.2;
+        font-family: "Space Grotesk", sans-serif;
+        animation: greetingSlideUp 0.8s ease;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        cursor: default;
+    }
+
+    [data-theme="dark"] .greeting-text {
+        color: #c2c0b6;
+    }
+
+    @keyframes greetingFadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes greetingSlideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .user-greeting.fade-out {
+        animation: greetingFadeOut 0.5s ease forwards;
+    }
+
+    @keyframes greetingFadeOut {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .greeting-text {
+            font-size: 2rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .greeting-text {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<!-- Chat JavaScript -->
+<script>
+    // Greeting messages pool
+    const greetings = [
+    "Hi {name}, ready to build something meaningful?",
+    "Welcome back, {name}. Let’s get into flow.",
+    "Hey {name}, what shall we explore today?",
+    "Good to see you, {name}. Let's create something amazing.",
+    "{name}, your ideas are safe here — let’s begin.",
+    "Hi {name}, what’s on your mind right now?",
+    "Welcome, {name}. Let’s make today productive and calm.",
+    "Hey {name}, shall we craft something great?",
+    "{name}, ready to dive in? I’m here.",
+    "Hi {name}, let’s shape something brilliant.",
+    "Welcome back, {name}. Your workspace is ready.",
+    "Hello {name}, let’s turn thoughts into progress.",
+    "Hey {name}, let's spark something new today.",
+    "Hi {name}, ready for a clean, focused session?",
+    "{name}, let’s create with intention.",
+    "Hello {name}, your next idea starts here.",
+    "Good to have you here, {name}. Let’s begin.",
+    "Hi {name}, the canvas is yours.",
+    "Welcome {name}, let’s bring clarity to your ideas.",
+    "Hey {name}, another step toward something great.",
+    "{name}, let’s get into the zone.",
+    "Hello {name}, let’s build something you’ll be proud of.",
+    "Hi {name}, where shall we go today?",
+    "Welcome back, {name}. Let’s make progress together.",
+    "Hey {name}, your creativity belongs here.",
+];
+
+
+    // Escape HTML to prevent XSS - Define globally
+    function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Get random greeting
+    function getRandomGreeting(name) {
+        const randomIndex = Math.floor(Math.random() * greetings.length);
+        return greetings[randomIndex].replace('{name}', name);
+    }
+
+    // Load and display user greeting
+    async function loadUserGreeting() {
+        console.log('🎉 Loading user greeting...');
+        try {
+            const response = await fetch('/api/v1/auth/me', {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            console.log('Response status:', response.status);
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('User data received:', data);
+                const fullFirstName = data.user && data.user.firstName ? data.user.firstName : 'Friend';
+                const firstName = fullFirstName.split(' ')[0]; // Get just the first word
+                console.log('First name:', firstName);
+
+                const greetingElement = document.getElementById('userGreeting');
+                const greetingText = greetingElement.querySelector('.greeting-text');
+
+                const greeting = getRandomGreeting(firstName);
+                console.log('Selected greeting:', greeting);
+                greetingText.textContent = greeting;
+                greetingElement.style.display = 'flex';
+                greetingElement.style.zIndex = '10';
+                console.log('✅ Greeting displayed successfully');
+            } else {
+                console.log('⚠️ Not authenticated, showing default greeting');
+                // If not authenticated, show default greeting
+                const greetingElement = document.getElementById('userGreeting');
+                const greetingText = greetingElement.querySelector('.greeting-text');
+                greetingText.textContent = getRandomGreeting('Friend');
+                greetingElement.style.display = 'flex';
+                greetingElement.style.zIndex = '10';
+            }
+        } catch (error) {
+            console.error('❌ Failed to load user data:', error);
+            // Show default greeting on error
+            const greetingElement = document.getElementById('userGreeting');
+            const greetingText = greetingElement.querySelector('.greeting-text');
+            greetingText.textContent = getRandomGreeting('Friend');
+            greetingElement.style.display = 'flex';
+        }
+    }
+
+    // Hide greeting with animation
+    function hideGreeting() {
+        console.log('👋 Hiding greeting...');
+        const greetingElement = document.getElementById('userGreeting');
+        if (greetingElement && greetingElement.style.display !== 'none') {
+            // Hide immediately by reducing z-index so messages show through
+            greetingElement.style.zIndex = '-1';
+            greetingElement.classList.add('fade-out');
+            setTimeout(() => {
+                greetingElement.style.display = 'none';
+                greetingElement.classList.remove('fade-out');
+                greetingElement.style.zIndex = '10'; // Reset for next time
+                console.log('✅ Greeting hidden');
+            }, 500);
+        }
+    }
+
+    // Helper function to reset greeting (for testing)
+    window.resetGreeting = function() {
+        console.log('🔄 Resetting chat and greeting...');
+        // Clear the chat thread
+        const chatThread = document.querySelector('.chat-thread');
+        if (chatThread) {
+            chatThread.innerHTML = '';
+        }
+        // Reload the page to show greeting
+        window.location.reload();
+    };
+
+    // Track if user has sent first message - using localStorage to persist across refreshes
+    // We'll check if there are any messages in the chat thread instead
+    let hasUserSentMessage = false;
+
+    // Utility functions - Define globally before DOMContentLoaded
+    function extractPlainTextFromDelta(delta) {
+        if (!delta || !delta.ops) return '';
+        return delta.ops.map(op => {
+            if (typeof op.insert === 'string') {
+                return op.insert;
+            }
+            return '';
+        }).join('');
+    }
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    // Attached Note State - Define globally
+    let attachedNote = null;
+
+    // Chat Session State - Define globally
+    let currentChatSessionId = null;
+    let chatSessions = [];
+
+    // Append message function - Define globally so it's accessible everywhere
+    function appendMessage(message, isUser) {
+        const chatMessages = document.querySelector(".chat-messages .chat-thread");
+        const messagesContainer = document.querySelector(".chat-messages");
+
+        const messageElement = document.createElement("div");
+        messageElement.classList.add("flex", "message-fade-in", isUser ? "justify-end" : "justify-start");
+
+        messageElement.innerHTML = `
+            <div class="bubble-wrap">
+                <div class="bg-${isUser ? "gray-100" : "black"} rounded-3xl text-${isUser ? "gray-800" : "white"} chat-bubble chat-bubble--${isUser ? "user" : "assistant"}">
+                    <p>${escapeHtml(message)}</p>
+                </div>
+            </div>
+        `;
+        chatMessages.appendChild(messageElement);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Chat History Sidebar Functions
+    function toggleSidebar() {
+        const sidebar = document.getElementById('chatHistorySidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('show');
+
+        if (sidebar.classList.contains('open')) {
+            loadChatSessions();
+        }
+    }
+
+    function closeSidebar() {
+        const sidebar = document.getElementById('chatHistorySidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
+    }
+
+    async function loadChatSessions() {
+        const sessionsList = document.getElementById('chatSessionsList');
+        sessionsList.innerHTML = '<div class="sessions-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+
+        try {
+            const response = await fetch('/api/v1/chat-sessions', {
+                method: 'GET',
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load chat sessions');
+            }
+
+            chatSessions = await response.json();
+
+            if (chatSessions.length === 0) {
+                sessionsList.innerHTML = '<div class="sessions-empty"><i class="fas fa-comments" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.3;"></i><br>No chat history yet</div>';
+                return;
+            }
+
+            sessionsList.innerHTML = '';
+            chatSessions.forEach(session => {
+                const sessionItem = document.createElement('div');
+                sessionItem.className = 'chat-session-item';
+                if (session._id === currentChatSessionId) {
+                    sessionItem.classList.add('active');
+                }
+
+                const title = session.title || 'New Chat';
+                const preview = session.messages && session.messages.length > 0
+                    ? session.messages[session.messages.length - 1].content.substring(0, 50)
+                    : 'No messages yet';
+
+                sessionItem.innerHTML = `
+                    <div class="chat-session-title">${escapeHtml(title)}</div>
+                    <div class="chat-session-preview">${escapeHtml(preview)}</div>
+                    <button class="chat-session-delete" onclick="deleteChatSession(event, '${session._id}')" aria-label="Delete session">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+
+                sessionItem.onclick = (e) => {
+                    if (!e.target.closest('.chat-session-delete')) {
+                        loadChatSession(session._id);
+                    }
+                };
+
+                sessionsList.appendChild(sessionItem);
+            });
+
+        } catch (error) {
+            console.error('Error loading chat sessions:', error);
+            sessionsList.innerHTML = '<div class="sessions-empty text-red-500"><i class="fas fa-exclamation-triangle"></i><br>Failed to load sessions</div>';
+        }
+    }
+
+    async function findEmptySession() {
+        try {
+            const response = await fetch('/api/v1/chat-sessions', {
+                method: 'GET',
+                credentials: 'include',
+            });
+
+            if (!response.ok) return null;
+
+            const sessions = await response.json();
+            // Find first session with no messages
+            return sessions.find(session => !session.messages || session.messages.length === 0);
+        } catch (error) {
+            console.error('Error finding empty session:', error);
+            return null;
+        }
+    }
+
+    async function createNewChatSession() {
+        try {
+            // First, check if there's an empty session we can reuse
+            const emptySession = await findEmptySession();
+
+            if (emptySession) {
+                console.log('Reusing empty session:', emptySession._id);
+                currentChatSessionId = emptySession._id;
+            } else {
+                // Create new session only if no empty one exists
+                const response = await fetch('/api/v1/chat-sessions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ title: 'New Chat' }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create chat session');
+                }
+
+                const newSession = await response.json();
+                currentChatSessionId = newSession._id;
+            }
+
+            // Clear chat
+            const chatThread = document.querySelector('.chat-thread');
+            chatThread.innerHTML = '';
+
+            // Show greeting
+            hasUserSentMessage = false;
+            loadUserGreeting();
+
+            closeSidebar();
+            return { _id: currentChatSessionId };
+
+        } catch (error) {
+            console.error('Error creating chat session:', error);
+            alert('Failed to create new chat session');
+        }
+    }
+
+    async function loadChatSession(sessionId) {
+        try {
+            const response = await fetch(`/api/v1/chat-sessions/${sessionId}`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load chat session');
+            }
+
+            const session = await response.json();
+            currentChatSessionId = session._id;
+
+            // Clear and load messages
+            const chatThread = document.querySelector('.chat-thread');
+            chatThread.innerHTML = '';
+
+            // Hide or show greeting based on messages
+            const userGreeting = document.getElementById('userGreeting');
+
+            if (session.messages && session.messages.length > 0) {
+                hasUserSentMessage = true;
+                if (userGreeting) {
+                    userGreeting.style.display = 'none';
+                }
+                session.messages.forEach(msg => {
+                    appendMessage(msg.content, msg.sender === 'user');
+                });
+            } else {
+                hasUserSentMessage = false;
+                if (userGreeting) {
+                    userGreeting.style.display = 'flex';
+                }
+                loadUserGreeting();
+            }
+
+            closeSidebar();
+
+        } catch (error) {
+            console.error('Error loading chat session:', error);
+            alert('Failed to load chat session');
+        }
+    }
+
+    // Delete confirmation modal state
+    let sessionToDelete = null;
+
+    function showDeleteConfirmModal(sessionId) {
+        sessionToDelete = sessionId;
+        const modal = document.getElementById('deleteConfirmModal');
+        modal.classList.add('active');
+        modal.style.display = 'block';
+    }
+
+    function hideDeleteConfirmModal() {
+        const modal = document.getElementById('deleteConfirmModal');
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        sessionToDelete = null;
+    }
+
+    async function deleteChatSession(event, sessionId) {
+        event.stopPropagation();
+        showDeleteConfirmModal(sessionId);
+    }
+
+    async function confirmDelete() {
+        if (!sessionToDelete) return;
+
+        const sessionId = sessionToDelete;
+        hideDeleteConfirmModal();
+
+        try {
+            const response = await fetch(`/api/v1/chat-sessions/${sessionId}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete chat session');
+            }
+
+            // If deleted session was current, create new one
+            if (sessionId === currentChatSessionId) {
+                await createNewChatSession();
+            }
+
+            // Reload sessions list
+            loadChatSessions();
+
+        } catch (error) {
+            console.error('Error deleting chat session:', error);
+            alert('Failed to delete chat session');
+        }
+    }
+
+    // Make functions globally available
+    window.toggleSidebar = toggleSidebar;
+    window.closeSidebar = closeSidebar;
+    window.deleteChatSession = deleteChatSession;
+
+    // Chat Functionality
+    document.addEventListener("DOMContentLoaded", async () => {
+        // Set up sidebar event listeners
+        document.getElementById('chatHistoryToggle')?.addEventListener('click', toggleSidebar);
+        document.getElementById('closeSidebar')?.addEventListener('click', closeSidebar);
+        document.getElementById('sidebarOverlay')?.addEventListener('click', closeSidebar);
+        document.getElementById('newChatBtn')?.addEventListener('click', createNewChatSession);
+
+        // Set up delete confirmation modal listeners
+        document.getElementById('confirmDeleteBtn')?.addEventListener('click', confirmDelete);
+        document.getElementById('cancelDeleteBtn')?.addEventListener('click', hideDeleteConfirmModal);
+        // Close modal when clicking outside
+        document.getElementById('deleteConfirmModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideDeleteConfirmModal();
+            }
+        });
+
+        const textarea = document.querySelector(".chat-textarea");
+        const sendBtn = document.querySelector(".chat-send-btn");
+        const chatMessages = document.querySelector(".chat-messages .chat-thread");
+
+        // Check if there are any existing messages in the chat
+        const hasExistingMessages = chatMessages && chatMessages.children.length > 0;
+        hasUserSentMessage = hasExistingMessages;
+
+        console.log('🚀 Chat loaded. Has existing messages?', hasExistingMessages);
+
+        // Initialize chat session on page load - reuse empty session if available
+        if (!currentChatSessionId) {
+            console.log('📝 No session ID found, looking for empty session or creating new...');
+            const emptySession = await findEmptySession();
+            if (emptySession) {
+                console.log('Found empty session, reusing:', emptySession._id);
+                currentChatSessionId = emptySession._id;
+            } else {
+                console.log('No empty session found, creating new...');
+                await createNewChatSession();
+            }
+        }
+
+        // Load user greeting only if chat is empty
+        if (!hasExistingMessages) {
+            console.log('📝 Loading greeting - chat is empty');
+            loadUserGreeting();
+        } else {
+            console.log('⏭️ Skipping greeting - chat has messages');
+        }
+
+        // Auto-resize textarea
+        const autosize = () => {
+            textarea.style.height = "auto";
+            const max = parseInt(getComputedStyle(textarea).maxHeight || 160, 10);
+            textarea.style.height = Math.min(textarea.scrollHeight, max) + "px";
+
+            // Toggle button state
+            const hasText = textarea.value.trim().length > 0;
+            if (sendBtn) {
+                sendBtn.toggleAttribute("disabled", !hasText);
+                sendBtn.classList.toggle("is-active", hasText);
+            }
+        };
+
+        // Initialize height and state
+        autosize();
+        if (textarea) {
+            textarea.addEventListener("input", autosize);
+
+            // Submit on Ctrl/Cmd+Enter
+            textarea.addEventListener("keydown", (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && sendBtn && !sendBtn.disabled) {
+                    sendBtn.click();
+                }
+            });
+        }
+
+        // Ensure the latest messages are visible on load
+        const messagesContainer = document.querySelector(".chat-messages");
+        if (messagesContainer) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // appendMessage is now defined globally above
+
+        // Send message
+        sendBtn?.addEventListener("click", async () => {
+            const message = textarea.value.trim();
+            if (!message) return;
+
+            // Create session if none exists
+            if (!currentChatSessionId) {
+                const newSession = await createNewChatSession();
+                if (!newSession) {
+                    alert('Failed to create chat session. Please try again.');
+                    return;
+                }
+            }
+
+            // Hide greeting on first message
+            if (!hasUserSentMessage) {
+                hideGreeting();
+                hasUserSentMessage = true;
+            }
+
+            appendMessage(message, true);
+            const currentAttachedNote = attachedNote; // Store reference before clearing
+            textarea.value = "";
+            textarea.dispatchEvent(new Event("input")); // To resize and disable send button
+
+            // Show loading indicator
+            const loadingId = Date.now();
+            const loadingMessage = document.createElement("div");
+            loadingMessage.className = "flex justify-start";
+            loadingMessage.id = `loading-${loadingId}`;
+            loadingMessage.innerHTML = `
+                <div class="bubble-wrap">
+                    <div class="bg-black rounded-3xl text-white chat-bubble">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 8px; height: 8px; background: white; border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
+                            <div style="width: 8px; height: 8px; background: white; border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.2s;"></div>
+                            <div style="width: 8px; height: 8px; background: white; border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.4s;"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(loadingMessage);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            try {
+                let apiEndpoint = "/api/v1/chat";
+                let requestBody = {
+                    message,
+                    chatSessionId: currentChatSessionId
+                };
+
+                // Check if a note is attached
+                if (currentAttachedNote) {
+                    apiEndpoint = "/api/v1/chat-with-note";
+                    requestBody.noteId = currentAttachedNote.id;
+
+                    // Clear the attachment after sending
+                    removeAttachedNote();
+                }
+
+                // Call the appropriate chat API endpoint
+                const response = await fetch(apiEndpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include", // Include cookies for authentication
+                    body: JSON.stringify(requestBody),
+                });
+
+                // Remove loading indicator
+                const loadingEl = document.getElementById(`loading-${loadingId}`);
+                if (loadingEl) loadingEl.remove();
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    if (response.status === 401) {
+                        appendMessage("Your session has expired. Please login again.", false);
+                        setTimeout(() => {
+                            window.location.href = "/login";
+                        }, 2000);
+                        return;
+                    }
+                    throw new Error(errorData.message || `Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data.success && data.response) {
+                    appendMessage(data.response, false);
+
+                    // If note was referenced, show it in the response
+                    if (data.noteReference) {
+                        console.log('Note referenced:', data.noteReference);
+                    }
+                } else {
+                    throw new Error("Invalid response format from server");
+                }
+            } catch (error) {
+                console.error("Error connecting to chat API:", error);
+
+                // Remove loading indicator if still present
+                const loadingEl = document.getElementById(`loading-${loadingId}`);
+                if (loadingEl) loadingEl.remove();
+
+                // Show error message
+                appendMessage(
+                    `Sorry, I couldn't process your message. Error: ${error.message}`,
+                    false,
+                );
+            }
+        });
+    });
+
+    // Notes Popup Functions - Define globally
+    // Toggle attachment: open modal if no attachment, remove if already attached
+    function toggleAttachment() {
+        const attachBtn = document.getElementById('attachmentBtn');
+
+        // If note is already attached, remove it
+        if (attachedNote) {
+            removeAttachedNote();
+        } else {
+            // Otherwise, open the notes modal to attach one
+            openNotesModal();
+        }
+    }
+
+    function openNotesModal() {
+        const popup = document.getElementById('notesPopup');
+        popup.style.display = 'flex';
+        loadNotesForModal();
+    }
+
+    function closeNotesModal() {
+        const popup = document.getElementById('notesPopup');
+        popup.style.display = 'none';
+    }
+
+    function closeNotesPopup() {
+        closeNotesModal();
+    }
+
+    async function loadNotesForModal() {
+        const notesListContainer = document.getElementById('notesListPopup');
+        notesListContainer.innerHTML = '<div class="notes-loading"><i class="fas fa-spinner fa-spin"></i> Loading notes...</div>';
+
+        try {
+            const headers = { "Content-Type": "application/json" };
+            const token = localStorage.getItem("accessToken") || getCookie("accessToken");
+            if (token) {
+                headers["Authorization"] = "Bearer " + token;
+            }
+
+            const response = await fetch("/api/v1/notes", {
+                method: "GET",
+                headers,
+                credentials: "include",
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    notesListContainer.innerHTML = '<div class="notes-error">Please login to view your notes.</div>';
+                    return;
+                }
+                throw new Error("Failed to load notes");
+            }
+
+            const result = await response.json();
+            const notes = result && result.data && result.data.notes ? result.data.notes : [];
+
+            if (notes.length === 0) {
+                notesListContainer.innerHTML = '<div class="notes-empty"><i class="fas fa-sticky-note" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i><br>No notes found. Create some notes first!</div>';
+                return;
+            }
+
+            notesListContainer.innerHTML = '';
+            notes.forEach(note => {
+                const noteItem = document.createElement('div');
+                noteItem.className = 'note-item-popup';
+                noteItem.onclick = () => attachNote(note);
+
+                const plainText = extractPlainTextFromDelta(note.content);
+                const preview = plainText.slice(0, 60) + (plainText.length > 60 ? '...' : '');
+
+                noteItem.innerHTML = `
+                    <h4>${escapeHtml(note.title || 'Untitled Note')}</h4>
+                    <p>${escapeHtml(preview || 'No content')}</p>
+                `;
+                notesListContainer.appendChild(noteItem);
+            });
+
+        } catch (error) {
+            console.error('Error loading notes:', error);
+            notesListContainer.innerHTML = '<div class="notes-error"><i class="fas fa-exclamation-triangle"></i> Failed to load notes. Please try again.</div>';
+        }
+    }
+
+    function attachNote(note) {
+        // Store the attached note
+        attachedNote = {
+            id: note._id,
+            title: note.title || 'Untitled Note',
+            content: note.content
+        };
+
+        // Update button to show green state
+        const attachBtn = document.getElementById('attachmentBtn');
+        attachBtn.classList.add('has-attachment');
+        attachBtn.setAttribute('title', `Attached: ${attachedNote.title} (Click to remove)`);
+
+        closeNotesModal();
+
+        const textarea = document.querySelector('.chat-textarea');
+        textarea.focus();
+    }
+
+    function removeAttachedNote() {
+        attachedNote = null;
+
+        const attachBtn = document.getElementById('attachmentBtn');
+        attachBtn.classList.remove('has-attachment');
+        attachBtn.setAttribute('title', 'Attach a note');
+    }
+
+    // Close popup when clicking outside
+    document.addEventListener('click', function(event) {
+        const popup = document.getElementById('notesPopup');
+        const attachBtn = document.getElementById('attachmentBtn');
+
+        if (popup && popup.style.display === 'flex') {
+            if (!popup.contains(event.target) && !attachBtn.contains(event.target)) {
+                closeNotesModal();
+            }
+        }
+    });
+
+    // Make functions available globally
+    window.toggleAttachment = toggleAttachment;
+    window.openNotesModal = openNotesModal;
+    window.closeNotesModal = closeNotesModal;
+    window.closeNotesPopup = closeNotesPopup;
+    window.removeAttachedNote = removeAttachedNote;
+</script>

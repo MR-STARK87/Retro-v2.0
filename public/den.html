@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pomodoro Focus Zone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.clouds.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              inter: ["Inter", "sans-serif"],
+              "space-grotesk": ["Space Grotesk", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      /* Compact layout helpers */
+      body.compact .card-padding {
+        padding: 12px 16px !important;
+      }
+      body.compact #timerDisplay {
+        font-size: 2.75rem;
+        line-height: 1.1;
+      }
+      body.compact .section-mt {
+        margin-top: 0.75rem !important;
+      }
+      body.compact .controls-gap {
+        gap: 0.5rem !important;
+      }
+      body.compact .hidden-compact {
+        display: none !important;
+      }
+      body.compact .secondary-btn {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+      }
+      /* Dropdown base */
+      .dropdown-enter {
+        opacity: 0;
+        transform: translateY(-6px);
+        pointer-events: none;
+      }
+      .dropdown-open {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+    </style>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body
+    class="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 font-inter overflow-hidden"
+  >
+    <!-- Vanta.js Background Canvas -->
+    <div
+      id="vanta-bg"
+      class="fixed inset-0 opacity-0 transition-opacity duration-1000 ease-in-out"
+    ></div>
+
+    <!-- Ambient Mode Toggle -->
+    <button
+      id="ambientToggle"
+      class="fixed top-8 right-6 px-4 py-2 text-sm font-medium text-gray-600 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full hover:bg-white hover:text-gray-800 transition-all duration-200 shadow-lg z-50 font-space-grotesk"
+      aria-pressed="false"
+      style="top: calc(var(--nav-height) + 2rem)"
+    >
+      Ambient: Off
+    </button>
+
+    <!-- Sky Color Picker -->
+    <div
+      id="colorPickerContainer"
+      class="fixed top-8 right-36 z-50 opacity-0 pointer-events-none transition-all duration-300"
+      style="top: calc(var(--nav-height) + 2rem)"
+    >
+      <div class="relative">
+        <!-- Color Picker Toggle Button -->
+        <button
+          id="colorPickerToggle"
+          class="px-3 py-2 text-sm font-medium text-gray-600 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full hover:bg-white hover:text-gray-800 transition-all duration-200 shadow-lg font-space-grotesk flex items-center space-x-2"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          <div
+            class="w-3 h-3 rounded-full bg-blue-400"
+            id="currentColorIndicator"
+            aria-hidden="true"
+          ></div>
+          <span class="text-xs">Sky</span>
+        </button>
+
+        <!-- Color Options Dropdown -->
+        <div
+          id="colorOptions"
+          class="absolute top-full mt-2 right-0 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-xl p-3 min-w-[140px] opacity-0 pointer-events-none transition-all duration-200 transform translate-y-[-10px]"
+          role="menu"
+        >
+          <div class="space-y-2">
+            <button
+              class="color-option w-full flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+              data-color="0x68c7ff"
+              data-name="Sky Blue"
+              role="menuitem"
+            >
+              <div class="w-4 h-4 rounded-full bg-blue-400"></div>
+              <span class="text-sm font-medium text-gray-700">Sky Blue</span>
+            </button>
+            <button
+              class="color-option w-full flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+              data-color="0xff6b6b"
+              data-name="Sunset"
+              role="menuitem"
+            >
+              <div class="w-4 h-4 rounded-full bg-red-400"></div>
+              <span class="text-sm font-medium text-gray-700">Sunset</span>
+            </button>
+            <button
+              class="color-option w-full flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+              data-color="0x9b59b6"
+              data-name="Twilight"
+              role="menuitem"
+            >
+              <div class="w-4 h-4 rounded-full bg-purple-400"></div>
+              <span class="text-sm font-medium text-gray-700">Twilight</span>
+            </button>
+            <button
+              class="color-option w-full flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+              data-color="0x2ecc71"
+              data-name="Aurora"
+              role="menuitem"
+            >
+              <div class="w-4 h-4 rounded-full bg-green-400"></div>
+              <span class="text-sm font-medium text-gray-700">Aurora</span>
+            </button>
+            <hr class="my-2 border-gray-200" />
+            <button
+              class="color-option w-full flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+              data-color="dynamic"
+              data-name="Timer Sync"
+              role="menuitem"
+            >
+              <div
+                class="w-4 h-4 rounded-full bg-gradient-to-r from-blue-400 via-yellow-400 to-purple-600"
+              ></div>
+              <span class="text-sm font-medium text-gray-700">Timer Sync</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="min-h-screen flex items-start md:items-center justify-center md:justify-center p-4 relative z-10"
+    >
+      <div
+        class="w-full max-w-6xl h-full grid grid-cols-1 lg:grid-cols-2 gap-4 md:justify-center"
+      >
+        <!-- Main Timer Card -->
+        <div
+          class="flex flex-col bg-white rounded-3xl shadow-xl relative lg:row-span-2 h-fit lg:sticky lg:top-4"
+        >
+          <!-- Kebab menu (3-dots) -->
+          <button
+            id="moreOptionsBtn"
+            class="absolute top-3 right-3 w-9 h-9 rounded-full border border-gray-200 bg-white/90 backdrop-blur-sm shadow-sm flex items-center justify-center hover:bg-white focus:outline-none"
+            aria-haspopup="true"
+            aria-expanded="false"
+            title="Options"
+          >
+            <span class="sr-only">More options</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-5 h-5 text-gray-600"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm6 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm6 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
+              />
+            </svg>
+          </button>
+          <div
+            id="moreOptionsMenu"
+            class="absolute top-12 right-3 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-xl p-2 w-56 dropdown-enter transition-all duration-150 z-20"
+            role="menu"
+            aria-labelledby="moreOptionsBtn"
+          >
+            <button
+              id="optToggleCompact"
+              class="w-full px-3 py-2 rounded-xl hover:bg-gray-100 text-sm text-gray-700 flex items-center justify-between"
+              role="menuitem"
+            >
+              <span>Compact mode</span>
+              <span id="chkCompact" class="text-purple-600 hidden">✓</span>
+            </button>
+            <button
+              id="optToggleSettings"
+              class="w-full px-3 py-2 rounded-xl hover:bg-gray-100 text-sm text-gray-700 flex items-center justify-between"
+              role="menuitem"
+            >
+              <span>Show settings</span>
+              <span id="chkSettings" class="text-purple-600">✓</span>
+            </button>
+            <button
+              id="optToggleStats"
+              class="w-full px-3 py-2 rounded-xl hover:bg-gray-100 text-sm text-gray-700 flex items-center justify-between"
+              role="menuitem"
+            >
+              <span>Show statistics</span>
+              <span id="chkStats" class="text-purple-600">✓</span>
+            </button>
+            <hr class="my-1 border-gray-200" />
+            <button
+              id="optToggleAmbient"
+              class="w-full px-3 py-2 rounded-xl hover:bg-gray-100 text-sm text-gray-700 flex items-center justify-between"
+              role="menuitem"
+            >
+              <span>Ambient mode</span>
+              <span id="chkAmbient" class="text-purple-600">Off</span>
+            </button>
+            <button
+              id="optOpenSky"
+              class="w-full px-3 py-2 rounded-xl hover:bg-gray-100 text-sm text-gray-700 text-left"
+              role="menuitem"
+            >
+              Sky color…
+            </button>
+            <hr class="my-1 border-gray-200" />
+            <button
+              id="optResetToday"
+              class="w-full px-3 py-2 rounded-xl hover:bg-gray-100 text-sm text-red-600 text-left"
+              role="menuitem"
+            >
+              Reset today
+            </button>
+          </div>
+
+          <div class="px-6 py-6 sm:px-8 sm:py-8 card-padding">
+            <div
+              class="grid items-center justify-center w-full grid-cols-1 text-center"
+            >
+              <!-- Header Section -->
+              <div>
+                <h1
+                  class="text-lg font-medium tracking-tighter text-gray-600 lg:text-2xl font-space-grotesk"
+                >
+                  DEN
+                </h1>
+                <p
+                  class="mt-2 text-sm text-gray-500 hidden-compact"
+                  id="sessionType"
+                >
+                  Work Session • Stay Focused
+                </p>
+              </div>
+
+              <!-- Timer Display -->
+              <div class="mt-6 section-mt">
+                <div
+                  class="text-5xl font-light tracking-tight text-black font-mono font-space-grotesk"
+                  id="timerDisplay"
+                  role="timer"
+                  aria-live="polite"
+                >
+                  25:00
+                </div>
+              </div>
+
+              <!-- Progress Indicator -->
+              <div class="mt-6 w-full section-mt">
+                <div class="flex justify-between text-xs text-gray-500 mb-2">
+                  <span>Session Progress</span>
+                  <span id="progressText">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    class="bg-black h-2 rounded-full transition-all duration-500 ease-linear"
+                    id="progressBar"
+                    style="width: 0%"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Session Counter -->
+              <div class="mt-4 flex justify-center items-center space-x-6">
+                <div class="text-center">
+                  <div
+                    class="text-xl font-semibold text-black"
+                    id="completedSessions"
+                  >
+                    0
+                  </div>
+                  <div class="text-xs text-gray-500">Completed</div>
+                </div>
+                <div class="w-px h-6 bg-gray-300"></div>
+                <div class="text-center">
+                  <div
+                    class="text-xl font-semibold text-black"
+                    id="currentSession"
+                  >
+                    1
+                  </div>
+                  <div class="text-xs text-gray-500">Current</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controls Section -->
+          <div class="flex flex-col px-6 pb-6 sm:px-8 space-y-3 card-padding">
+            <!-- Main Action Button -->
+            <button
+              id="startPauseBtn"
+              class="flex items-center justify-center w-full px-6 py-3 text-center text-white duration-200 bg-black border-2 border-black rounded-full hover:bg-transparent hover:border-black hover:text-black focus:outline-none focus-visible:outline-black text-base focus-visible:ring-black font-medium"
+            >
+              <span>Start Focus</span>
+            </button>
+
+            <!-- Secondary Actions -->
+            <div class="flex space-x-3 controls-gap">
+              <button
+                id="resetBtn"
+                class="secondary-btn flex-1 px-4 py-2.5 text-center text-gray-600 duration-200 bg-transparent border-2 border-gray-300 rounded-full hover:bg-gray-50 hover:border-gray-400 focus:outline-none text-sm"
+                title="R"
+              >
+                Reset
+              </button>
+              <button
+                id="skipBtn"
+                class="secondary-btn flex-1 px-4 py-2.5 text-center text-gray-600 duration-200 bg-transparent border-2 border-gray-300 rounded-full hover:bg-gray-50 hover:border-gray-400 focus:outline-none text-sm"
+                title="S"
+              >
+                Skip
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Card -->
+        <div
+          id="settingsCard"
+          class="flex flex-col bg-white rounded-3xl shadow-lg h-fit"
+        >
+          <div class="px-6 py-4">
+            <h3
+              class="text-base font-medium text-gray-600 mb-3 font-space-grotesk"
+            >
+              Session Settings
+            </h3>
+
+            <div class="space-y-3">
+              <!-- Work Duration -->
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Work Duration</span>
+                <div class="flex items-center space-x-2">
+                  <button
+                    class="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-sm"
+                    onclick="adjustTime('work', -5)"
+                    aria-label="Decrease work duration"
+                  >
+                    -
+                  </button>
+                  <span
+                    class="w-10 text-center text-sm font-medium"
+                    id="workDuration"
+                    >25</span
+                  >
+                  <button
+                    class="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-sm"
+                    onclick="adjustTime('work', 5)"
+                    aria-label="Increase work duration"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <!-- Break Duration -->
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Short Break</span>
+                <div class="flex items-center space-x-2">
+                  <button
+                    class="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-sm"
+                    onclick="adjustTime('break', -1)"
+                    aria-label="Decrease short break"
+                  >
+                    -
+                  </button>
+                  <span
+                    class="w-10 text-center text-sm font-medium"
+                    id="breakDuration"
+                    >5</span
+                  >
+                  <button
+                    class="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-sm"
+                    onclick="adjustTime('break', 1)"
+                    aria-label="Increase short break"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <!-- Long Break Duration -->
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Long Break</span>
+                <div class="flex items-center space-x-2">
+                  <button
+                    class="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-sm"
+                    onclick="adjustTime('longBreak', -5)"
+                    aria-label="Decrease long break"
+                  >
+                    -
+                  </button>
+                  <span
+                    class="w-10 text-center text-sm font-medium"
+                    id="longBreakDuration"
+                    >15</span
+                  >
+                  <button
+                    class="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-sm"
+                    onclick="adjustTime('longBreak', 5)"
+                    aria-label="Increase long break"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <hr class="my-2 border-gray-200" />
+
+              <!-- Auto-start next -->
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Auto-start next</span>
+                <label class="inline-flex items-center cursor-pointer">
+                  <input id="autoStartToggle" type="checkbox" class="sr-only" />
+                  <span
+                    class="w-10 h-6 bg-gray-300 rounded-full relative transition-colors duration-200"
+                    aria-hidden="true"
+                  >
+                    <span
+                      id="autoStartKnob"
+                      class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200"
+                    ></span>
+                  </span>
+                </label>
+              </div>
+
+              <!-- Sound alerts -->
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Sound alert</span>
+                <label class="inline-flex items-center cursor-pointer">
+                  <input id="soundToggle" type="checkbox" class="sr-only" />
+                  <span
+                    class="w-10 h-6 bg-gray-300 rounded-full relative transition-colors duration-200"
+                  >
+                    <span
+                      id="soundKnob"
+                      class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200"
+                    ></span>
+                  </span>
+                </label>
+              </div>
+
+              <!-- Desktop notifications -->
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Desktop notifications</span>
+                <label class="inline-flex items-center cursor-pointer">
+                  <input id="notifToggle" type="checkbox" class="sr-only" />
+                  <span
+                    class="w-10 h-6 bg-gray-300 rounded-full relative transition-colors duration-200"
+                  >
+                    <span
+                      id="notifKnob"
+                      class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200"
+                    ></span>
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistics Card -->
+        <div
+          id="statsCard"
+          class="flex flex-col bg-white rounded-3xl shadow-lg h-fit"
+        >
+          <div class="px-6 py-4">
+            <h3
+              class="text-base font-medium text-gray-600 mb-3 font-space-grotesk"
+            >
+              Today's Progress
+            </h3>
+
+            <div class="grid grid-cols-3 gap-4">
+              <div class="text-center">
+                <div
+                  class="text-lg font-semibold text-black"
+                  id="todaysSessions"
+                >
+                  0
+                </div>
+                <div class="text-xs text-gray-500">Sessions</div>
+              </div>
+              <div class="text-center">
+                <div class="text-lg font-semibold text-black" id="todaysTime">
+                  0h
+                </div>
+                <div class="text-xs text-gray-500">Focus Time</div>
+              </div>
+              <div class="text-center">
+                <div class="text-lg font-semibold text-black" id="streak">
+                  0
+                </div>
+                <div class="text-xs text-gray-500">Day Streak</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function toggleTheme() {
+        const body = document.body;
+        const themeToggleIcon = document.querySelector(".theme-toggle i");
+        const isDark = body.getAttribute("data-theme") === "dark";
+        body.setAttribute("data-theme", isDark ? "light" : "dark");
+        if (themeToggleIcon) {
+          themeToggleIcon.className = isDark ? "fas fa-moon" : "fas fa-sun";
+        }
+        localStorage.setItem("theme", isDark ? "light" : "dark");
+      }
+
+      function loadSavedTheme() {
+        const savedTheme = localStorage.getItem("theme") || "light";
+        document.body.setAttribute("data-theme", savedTheme);
+        const themeToggleIcon = document.querySelector(".theme-toggle i");
+        if (themeToggleIcon) {
+          themeToggleIcon.className =
+            savedTheme === "dark" ? "fas fa-sun" : "fas fa-moon";
+        }
+      }
+
+      loadSavedTheme();
+
+      const STORAGE_KEYS = {
+        settings: "pz_settings_v1",
+        stats: "pz_stats_v1",
+        ambient: "pz_ambient_v1",
+        state: "pz_state_v1",
+        ui: "pz_ui_v1",
+      };
+
+      const todayStr = () => {
+        const d = new Date();
+        return d.toISOString().slice(0, 10);
+      };
+
+      // Simple beep using WebAudio
+      function beep(freq = 880, duration = 120, volume = 0.04) {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = "sine";
+          o.frequency.value = freq;
+          g.gain.value = volume;
+          o.connect(g);
+          g.connect(ctx.destination);
+          o.start();
+          setTimeout(() => {
+            o.stop();
+            ctx.close();
+          }, duration);
+        } catch {}
+      }
+
+      async function ensureNotificationPermission() {
+        if (!("Notification" in window)) return false;
+        if (Notification.permission === "granted") return true;
+        if (Notification.permission !== "denied") {
+          try {
+            const res = await Notification.requestPermission();
+            return res === "granted";
+          } catch {
+            return false;
+          }
+        }
+        return false;
+      }
+
+      function notify(title, body) {
+        if (!("Notification" in window)) return;
+        if (Notification.permission === "granted") {
+          new Notification(title, { body });
+        }
+      }
+
+      class PomodoroTimer {
+        constructor() {
+          this.isRunning = false;
+          this.currentSession = "work"; // 'work', 'shortBreak', 'longBreak'
+          this.sessionCount = 0;
+          this.completedSessions = 0;
+          this.currentSessionNumber = 1;
+
+          this.settings = {
+            work: 25,
+            break: 5,
+            longBreak: 15,
+            autoStart: false,
+            sound: false,
+            notifications: false,
+          };
+
+          this.timeLeft = this.settings.work * 60; // seconds
+          this.totalTime = this.settings.work * 60;
+          this.timer = null;
+          this.endTimestamp = null;
+
+          this.initializeElements();
+          this.loadFromStorage();
+          this.updateDisplay();
+          this.attachEventListeners();
+          this.attachKeyboardShortcuts();
+          window.addEventListener("beforeunload", () => this.persistState());
+        }
+
+        initializeElements() {
+          this.timerDisplay = document.getElementById("timerDisplay");
+          this.startPauseBtn = document.getElementById("startPauseBtn");
+          this.resetBtn = document.getElementById("resetBtn");
+          this.skipBtn = document.getElementById("skipBtn");
+          this.progressBar = document.getElementById("progressBar");
+          this.progressText = document.getElementById("progressText");
+          this.sessionType = document.getElementById("sessionType");
+          this.completedSessionsEl =
+            document.getElementById("completedSessions");
+          this.currentSessionEl = document.getElementById("currentSession");
+          this.workDurationEl = document.getElementById("workDuration");
+          this.breakDurationEl = document.getElementById("breakDuration");
+          this.longBreakDurationEl =
+            document.getElementById("longBreakDuration");
+          this.todaysSessionsEl = document.getElementById("todaysSessions");
+          this.todaysTimeEl = document.getElementById("todaysTime");
+          this.streakEl = document.getElementById("streak");
+          // toggles
+          this.autoStartToggle = document.getElementById("autoStartToggle");
+          this.soundToggle = document.getElementById("soundToggle");
+          this.notifToggle = document.getElementById("notifToggle");
+          this.autoStartKnob = document.getElementById("autoStartKnob");
+          this.soundKnob = document.getElementById("soundKnob");
+          this.notifKnob = document.getElementById("notifKnob");
+        }
+
+        attachEventListeners() {
+          this.startPauseBtn.addEventListener("click", () =>
+            this.toggleTimer()
+          );
+          this.resetBtn.addEventListener("click", () => this.resetTimer());
+          this.skipBtn.addEventListener("click", () => this.skipSession());
+
+          this.autoStartToggle.addEventListener("change", () => {
+            this.settings.autoStart = this.autoStartToggle.checked;
+            this.updateToggleUI();
+            this.persistSettings();
+          });
+          this.soundToggle.addEventListener("change", () => {
+            this.settings.sound = this.soundToggle.checked;
+            this.updateToggleUI();
+            this.persistSettings();
+            if (this.settings.sound) beep(880, 80); // feedback
+          });
+          this.notifToggle.addEventListener("change", async () => {
+            this.settings.notifications = this.notifToggle.checked;
+            if (this.settings.notifications) {
+              const ok = await ensureNotificationPermission();
+              if (!ok) {
+                this.settings.notifications = false;
+                this.notifToggle.checked = false;
+              }
+            }
+            this.updateToggleUI();
+            this.persistSettings();
+          });
+        }
+
+        attachKeyboardShortcuts() {
+          window.addEventListener("keydown", (e) => {
+            const tag = document.activeElement?.tagName?.toLowerCase();
+            if (tag === "input" || tag === "textarea") return;
+            if (e.code === "Space") {
+              e.preventDefault();
+              this.toggleTimer();
+            } else if (e.key === "r" || e.key === "R") {
+              e.preventDefault();
+              this.resetTimer();
+            } else if (e.key === "s" || e.key === "S") {
+              e.preventDefault();
+              this.skipSession();
+            } else if (e.key === "a" || e.key === "A") {
+              e.preventDefault();
+              if (window.ambientMode) window.ambientMode.toggle();
+            }
+          });
+        }
+
+        loadFromStorage() {
+          // settings
+          try {
+            const saved = JSON.parse(
+              localStorage.getItem(STORAGE_KEYS.settings) || "{}"
+            );
+            Object.assign(this.settings, saved);
+          } catch {}
+          // stats (today + streak)
+          let stats = { date: todayStr(), sessions: 0, streak: 0 };
+          try {
+            const saved = JSON.parse(
+              localStorage.getItem(STORAGE_KEYS.stats) || "{}"
+            );
+            if (saved.date && saved.date !== todayStr()) {
+              // day changed; streak maintenance
+              const prev = new Date(saved.date);
+              const today = new Date(todayStr());
+              const diffDays = Math.round((today - prev) / 86400000);
+              if (diffDays === 1 && (saved.sessions || 0) > 0) {
+                stats.streak = (saved.streak || 0) + 1;
+              } else {
+                stats.streak = 0;
+              }
+              stats.sessions = 0;
+              stats.date = todayStr();
+            } else if (saved.date === todayStr()) {
+              stats = {
+                date: saved.date,
+                sessions: saved.sessions || 0,
+                streak: saved.streak || 0,
+              };
+            }
+          } catch {}
+          this.completedSessions = stats.sessions || 0;
+          this.streakEl.textContent = stats.streak || 0;
+          this.todaysSessionsEl.textContent = this.completedSessions;
+
+          // possible paused state restore
+          try {
+            const state = JSON.parse(
+              localStorage.getItem(STORAGE_KEYS.state) || "{}"
+            );
+            if (
+              state &&
+              state.currentSession &&
+              Number.isInteger(state.timeLeft)
+            ) {
+              this.currentSession = state.currentSession;
+              this.timeLeft = Math.max(0, state.timeLeft);
+              this.totalTime = Math.max(
+                1,
+                state.totalTime || this.timeLeft || 1
+              );
+              this.sessionCount = state.sessionCount || 0;
+              this.currentSessionNumber = state.currentSessionNumber || 1;
+            }
+          } catch {}
+
+          // apply toggles
+          this.autoStartToggle.checked = !!this.settings.autoStart;
+          this.soundToggle.checked = !!this.settings.sound;
+          this.notifToggle.checked = !!this.settings.notifications;
+          this.updateToggleUI();
+        }
+
+        persistSettings() {
+          localStorage.setItem(
+            STORAGE_KEYS.settings,
+            JSON.stringify(this.settings)
+          );
+        }
+
+        persistStats() {
+          const existing = JSON.parse(
+            localStorage.getItem(STORAGE_KEYS.stats) || "{}"
+          );
+          const toSave = {
+            date: todayStr(),
+            sessions: this.completedSessions,
+            streak: this.streakEl.textContent
+              ? parseInt(this.streakEl.textContent)
+              : existing.streak || 0,
+          };
+          localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(toSave));
+        }
+
+        persistState() {
+          const state = {
+            currentSession: this.currentSession,
+            timeLeft: this.timeLeft,
+            totalTime: this.totalTime,
+            sessionCount: this.sessionCount,
+            currentSessionNumber: this.currentSessionNumber,
+          };
+          localStorage.setItem(STORAGE_KEYS.state, JSON.stringify(state));
+        }
+
+        updateToggleUI() {
+          const setToggle = (inputEl, knobEl) => {
+            if (inputEl.checked) {
+              knobEl.style.transform = "translateX(16px)";
+              inputEl.nextElementSibling.classList.remove("bg-gray-300");
+              inputEl.nextElementSibling.classList.add("bg-purple-600");
+            } else {
+              knobEl.style.transform = "translateX(0)";
+              inputEl.nextElementSibling.classList.add("bg-gray-300");
+              inputEl.nextElementSibling.classList.remove("bg-purple-600");
+            }
+          };
+          setToggle(this.autoStartToggle, this.autoStartKnob);
+          setToggle(this.soundToggle, this.soundKnob);
+          setToggle(this.notifToggle, this.notifKnob);
+        }
+
+        setButtonState(kind) {
+          // kind: 'start' | 'pause' | 'resume'
+          this.startPauseBtn.classList.remove(
+            "bg-black",
+            "border-black",
+            "hover:bg-transparent",
+            "hover:border-black",
+            "hover:text-black",
+            "bg-purple-600",
+            "border-purple-600",
+            "hover:bg-purple-700",
+            "hover:border-purple-700",
+            "text-white"
+          );
+          if (kind === "start") {
+            this.startPauseBtn.innerHTML = "<span>Start Focus</span>";
+            this.startPauseBtn.classList.add(
+              "bg-black",
+              "border-black",
+              "hover:bg-transparent",
+              "hover:border-black",
+              "hover:text-black",
+              "text-white"
+            );
+          } else if (kind === "pause") {
+            this.startPauseBtn.innerHTML = "<span>Pause</span>";
+            this.startPauseBtn.classList.add(
+              "bg-purple-600",
+              "border-purple-600",
+              "hover:bg-purple-700",
+              "hover:border-purple-700",
+              "text-white"
+            );
+          } else {
+            this.startPauseBtn.innerHTML = "<span>Resume</span>";
+            this.startPauseBtn.classList.add(
+              "bg-black",
+              "border-black",
+              "hover:bg-transparent",
+              "hover:border-black",
+              "hover:text-black",
+              "text-white"
+            );
+          }
+        }
+
+        toggleTimer() {
+          if (this.isRunning) {
+            this.pauseTimer();
+          } else {
+            this.startTimer();
+          }
+        }
+
+        startTimer() {
+          if (this.isRunning) return;
+          this.isRunning = true;
+          this.setButtonState("pause");
+          const now = Date.now();
+          this.endTimestamp = now + this.timeLeft * 1000;
+
+          if (this.timer) clearInterval(this.timer);
+          this.timer = setInterval(() => {
+            const remainingMs = this.endTimestamp - Date.now();
+            const nextLeft = Math.max(0, Math.ceil(remainingMs / 1000));
+            if (nextLeft !== this.timeLeft) {
+              this.timeLeft = nextLeft;
+              this.updateDisplay();
+            } else {
+              // still update progress smoothly
+              this.updateDisplay(true);
+            }
+            if (remainingMs <= 0) {
+              this.completeSession();
+            }
+          }, 250);
+        }
+
+        pauseTimer() {
+          if (!this.isRunning) return;
+          this.isRunning = false;
+          const remainingMs = (this.endTimestamp || Date.now()) - Date.now();
+          this.timeLeft = Math.max(0, Math.ceil(remainingMs / 1000));
+          clearInterval(this.timer);
+          this.timer = null;
+          this.setButtonState("resume");
+          this.persistState();
+        }
+
+        resetTimer() {
+          this.isRunning = false;
+          clearInterval(this.timer);
+          this.timer = null;
+          this.endTimestamp = null;
+
+          if (this.currentSession === "work") {
+            this.timeLeft = this.settings.work * 60;
+            this.totalTime = this.settings.work * 60;
+          } else if (this.currentSession === "shortBreak") {
+            this.timeLeft = this.settings.break * 60;
+            this.totalTime = this.settings.break * 60;
+          } else {
+            this.timeLeft = this.settings.longBreak * 60;
+            this.totalTime = this.settings.longBreak * 60;
+          }
+
+          this.setButtonState("start");
+          this.updateDisplay();
+          this.persistState();
+        }
+
+        skipSession() {
+          this.completeSession(true);
+        }
+
+        maybeNotify(title, body) {
+          if (this.settings.sound) {
+            // small pattern
+            beep(1046, 80);
+            setTimeout(() => beep(880, 80), 120);
+            setTimeout(() => beep(659, 120), 260);
+          }
+          if (this.settings.notifications) {
+            notify(title, body);
+          }
+        }
+
+        completeSession(skipped = false) {
+          this.isRunning = false;
+          clearInterval(this.timer);
+          this.timer = null;
+          this.endTimestamp = null;
+
+          let justCompletedWork = false;
+
+          if (this.currentSession === "work") {
+            justCompletedWork = true;
+            this.completedSessions++;
+            this.sessionCount++;
+
+            if (this.sessionCount % 4 === 0) {
+              this.currentSession = "longBreak";
+              this.timeLeft = this.settings.longBreak * 60;
+              this.totalTime = this.settings.longBreak * 60;
+            } else {
+              this.currentSession = "shortBreak";
+              this.timeLeft = this.settings.break * 60;
+              this.totalTime = this.settings.break * 60;
+            }
+          } else {
+            this.currentSession = "work";
+            this.timeLeft = this.settings.work * 60;
+            this.totalTime = this.settings.work * 60;
+            this.currentSessionNumber++;
+          }
+
+          // Notifications
+          if (!skipped) {
+            if (justCompletedWork) {
+              this.maybeNotify("Work complete", "Break started. Nice job!");
+            } else {
+              this.maybeNotify("Break over", "Back to focus.");
+            }
+          }
+
+          this.setButtonState(this.settings.autoStart ? "pause" : "start");
+          this.updateDisplay();
+          this.updateStats();
+          this.persistState();
+
+          if (this.settings.autoStart) {
+            this.startTimer();
+          }
+        }
+
+        updateDisplay(smooth = false) {
+          const minutes = Math.floor(this.timeLeft / 60);
+          const seconds = this.timeLeft % 60;
+          const label =
+            this.currentSession === "work"
+              ? "Focus"
+              : this.currentSession === "shortBreak"
+              ? "Short Break"
+              : "Long Break";
+          this.timerDisplay.textContent = `${minutes
+            .toString()
+            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+          document.title = `${this.timerDisplay.textContent} • ${label} – Pomodoro`;
+
+          const rawProgress =
+            ((this.totalTime - this.timeLeft) / Math.max(1, this.totalTime)) *
+            100;
+          // If smooth update requested, slight easing via CSS duration already present
+          this.progressBar.style.width = `${Math.min(
+            100,
+            Math.max(0, rawProgress)
+          )}%`;
+          this.progressText.textContent = `${Math.round(rawProgress)}%`;
+
+          // Update dynamic color if in ambient mode
+          if (window.ambientMode && (this.isRunning || smooth)) {
+            window.ambientMode.updateDynamicColor(
+              Math.min(
+                1,
+                Math.max(
+                  0,
+                  (this.totalTime - this.timeLeft) / Math.max(1, this.totalTime)
+                )
+              )
+            );
+          }
+
+          this.completedSessionsEl.textContent = this.completedSessions;
+          this.currentSessionEl.textContent = this.currentSessionNumber;
+
+          if (this.currentSession === "work") {
+            this.sessionType.textContent = "Work Session • Stay Focused";
+            this.progressBar.classList.remove("bg-purple-600");
+            this.progressBar.classList.add("bg-black");
+          } else if (this.currentSession === "shortBreak") {
+            this.sessionType.textContent = "Short Break • Relax & Recharge";
+            this.progressBar.classList.remove("bg-black");
+            this.progressBar.classList.add("bg-purple-600");
+          } else {
+            this.sessionType.textContent = "Long Break • Take Your Time";
+            this.progressBar.classList.remove("bg-black");
+            this.progressBar.classList.add("bg-purple-600");
+          }
+
+          this.workDurationEl.textContent = this.settings.work;
+          this.breakDurationEl.textContent = this.settings.break;
+          this.longBreakDurationEl.textContent = this.settings.longBreak;
+        }
+
+        updateStats() {
+          this.todaysSessionsEl.textContent = this.completedSessions;
+          const focusTimeHours =
+            Math.round(
+              ((this.completedSessions * this.settings.work) / 60) * 10
+            ) / 10;
+          this.todaysTimeEl.textContent = `${focusTimeHours}h`;
+
+          // Streak display already kept in loadFromStorage; increment when first session of the day is completed
+          try {
+            const saved = JSON.parse(
+              localStorage.getItem(STORAGE_KEYS.stats) || "{}"
+            );
+            let streak = saved?.streak || 0;
+            if ((saved?.date || todayStr()) !== todayStr()) {
+              // handled at load, but ensure today's record exists
+              streak = streak;
+            }
+            this.streakEl.textContent = streak;
+          } catch {}
+          this.persistStats();
+        }
+      }
+
+      function adjustTime(type, minutes) {
+        if (timer.isRunning) return; // Don't allow adjustment while running
+
+        if (type === "work") {
+          timer.settings.work = Math.max(
+            5,
+            Math.min(120, timer.settings.work + minutes)
+          );
+          if (timer.currentSession === "work") {
+            timer.timeLeft = timer.settings.work * 60;
+            timer.totalTime = timer.settings.work * 60;
+          }
+        } else if (type === "break") {
+          timer.settings.break = Math.max(
+            1,
+            Math.min(60, timer.settings.break + minutes)
+          );
+          if (timer.currentSession === "shortBreak") {
+            timer.timeLeft = timer.settings.break * 60;
+            timer.totalTime = timer.settings.break * 60;
+          }
+        } else if (type === "longBreak") {
+          timer.settings.longBreak = Math.max(
+            5,
+            Math.min(120, timer.settings.longBreak + minutes)
+          );
+          if (timer.currentSession === "longBreak") {
+            timer.timeLeft = timer.settings.longBreak * 60;
+            timer.totalTime = timer.settings.longBreak * 60;
+          }
+        }
+
+        timer.persistSettings();
+        timer.updateDisplay();
+      }
+
+      // Ambient Mode Controller
+      class AmbientMode {
+        constructor() {
+          this.isActive = false;
+          this.vantaEffect = null;
+          this.toggleBtn = document.getElementById("ambientToggle");
+          this.vantaBg = document.getElementById("vanta-bg");
+          this.colorPickerContainer = document.getElementById(
+            "colorPickerContainer"
+          );
+          this.colorPickerToggle = document.getElementById("colorPickerToggle");
+          this.colorOptions = document.getElementById("colorOptions");
+          this.currentColorIndicator = document.getElementById(
+            "currentColorIndicator"
+          );
+
+          // Default sky color
+          this.currentSkyColor = 0x68c7ff;
+          this.colorPickerOpen = false;
+          this.isDynamicMode = false;
+
+          // Dynamic color progression (day to night)
+          this.dynamicColors = [
+            { progress: 0, color: 0x87ceeb, name: "Dawn" },
+            { progress: 0.25, color: 0x68c7ff, name: "Morning" },
+            { progress: 0.5, color: 0xffd700, name: "Noon" },
+            { progress: 0.75, color: 0xff6b47, name: "Sunset" },
+            { progress: 1, color: 0x2c3e50, name: "Night" },
+          ];
+
+          this.initializeToggle();
+          this.initializeColorPicker();
+          this.loadAmbientPrefs();
+        }
+
+        initializeToggle() {
+          this.toggleBtn.addEventListener("click", () => {
+            this.toggle();
+          });
+        }
+
+        initializeColorPicker() {
+          // Toggle color picker dropdown
+          this.colorPickerToggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            this.toggleColorPicker();
+          });
+
+          // Handle color option clicks (fix dynamic option)
+          document.querySelectorAll(".color-option").forEach((option) => {
+            option.addEventListener("click", (e) => {
+              const colorAttr = e.currentTarget.dataset.color;
+              const name = e.currentTarget.dataset.name;
+              if (colorAttr === "dynamic") {
+                this.changeColor("dynamic", name);
+              } else {
+                const color = parseInt(colorAttr);
+                this.changeColor(color, name);
+              }
+              this.closeColorPicker();
+            });
+          });
+
+          // Close color picker when clicking outside
+          document.addEventListener("click", (e) => {
+            if (!this.colorPickerContainer.contains(e.target)) {
+              this.closeColorPicker();
+            }
+          });
+        }
+
+        toggleColorPicker() {
+          const expanded =
+            this.colorPickerToggle.getAttribute("aria-expanded") === "true";
+          this.colorPickerToggle.setAttribute(
+            "aria-expanded",
+            (!expanded).toString()
+          );
+          if (this.colorPickerOpen) {
+            this.closeColorPicker();
+          } else {
+            this.openColorPicker();
+          }
+        }
+
+        openColorPicker() {
+          this.colorPickerOpen = true;
+          this.colorOptions.classList.remove(
+            "opacity-0",
+            "pointer-events-none",
+            "translate-y-[-10px]"
+          );
+          this.colorOptions.classList.add(
+            "opacity-100",
+            "pointer-events-auto",
+            "translate-y-0"
+          );
+        }
+
+        closeColorPicker() {
+          this.colorPickerOpen = false;
+          this.colorOptions.classList.add(
+            "opacity-0",
+            "pointer-events-none",
+            "translate-y-[-10px]"
+          );
+          this.colorOptions.classList.remove(
+            "opacity-100",
+            "pointer-events-auto",
+            "translate-y-0"
+          );
+        }
+
+        changeColor(color, colorName) {
+          if (color === "dynamic") {
+            this.isDynamicMode = true;
+            this.persistAmbientPrefs();
+            this.currentColorIndicator.className =
+              "w-3 h-3 rounded-full bg-gradient-to-r from-blue-400 via-yellow-400 to-purple-600";
+            // if active, update immediately
+            if (this.isActive && this.vantaEffect && window.timer) {
+              const progress =
+                (timer.totalTime - timer.timeLeft) /
+                Math.max(1, timer.totalTime);
+              this.updateDynamicColor(progress);
+            }
+            return;
+          } else {
+            this.isDynamicMode = false;
+            this.currentSkyColor = color;
+            this.persistAmbientPrefs();
+          }
+
+          // Update color indicator
+          const colorMap = {
+            0x68c7ff: "bg-blue-400",
+            0xff6b6b: "bg-red-400",
+            0x9b59b6: "bg-purple-400",
+            0x2ecc71: "bg-green-400",
+          };
+          this.currentColorIndicator.className = `w-3 h-3 rounded-full ${
+            colorMap[color] || "bg-blue-400"
+          }`;
+
+          // If ambient mode is active, update the vanta effect
+          if (this.isActive && this.vantaEffect) {
+            this.vantaEffect.setOptions({ skyColor: color });
+          }
+        }
+
+        // Method to update dynamic color based on timer progress
+        updateDynamicColor(progress) {
+          if (!this.isDynamicMode || !this.isActive || !this.vantaEffect)
+            return;
+
+          let targetColor = this.dynamicColors[0];
+
+          for (let i = 0; i < this.dynamicColors.length - 1; i++) {
+            const current = this.dynamicColors[i];
+            const next = this.dynamicColors[i + 1];
+
+            if (progress >= current.progress && progress <= next.progress) {
+              const localProgress =
+                (progress - current.progress) /
+                (next.progress - current.progress);
+              targetColor = this.interpolateColor(current, next, localProgress);
+              break;
+            }
+          }
+
+          this.vantaEffect.setOptions({ skyColor: targetColor.color });
+        }
+
+        // Helper method to interpolate between two colors
+        interpolateColor(color1, color2, progress) {
+          const r1 = (color1.color >> 16) & 255;
+          const g1 = (color1.color >> 8) & 255;
+          const b1 = color1.color & 255;
+
+          const r2 = (color2.color >> 16) & 255;
+          const g2 = (color2.color >> 8) & 255;
+          const b2 = color2.color & 255;
+
+          const r = Math.round(r1 + (r2 - r1) * progress);
+          const g = Math.round(g1 + (g2 - g1) * progress);
+          const b = Math.round(b1 + (b2 - b1) * progress);
+
+          return {
+            color: (r << 16) | (g << 8) | b,
+            name: `${color1.name} to ${color2.name}`,
+          };
+        }
+
+        toggle() {
+          this.isActive = !this.isActive;
+
+          if (this.isActive) {
+            this.enableAmbientMode();
+          } else {
+            this.disableAmbientMode();
+          }
+          this.persistAmbientPrefs();
+        }
+
+        enableAmbientMode() {
+          // Update button text
+          this.toggleBtn.textContent = "Ambient: On";
+          this.toggleBtn.setAttribute("aria-pressed", "true");
+          this.toggleBtn.classList.add(
+            "text-white",
+            "bg-purple-600",
+            "border-purple-600"
+          );
+          this.toggleBtn.classList.remove(
+            "text-gray-600",
+            "bg-white/80",
+            "border-gray-200"
+          );
+
+          // Show color picker
+          this.colorPickerContainer.classList.remove(
+            "opacity-0",
+            "pointer-events-none"
+          );
+          this.colorPickerContainer.classList.add(
+            "opacity-100",
+            "pointer-events-auto"
+          );
+
+          // Show vanta background
+          this.vantaBg.style.opacity = "1";
+
+          // Initialize Vanta clouds effect with current sky color
+          this.vantaEffect = VANTA.CLOUDS({
+            el: "#vanta-bg",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: window.innerHeight,
+            minWidth: window.innerWidth,
+            skyColor: this.isDynamicMode ? 0x68c7ff : this.currentSkyColor,
+            cloudColor: 0xc0c0c0,
+            cloudShadowColor: 0x183550,
+            sunColor: 0xff6600,
+            sunGlareColor: 0xff9919,
+            sunlightColor: 0xff9933,
+            speed: 0.8,
+            cloudOpacity: 0.8,
+          });
+
+          // If dynamic, sync immediately
+          if (this.isDynamicMode && window.timer) {
+            const progress =
+              (timer.totalTime - timer.timeLeft) / Math.max(1, timer.totalTime);
+            this.updateDynamicColor(progress);
+          }
+
+          // Update body background to be more transparent
+          document.body.style.background = "transparent";
+        }
+
+        disableAmbientMode() {
+          // Update button text
+          this.toggleBtn.textContent = "Ambient: Off";
+          this.toggleBtn.setAttribute("aria-pressed", "false");
+          this.toggleBtn.classList.remove(
+            "text-white",
+            "bg-purple-600",
+            "border-purple-600"
+          );
+          this.toggleBtn.classList.add(
+            "text-gray-600",
+            "bg-white/80",
+            "border-gray-200"
+          );
+
+          // Hide color picker
+          this.colorPickerContainer.classList.add(
+            "opacity-0",
+            "pointer-events-none"
+          );
+          this.colorPickerContainer.classList.remove(
+            "opacity-100",
+            "pointer-events-auto"
+          );
+          this.closeColorPicker();
+
+          // Hide vanta background
+          this.vantaBg.style.opacity = "0";
+
+          // Destroy Vanta effect
+          if (this.vantaEffect) {
+            this.vantaEffect.destroy();
+            this.vantaEffect = null;
+          }
+
+          // Restore body background
+          document.body.style.background = "";
+          document.body.className =
+            "min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 font-inter overflow-y-auto";
+        }
+
+        loadAmbientPrefs() {
+          try {
+            const saved = JSON.parse(
+              localStorage.getItem(STORAGE_KEYS.ambient) || "{}"
+            );
+            if (saved) {
+              if (typeof saved.currentSkyColor === "number") {
+                this.currentSkyColor = saved.currentSkyColor;
+              }
+              this.isDynamicMode = !!saved.isDynamicMode;
+              this.isActive = !!saved.isActive;
+
+              // Update color indicator
+              if (this.isDynamicMode) {
+                this.currentColorIndicator.className =
+                  "w-3 h-3 rounded-full bg-gradient-to-r from-blue-400 via-yellow-400 to-purple-600";
+              } else {
+                const colorMap = {
+                  0x68c7ff: "bg-blue-400",
+                  0xff6b6b: "bg-red-400",
+                  0x9b59b6: "bg-purple-400",
+                  0x2ecc71: "bg-green-400",
+                };
+                this.currentColorIndicator.className = `w-3 h-3 rounded-full ${
+                  colorMap[this.currentSkyColor] || "bg-blue-400"
+                }`;
+              }
+
+              // If ambient was active previously, enable now
+              if (this.isActive) {
+                this.enableAmbientMode();
+              } else {
+                this.disableAmbientMode();
+              }
+            }
+          } catch {}
+        }
+
+        persistAmbientPrefs() {
+          const data = {
+            currentSkyColor: this.currentSkyColor,
+            isDynamicMode: this.isDynamicMode,
+            isActive: this.isActive,
+          };
+          localStorage.setItem(STORAGE_KEYS.ambient, JSON.stringify(data));
+        }
+      }
+
+      // Initialize the timer and ambient mode when the page loads
+      let timer, ambientMode;
+      window.addEventListener("DOMContentLoaded", () => {
+        timer = new PomodoroTimer();
+        ambientMode = new AmbientMode();
+
+        // Make ambientMode globally accessible
+        window.ambientMode = ambientMode;
+
+        // Handle window resize for vanta
+        window.addEventListener("resize", () => {
+          if (ambientMode.vantaEffect) {
+            ambientMode.vantaEffect.resize();
+          }
+        });
+
+        // UI state and three-dots menu
+        const uiState = {
+          compact: false,
+          showSettings: true,
+          showStats: true,
+        };
+
+        // Load persisted UI
+        let hasSaved = false;
+        try {
+          const saved = JSON.parse(
+            localStorage.getItem(STORAGE_KEYS.ui) || "{}"
+          );
+          if (typeof saved.compact === "boolean") {
+            uiState.compact = saved.compact;
+            hasSaved = true;
+          }
+          if (typeof saved.showSettings === "boolean") {
+            uiState.showSettings = saved.showSettings;
+            hasSaved = true;
+          }
+          if (typeof saved.showStats === "boolean") {
+            uiState.showStats = saved.showStats;
+            hasSaved = true;
+          }
+        } catch {}
+        // If no saved preferences, auto-compact on short viewports
+        if (!hasSaved) {
+          if (window.innerHeight < 720) {
+            uiState.compact = true;
+            // Show only one of the secondary cards by default on very small screens
+            if (window.innerHeight < 640) {
+              uiState.showSettings = true;
+              uiState.showStats = false;
+            }
+          }
+        }
+
+        const settingsCard = document.getElementById("settingsCard");
+        const statsCard = document.getElementById("statsCard");
+        const moreBtn = document.getElementById("moreOptionsBtn");
+        const menu = document.getElementById("moreOptionsMenu");
+        const optCompact = document.getElementById("optToggleCompact");
+        const optSettings = document.getElementById("optToggleSettings");
+        const optStats = document.getElementById("optToggleStats");
+        const optAmbient = document.getElementById("optToggleAmbient");
+        const optOpenSky = document.getElementById("optOpenSky");
+        const optResetToday = document.getElementById("optResetToday");
+        const chkCompact = document.getElementById("chkCompact");
+        const chkSettings = document.getElementById("chkSettings");
+        const chkStats = document.getElementById("chkStats");
+        const chkAmbient = document.getElementById("chkAmbient");
+
+        function persistUI() {
+          localStorage.setItem(STORAGE_KEYS.ui, JSON.stringify(uiState));
+        }
+
+        function applyUI() {
+          // compact
+          document.body.classList.toggle("compact", uiState.compact);
+          chkCompact.classList.toggle("hidden", !uiState.compact);
+
+          // cards
+          settingsCard.style.display = uiState.showSettings ? "flex" : "none";
+          chkSettings.classList.toggle("hidden", !uiState.showSettings);
+          statsCard.style.display = uiState.showStats ? "flex" : "none";
+          chkStats.classList.toggle("hidden", !uiState.showStats);
+
+          // ambient label
+          chkAmbient.textContent = ambientMode?.isActive ? "On" : "Off";
+        }
+
+        // Initial apply
+        applyUI();
+
+        // Toggle menu open/close
+        function openMenu() {
+          menu.classList.remove("dropdown-enter");
+          menu.classList.add("dropdown-open");
+          moreBtn.setAttribute("aria-expanded", "true");
+        }
+        function closeMenu() {
+          menu.classList.add("dropdown-enter");
+          menu.classList.remove("dropdown-open");
+          moreBtn.setAttribute("aria-expanded", "false");
+        }
+
+        moreBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const isOpen = menu.classList.contains("dropdown-open");
+          if (isOpen) closeMenu();
+          else openMenu();
+        });
+        document.addEventListener("click", (e) => {
+          if (!menu.contains(e.target) && e.target !== moreBtn) {
+            closeMenu();
+          }
+        });
+
+        // Menu actions
+        optCompact.addEventListener("click", () => {
+          uiState.compact = !uiState.compact;
+          applyUI();
+          persistUI();
+        });
+        optSettings.addEventListener("click", () => {
+          uiState.showSettings = !uiState.showSettings;
+          applyUI();
+          persistUI();
+        });
+        optStats.addEventListener("click", () => {
+          uiState.showStats = !uiState.showStats;
+          applyUI();
+          persistUI();
+        });
+        optAmbient.addEventListener("click", () => {
+          ambientMode.toggle();
+          applyUI();
+          persistUI();
+        });
+        optOpenSky.addEventListener("click", () => {
+          // open the color picker dropdown next to the ambient toggle
+          const toggle = document.getElementById("colorPickerToggle");
+          if (toggle) toggle.click();
+          closeMenu();
+        });
+        optResetToday.addEventListener("click", () => {
+          try {
+            const saved = JSON.parse(
+              localStorage.getItem(STORAGE_KEYS.stats) || "{}"
+            );
+            const newStats = {
+              date: todayStr(),
+              sessions: 0,
+              streak: saved?.streak || 0,
+            };
+            localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(newStats));
+            timer.completedSessions = 0;
+            timer.updateStats();
+          } catch {}
+          closeMenu();
+        });
+      });
+    </script>
+  </body>
+</html>

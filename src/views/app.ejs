@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/head') %>
+    <!-- Additional styles for modals -->
+    <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+    <!-- Theme Toggle Button -->
+    <%- include('partials/theme-toggle') %>
+
+    <!-- Menu Icon -->
+    <%- include('partials/profile-icon') %>
+
+    <!-- Horizontal Navigation Container -->
+    <div class="horizontal-container show-chat" id="horizontalContainer">
+        <!-- Section 1: Chat Page -->
+        <div class="page-section" id="chatSection">
+            <%- include('partials/chat-content') %>
+        </div>
+
+        <!-- Section 2: Notes Page -->
+        <div class="page-section" id="notesSection">
+            <%- include('partials/notes-content') %>
+        </div>
+
+        <!-- Section 3: DEN Page -->
+        <div class="page-section" id="denSection">
+            <%- include('partials/den-content') %>
+        </div>
+
+        <!-- Section 4: Flashcards Page -->
+        <div class="page-section" id="flashcardsSection">
+            <%- include('partials/flashcards-content') %>
+        </div>
+    </div>
+
+    <!-- Navigation Controls -->
+    <%- include('partials/horizontal-nav') %>
+
+    <!-- Ambient Mode Controls - Outside horizontal container for proper fixed positioning -->
+    <!-- Ambient Mode Toggle -->
+    <button
+      id="ambientToggle"
+      class="ambient-toggle-btn"
+      aria-pressed="false"
+    >
+      Ambient: Off
+    </button>
+
+    <!-- Sky Color Picker -->
+    <div
+      id="colorPickerContainer"
+      class="fixed transition-all duration-300"
+      data-visible="false"
+    >
+      <div class="relative">
+        <!-- Color Picker Toggle Button -->
+        <button
+          id="colorPickerToggle"
+          class="px-3 py-2 text-sm font-medium text-gray-600 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full hover:bg-white hover:text-gray-800 transition-all duration-200 shadow-lg font-space-grotesk flex items-center space-x-2"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          <div
+            class="w-3 h-3 rounded-full bg-blue-400"
+            id="currentColorIndicator"
+            aria-hidden="true"
+          ></div>
+          <span class="text-xs">Sky</span>
+        </button>
+
+        <!-- Color Options Dropdown -->
+        <div
+          id="colorOptions"
+          class="absolute top-full mt-2 right-0 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-xl p-3 min-w-[140px] opacity-0 pointer-events-none transition-all duration-200 transform translate-y-[-10px]"
+          role="menu"
+        >
+          <div class="space-y-2">
+            <button
+              class="color-option w-full flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+              data-color="0x68c7ff"
+              data-name="Sky Blue"
+              role="menuitem"
+            >
+              <div class="w-4 h-4 rounded-full bg-blue-400"></div>
+              <span class="text-sm font-medium text-gray-700">Sky Blue</span>
+            </button>
+            <button
+              class="color-option pro-feature w-full flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+              data-color="0xff6b6b"
+              data-name="Sunset"
+              data-tier="pro"
+              role="menuitem"
+            >
+              <div class="w-4 h-4 rounded-full bg-red-400"></div>
+              <span class="text-sm font-medium text-gray-700">Sunset</span>
+              <i class="fas fa-lock text-xs text-gray-400 ml-auto locked-icon"></i>
+            </button>
+            <button
+              class="color-option pro-feature w-full flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+              data-color="0x9b59b6"
+              data-name="Twilight"
+              data-tier="pro"
+              role="menuitem"
+            >
+              <div class="w-4 h-4 rounded-full bg-purple-400"></div>
+              <span class="text-sm font-medium text-gray-700">Twilight</span>
+              <i class="fas fa-lock text-xs text-gray-400 ml-auto locked-icon"></i>
+            </button>
+            <button
+              class="color-option pro-feature w-full flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+              data-color="0x2ecc71"
+              data-name="Aurora"
+              data-tier="pro"
+              role="menuitem"
+            >
+              <div class="w-4 h-4 rounded-full bg-green-400"></div>
+              <span class="text-sm font-medium text-gray-700">Aurora</span>
+              <i class="fas fa-lock text-xs text-gray-400 ml-auto locked-icon"></i>
+            </button>
+            <hr class="my-2 border-gray-200" />
+            <button
+              class="color-option pro-feature w-full flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+              data-color="dynamic"
+              data-name="Timer Sync"
+              data-tier="pro"
+              role="menuitem"
+            >
+              <div
+                class="w-4 h-4 rounded-full bg-gradient-to-r from-blue-400 via-yellow-400 to-purple-600"
+              ></div>
+              <span class="text-sm font-medium text-gray-700">Timer Sync</span>
+              <i class="fas fa-lock text-xs text-gray-400 ml-auto locked-icon"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flashcard Modal - Outside horizontal container for proper positioning -->
+    <div id="flashcardModalOverlay" class="flashcard-modal-overlay" style="display: none;">
+        <div id="flashcardModalContainer"></div>
+    </div>
+
+    <!-- Read Mode Modal - Outside horizontal container for proper z-index -->
+    <div id="readModal" class="modal" style="z-index: 9999;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="flex items-center justify-between w-full">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-book-open text-purple-600 text-xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Read Mode</h2>
+                        <span class="text-gray-400">-</span>
+                        <h3 id="readModeHeaderTitle" class="text-lg font-medium text-gray-700">Untitled Note</h3>
+                    </div>
+                    <button onclick="closeReadMode()" class="flex items-center justify-center w-10 h-10 text-center text-gray-500 duration-200 bg-gray-100 border-2 border-gray-100 rounded-full hover:bg-transparent hover:border-gray-300 hover:text-gray-700 focus:outline-none">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div id="readModeContent" class="prose prose-lg max-w-none"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal - Outside horizontal container for proper z-index -->
+    <div id="deleteConfirmModal" class="modal" style="z-index: 9999; display: none;">
+        <div class="modal-content" style="max-width: 400px; padding: 2rem;">
+            <div style="text-align: center;">
+                <div class="delete-confirm-icon" style="width: 48px; height: 48px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #dc2626; font-size: 1.5rem;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 style="font-size: 1.25rem; font-weight: 600; color: #1f2937; margin: 0 0 0.5rem 0;">Delete Chat Session?</h3>
+                <p style="font-size: 0.875rem; color: #6b7280; margin: 0 0 1.5rem 0; line-height: 1.5;">This action cannot be undone. All messages in this chat will be permanently deleted.</p>
+                <div style="display: flex; gap: 0.75rem;">
+                    <button id="cancelDeleteBtn" style="flex: 1; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all 0.2s; border: 2px solid #e5e7eb; background: #f3f4f6; color: #1f2937;">
+                        Cancel
+                    </button>
+                    <button id="confirmDeleteBtn" style="flex: 1; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all 0.2s; border: 2px solid #dc2626; background: #dc2626; color: white;">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Dark mode support for modal */
+        [data-theme="dark"] .modal-content {
+            background: var(--bg-secondary);
+        }
+
+        /* Delete confirmation modal dark theme */
+        [data-theme="dark"] .delete-confirm-icon {
+            background: rgba(220, 38, 38, 0.2) !important;
+            color: #f87171 !important;
+        }
+
+        [data-theme="dark"] #deleteConfirmModal h3 {
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] #deleteConfirmModal p {
+            color: var(--text-secondary) !important;
+        }
+
+        [data-theme="dark"] #cancelDeleteBtn {
+            background: var(--bg-tertiary) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        [data-theme="dark"] #cancelDeleteBtn:hover {
+            background: var(--bg-primary) !important;
+        }
+
+        #cancelDeleteBtn:hover {
+            background: #e5e7eb;
+            border-color: #d1d5db;
+        }
+
+        #confirmDeleteBtn:hover {
+            background: #b91c1c;
+            border-color: #b91c1c;
+        }
+
+        [data-theme="dark"] .modal-header {
+            border-bottom-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .modal-header h2,
+        [data-theme="dark"] .modal-header h3 {
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .modal-body {
+            color: var(--text-primary);
+        }
+
+        /* Flashcard modal overlay */
+        .flashcard-modal-overlay {
+            z-index: 10000;
+        }
+
+        /* Prevent text selection on interactive UI elements */
+        button,
+        .nav-dot,
+        .nav-indicator,
+        .chat-history-toggle,
+        .profile-icon,
+        .theme-toggle,
+        .ambient-toggle-btn,
+        .color-option,
+        #colorPickerToggle,
+        .attachment-btn,
+        .chat-send-btn,
+        .new-chat-btn,
+        .close-sidebar-btn,
+        .session-item,
+        .delete-session-btn,
+        .close-popup-btn,
+        .flashcard,
+        .flashcard-option,
+        .music-controls button,
+        .playlist-item,
+        h1, h2, h3, h4, h5, h6,
+        .greeting-text,
+        .user-greeting,
+        label,
+        .modal-header h2,
+        .modal-header h3,
+        .playlist-header h4,
+        i.fas,
+        i.far,
+        i.fab {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* Allow text selection in search inputs only when focused */
+        input[type="text"],
+        input[type="search"],
+        textarea {
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }
+
+        /* Prevent cursor change on non-input icons */
+        .fa-search,
+        .fa-paperclip,
+        .fa-arrow-up,
+        .fa-bars,
+        .fa-times,
+        .fa-plus,
+        .fa-trash,
+        .fa-magic,
+        .fa-sync-alt,
+        .fa-save,
+        .fa-book-open,
+        .fa-play,
+        .fa-pause,
+        .fa-forward,
+        .fa-backward,
+        .fa-volume-up,
+        .fa-volume-down,
+        .fa-volume-mute {
+            cursor: inherit;
+            pointer-events: none;
+        }
+    </style>
+</body>
+</html>

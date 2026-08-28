@@ -1,0 +1,838 @@
+/* General & Layout Styles */
+/* =================================== */
+body {
+    font-family: "Space Grotesk", sans-serif;
+}
+
+/* This style was on the navigation header spacer div */
+.nav-header-spacer {
+    height: 100px;
+}
+
+/* This style was on the main flex container */
+.main-content-container {
+    height: calc(100vh - 6.25rem);
+}
+
+.gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.glass-morphism {
+    backdrop-filter: blur(16px) saturate(180%);
+    background-color: rgba(17, 25, 40, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+/* Tooltip Styles */
+/* =================================== */
+.tooltip {
+    position: relative;
+}
+
+.tooltip:hover::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 8px;
+    opacity: 0;
+    animation: tooltipFadeIn 0.3s ease forwards;
+}
+
+.tooltip:hover::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.8);
+    margin-bottom: 3px;
+    opacity: 0;
+    animation: tooltipFadeIn 0.3s ease forwards;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Close button tooltip positioned on the left */
+.modal-header .tooltip:hover::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    right: 100%;
+    left: auto;
+    transform: translateX(0);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 8px;
+    margin-right: 8px;
+    opacity: 0;
+    animation: tooltipFadeInLeft 0.3s ease forwards;
+}
+
+.modal-header .tooltip:hover::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    right: 100%;
+    left: auto;
+    transform: translateX(0);
+    border: 5px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.8);
+    margin-bottom: 3px;
+    margin-right: 3px;
+    opacity: 0;
+    animation: tooltipFadeInLeft 0.3s ease forwards;
+}
+
+@keyframes tooltipFadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Read Mode Modal Styles */
+/* =================================== */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transform: scale(0.9) translateY(20px);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.modal.active .modal-content {
+    transform: scale(1) translateY(0);
+}
+
+.modal-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.modal-body {
+    padding: 32px;
+    padding-right: 40px;
+    font-family: "Space Grotesk", sans-serif;
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(90vh - 120px);
+    min-height: 0;
+}
+
+.modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+    margin: 8px 0;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    background-clip: content-box;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+    background-clip: content-box;
+}
+
+.modal-body h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+}
+
+.modal-body h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #374151;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.modal-body p {
+    font-size: 1.125rem;
+    line-height: 1.75;
+    color: #4b5563;
+    margin-bottom: 1.5rem;
+}
+
+.modal-body strong {
+    color: #111827;
+    font-weight: 600;
+}
+
+.modal-body ul,
+.modal-body ol {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+}
+
+.modal-body li {
+    font-size: 1.125rem;
+    line-height: 1.75;
+    color: #4b5563;
+    margin-bottom: 0.5rem;
+}
+
+/* Sidebar & Notes List Styles */
+/* =================================== */
+.note-item:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+/* This style was on the notes list scroll container */
+.notes-list-scroll-container {
+    flex: 1;
+    min-height: 0;
+}
+
+.flex-1.overflow-y-auto.p-4 {
+    padding-right: 20px;
+}
+
+.flex-1.overflow-y-auto.p-4::-webkit-scrollbar {
+    width: 8px;
+}
+
+.flex-1.overflow-y-auto.p-4::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 3px 0;
+}
+
+.flex-1.overflow-y-auto.p-4::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+.flex-1.overflow-y-auto.p-4::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+    background-clip: content-box;
+}
+
+/* Editor Styles */
+/* =================================== */
+#editor {
+    overflow: hidden;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    /* Styles from inline attribute */
+    min-height: 400px;
+}
+
+/* This was on the editor's parent div */
+.editor-content-area {
+    padding-top: 24px;
+}
+
+/* This was on the floating "Read" button */
+.read-button {
+    bottom: 42px;
+    right: 42px;
+}
+
+/* Quill Editor Styles */
+/* =================================== */
+.ql-container {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    border-radius: 16px !important;
+    border: 1px solid #e5e7eb !important;
+    margin-top: 12px;
+}
+
+.ql-editor {
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    max-width: 100%;
+    padding: 16px;
+    line-height: 1.6;
+}
+
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3 {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
+
+.ql-toolbar {
+    border-radius: 16px !important;
+    border: 1px solid #e5e7eb !important;
+    background-color: #ffffff !important;
+    padding: 12px 16px !important;
+    margin-bottom: 0 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .ql-toolbar.ql-snow {
+    background-color: #141413 !important;
+    border-color: rgba(194, 192, 182, 0.15) !important;
+}
+
+[data-theme="dark"] .ql-editor.ql-blank,
+[data-theme="dark"] .ql-editor {
+    background-color: #1a1a18 !important;
+    color: #c2c0b6 !important;
+}
+
+[data-theme="dark"] .ql-toolbar.ql-snow .ql-formats {
+    background-color: rgba(194, 192, 182, 0.1);
+    border-color: rgba(194, 192, 182, 0.15);
+}
+
+[data-theme="dark"] .ql-toolbar.ql-snow button {
+    color: #c2c0b6;
+}
+
+[data-theme="dark"] .ql-toolbar.ql-snow button:hover {
+    background-color: rgba(194, 192, 182, 0.15) !important;
+}
+
+[data-theme="dark"] .ql-toolbar.ql-snow button.ql-active {
+    background-color: rgba(194, 192, 182, 0.2) !important;
+}
+
+[data-theme="dark"] .ql-toolbar.ql-snow .ql-stroke {
+    stroke: #c2c0b6;
+}
+
+[data-theme="dark"] .ql-toolbar.ql-snow .ql-fill {
+    fill: #c2c0b6;
+}
+
+[data-theme="dark"] .ql-toolbar.ql-snow .ql-picker-label {
+    color: #c2c0b6;
+}
+
+[data-theme="dark"] .ql-snow .ql-picker-options {
+    background-color: #141413;
+    border-color: rgba(194, 192, 182, 0.15);
+}
+
+[data-theme="dark"] .ql-snow .ql-picker-item {
+    color: #c2c0b6;
+}
+
+[data-theme="dark"] .ql-editor.ql-blank::before {
+    color: rgba(194, 192, 182, 0.6);
+}
+
+[data-theme="dark"] .ql-container {
+    border-color: rgba(194, 192, 182, 0.15) !important;
+}
+
+.ql-toolbar.ql-snow .ql-formats {
+    margin-right: 12px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    position: relative;
+}
+
+.ql-toolbar.ql-snow .ql-formats:last-child {
+    margin-right: 0;
+}
+
+.ql-toolbar.ql-snow button {
+    border-radius: 6px !important;
+    padding: 6px !important;
+    margin: 2px !important;
+    position: relative;
+}
+
+.ql-toolbar.ql-snow button:hover {
+    background-color: #f3f4f6 !important;
+}
+
+.ql-toolbar.ql-snow button.ql-active {
+    background-color: #e5e7eb !important;
+}
+
+.ql-toolbar.ql-snow select {
+    border-radius: 6px !important;
+    margin: 2px !important;
+    position: relative;
+}
+
+/* Toolbar tooltips */
+.ql-toolbar.ql-snow button:hover::before,
+.ql-toolbar.ql-snow select:hover::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 8px;
+    opacity: 0;
+    animation: tooltipFadeIn 0.3s ease forwards;
+    pointer-events: none;
+}
+
+.ql-toolbar.ql-snow button:hover::after,
+.ql-toolbar.ql-snow select:hover::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.8);
+    margin-bottom: 4px;
+    opacity: 0;
+    animation: tooltipFadeIn 0.3s ease forwards;
+    pointer-events: none;
+}
+
+/* Specific tooltip content for each tool */
+.ql-toolbar.ql-snow button.ql-bold:hover::before {
+    content: "Bold";
+}
+.ql-toolbar.ql-snow button.ql-italic:hover::before {
+    content: "Italic";
+}
+.ql-toolbar.ql-snow button.ql-underline:hover::before {
+    content: "Underline";
+}
+.ql-toolbar.ql-snow button.ql-strike:hover::before {
+    content: "Strikethrough";
+}
+.ql-toolbar.ql-snow button.ql-header[value="1"]:hover::before {
+    content: "Heading 1";
+}
+.ql-toolbar.ql-snow button.ql-header[value="2"]:hover::before {
+    content: "Heading 2";
+}
+.ql-toolbar.ql-snow button.ql-list[value="ordered"]:hover::before {
+    content: "Numbered List";
+}
+.ql-toolbar.ql-snow button.ql-list[value="bullet"]:hover::before {
+    content: "Bullet List";
+}
+.ql-toolbar.ql-snow button.ql-indent[value="-1"]:hover::before {
+    content: "Decrease Indent";
+}
+.ql-toolbar.ql-snow button.ql-indent[value="+1"]:hover::before {
+    content: "Increase Indent";
+}
+.ql-toolbar.ql-snow button.ql-align[value=""]:hover::before {
+    content: "Align Left";
+}
+.ql-toolbar.ql-snow button.ql-align[value="center"]:hover::before {
+    content: "Align Center";
+}
+.ql-toolbar.ql-snow button.ql-align[value="right"]:hover::before {
+    content: "Align Right";
+}
+.ql-toolbar.ql-snow button.ql-align[value="justify"]:hover::before {
+    content: "Justify";
+}
+.ql-toolbar.ql-snow button.ql-blockquote:hover::before {
+    content: "Blockquote";
+}
+.ql-toolbar.ql-snow button.ql-code-block:hover::before {
+    content: "Code Block";
+}
+.ql-toolbar.ql-snow button.ql-script[value="sub"]:hover::before {
+    content: "Subscript";
+}
+.ql-toolbar.ql-snow button.ql-script[value="super"]:hover::before {
+    content: "Superscript";
+}
+.ql-toolbar.ql-snow button.ql-link:hover::before {
+    content: "Insert Link";
+}
+.ql-toolbar.ql-snow button.ql-image:hover::before {
+    content: "Insert Image";
+}
+.ql-toolbar.ql-snow button.ql-video:hover::before {
+    content: "Insert Video";
+}
+.ql-toolbar.ql-snow button.ql-clean:hover::before {
+    content: "Clear Formatting";
+}
+.ql-toolbar.ql-snow button.ql-direction:hover::before {
+    content: "Text Direction";
+}
+.ql-toolbar.ql-snow select.ql-size:hover::before {
+    content: "Font Size";
+}
+.ql-toolbar.ql-snow select.ql-font:hover::before {
+    content: "Font Family";
+}
+.ql-toolbar.ql-snow select.ql-header:hover::before {
+    content: "Heading Level";
+}
+.ql-toolbar.ql-snow .ql-color:hover::before {
+    content: "Text Color";
+}
+.ql-toolbar.ql-snow .ql-background:hover::before {
+    content: "Background Color";
+}
+
+/* Delete Confirmation Modal (from JS) */
+/* =================================== */
+.delete-confirmation-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.delete-confirmation-modal-content {
+    background: white;
+    border-radius: 24px;
+    padding: 2rem;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.delete-confirmation-modal-content .modal-header-section {
+    margin-bottom: 1.5rem;
+}
+
+.delete-confirmation-modal-content .warning-icon {
+    font-size: 3rem;
+    color: #ef4444;
+    margin-bottom: 1rem;
+}
+
+.delete-confirmation-modal-content .modal-title {
+    margin: 0 0 1rem 0;
+    color: #333;
+    font-family: "Space Grotesk", sans-serif;
+}
+
+.delete-confirmation-modal-content .modal-text {
+    margin: 0 0 1rem 0;
+    color: #666;
+    line-height: 1.5;
+}
+
+.delete-confirmation-modal-content .note-title-display {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-left: 4px solid #ef4444;
+}
+
+.delete-confirmation-modal-content .note-title-display strong {
+    color: #333;
+}
+
+.delete-confirmation-modal-content .modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.delete-confirmation-modal-content .cancel-btn {
+    padding: 0.75rem 1.5rem;
+    background: #f3f4f6;
+    color: #374151;
+    border: 2px solid #d1d5db;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.delete-confirmation-modal-content .cancel-btn:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+}
+
+.delete-confirmation-modal-content .confirm-btn {
+    padding: 0.75rem 1.5rem;
+    background: #ef4444;
+    color: white;
+    border: 2px solid #ef4444;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.delete-confirmation-modal-content .confirm-btn:hover {
+    background: #dc2626;
+}
+
+.delete-confirmation-modal-content .confirm-btn i {
+    margin-right: 0.5rem;
+}
+
+/* Note Delete Animation */
+.note-item.deleting {
+    transition:
+        opacity 0.3s ease,
+        transform 0.3s ease;
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+/* ============================================
+   AMBIENT TOGGLE VISIBILITY FIX
+   ============================================ */
+
+/* Base styles - Hidden by default */
+#ambientToggle {
+    position: fixed !important;
+    top: 7rem !important;
+    right: 1.5rem !important;
+    z-index: 10000 !important;
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.2s ease !important;
+}
+
+/* CRITICAL FIX: Show toggle when data-visible="true" */
+#ambientToggle[data-visible="true"],
+button#ambientToggle[data-visible="true"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* FALLBACK: Show when horizontal container shows DEN section */
+.horizontal-container.show-den #ambientToggle {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Extra specificity variations to override any conflicts */
+.horizontal-container.show-den button#ambientToggle,
+.horizontal-container.show-den .ambient-toggle-btn {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* VISUAL STYLING - Light mode ambient toggle */
+#ambientToggle {
+    /* Remove all Tailwind classes and use explicit CSS */
+    padding: 0.5rem 1rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    font-family: "Space Grotesk", sans-serif !important;
+    border-radius: 9999px !important;
+    border-width: 2px !important;
+    border-style: solid !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+
+    /* Elegant light mode styling */
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: #374151 !important;
+    border-color: #d1d5db !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+#ambientToggle:hover {
+    background: rgba(255, 255, 255, 1) !important;
+    color: #1f2937 !important;
+    border-color: #9ca3af !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12) !important;
+    transform: translateY(-1px) scale(1.02) !important;
+}
+
+/* ============================================
+   COLOR PICKER VISIBILITY FIX
+   ============================================ */
+
+/* Base styles - Hidden by default */
+#colorPickerContainer {
+    position: fixed !important;
+    top: 7rem !important;
+    right: 10rem !important;
+    z-index: 10000 !important;
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.3s ease !important;
+}
+
+/* Show color picker when data-visible="true" */
+#colorPickerContainer[data-visible="true"] {
+    display: block !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Show when ambient mode is active AND on DEN section */
+.horizontal-container.show-den #colorPickerContainer[data-visible="true"] {
+    display: block !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* VISUAL STYLING - Dark mode ambient toggle */
+[data-theme="dark"] #ambientToggle {
+    background: rgba(20, 20, 19, 0.9) !important;
+    color: #c2c0b6 !important;
+    border-color: rgba(194, 192, 182, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] #ambientToggle:hover {
+    background: rgba(20, 20, 19, 0.95) !important;
+    color: #c2c0b6 !important;
+    border-color: rgba(194, 192, 182, 0.4) !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+    transform: translateY(-1px) scale(1.02) !important;
+}
+
+/* When ambient is ACTIVE (purple state) */
+[data-theme="dark"] #ambientToggle[aria-pressed="true"] {
+    background: #6366f1 !important;
+    color: #ffffff !important;
+    border-color: #6366f1 !important;
+}
+
+#ambientToggle[aria-pressed="true"] {
+    background: #6366f1 !important;
+    color: #ffffff !important;
+    border-color: #6366f1 !important;
+}
+
+/* Light mode support for color picker */
+#colorPickerToggle {
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: #374151 !important;
+    border-color: #d1d5db !important;
+}
+
+#colorPickerToggle:hover {
+    background: rgba(255, 255, 255, 1) !important;
+    color: #1f2937 !important;
+    border-color: #9ca3af !important;
+}
+
+[data-theme="dark"] #colorPickerToggle {
+    background: rgba(20, 20, 19, 0.9) !important;
+    color: #c2c0b6 !important;
+    border-color: rgba(194, 192, 182, 0.3) !important;
+}
+
+[data-theme="dark"] #colorPickerToggle:hover {
+    background: rgba(20, 20, 19, 0.95) !important;
+    color: #c2c0b6 !important;
+    border-color: rgba(194, 192, 182, 0.4) !important;
+}
+
+[data-theme="dark"] #colorOptions {
+    background: rgba(20, 20, 19, 0.9) !important;
+    border-color: rgba(194, 192, 182, 0.2) !important;
+}
+
+[data-theme="dark"] .color-option {
+    color: #c2c0b6 !important;
+}
+
+[data-theme="dark"] .color-option:hover {
+    background: rgba(194, 192, 182, 0.1) !important;
+}
+
+[data-theme="dark"] .color-option span {
+    color: #c2c0b6 !important;
+}

@@ -1,0 +1,1334 @@
+:root {
+    /* Light theme colors */
+    --nav-height: 80px; /* keep in sync with top spacing */
+    --bg-primary: #fafafa;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f5f5f5;
+    --text-primary: #1a1a1a;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+    --accent-primary: #6366f1;
+    --accent-secondary: #8b5cf6;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --shadow: rgba(0, 0, 0, 0.1);
+    --shadow-lg: rgba(0, 0, 0, 0.15);
+    /* Shared subtle elevation used by select, bubbles, textarea, button */
+    --shadow-subtle: 0 4px 6px -1px var(--shadow), 0 2px 4px -1px var(--shadow);
+    --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] {
+    --bg-primary: #262624;
+    --bg-secondary: #141413;
+    --bg-tertiary: #1a1a18;
+    --text-primary: #c2c0b6;
+    --text-secondary: #c2c0b6;
+    --text-muted: #888888;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --shadow-lg: rgba(0, 0, 0, 0.4);
+    --glass-bg: rgba(0, 0, 0, 0.3);
+    --border-color: rgba(194, 192, 182, 0.15);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "IBM Plex Sans", sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    overflow-x: hidden;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.brand-font {
+    font-family: "Orbitron", monospace;
+}
+
+.accent-font {
+    font-family: "Space Grotesk", sans-serif;
+}
+
+/* Logo Container (always visible) */
+.logo-container {
+    position: fixed;
+    top: 1.5rem;
+    left: 2rem;
+    z-index: 999;
+}
+
+.logo {
+    font-family: "Orbitron", monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(
+        45deg,
+        var(--accent-primary),
+        var(--accent-secondary)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.logo:hover {
+    transform: scale(1.05);
+}
+
+.logo::after {
+    content: "Press Shift+Tab for navigation";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 400;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.logo:hover::after {
+    opacity: 1;
+}
+
+/* Navigation Dock (hidden by default) */
+.nav-dock {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.nav-dock--visible {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.nav-dock-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    animation: dockSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes dockSlideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.nav-dock-hint {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.875rem;
+    font-family: "Space Grotesk", sans-serif;
+    text-align: center;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.nav-dock-menu {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+    padding: 1.5rem 2rem;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.nav-dock-item {
+    position: relative;
+    animation: dockItemSlide 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+.nav-dock--visible .nav-dock-item:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.nav-dock--visible .nav-dock-item:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.nav-dock--visible .nav-dock-item:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.nav-dock--visible .nav-dock-item:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+@keyframes dockItemSlide {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.nav-dock-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem 2rem;
+    text-decoration: none;
+    color: var(--text-secondary);
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: transparent;
+    border: 2px solid transparent;
+    cursor: pointer;
+    outline: none;
+}
+
+.nav-dock-link i {
+    font-size: 2rem;
+    transition: all 0.3s ease;
+}
+
+.nav-dock-label {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 500;
+    font-size: 0.875rem;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.nav-dock-link--focused {
+    background: linear-gradient(
+        135deg,
+        var(--accent-primary),
+        var(--accent-secondary)
+    );
+    border-color: var(--accent-primary);
+    color: white;
+    transform: translateY(-8px) scale(1.1);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+    }
+    50% {
+        box-shadow: 0 10px 40px rgba(99, 102, 241, 0.6);
+    }
+}
+
+.nav-dock-link--focused i {
+    transform: scale(1.2);
+}
+
+.nav-dock-link--focused .nav-dock-label {
+    opacity: 1;
+    font-weight: 600;
+}
+
+.nav-dock-link:hover:not(.nav-dock-link--focused) {
+    background: var(--glass-bg);
+    transform: translateY(-4px);
+}
+
+.nav-dock-theme {
+    padding: 1rem 1.5rem;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.theme-toggle {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    color: var(--accent-primary);
+    transform: rotate(180deg);
+}
+
+.nav-dock-theme:hover {
+    border-color: var(--accent-primary);
+    transform: scale(1.05);
+}
+
+/* Legacy navigation styles (hidden) */
+.nav-container,
+.nav-wrapper,
+.nav-menu,
+.nav-toggle,
+.nav-item,
+.nav-link {
+    display: none !important;
+}
+
+.nav-offset {
+    height: 0;
+}
+
+/* Main Content */
+
+.section {
+    padding-left: 1rem;
+    /* padding-top: 80px; */ /* Moved padding to content-wrapper */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* min-height: 100vh; */ /* This conflicts with fullpage.js */
+}
+
+.content-wrapper {
+    width: 100%;
+    max-width: 1200px;
+    height: 100%;
+    padding-top: 2rem; /* Reduced padding since no fixed navbar */
+}
+
+.content-wrapper.dock-layout {
+    padding-top: 1rem;
+}
+
+.page-title {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    text-align: center;
+    background: linear-gradient(
+        45deg,
+        var(--accent-primary),
+        var(--accent-secondary)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.card {
+    background: var(--bg-secondary);
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px var(--shadow);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px var(--shadow-lg);
+}
+
+.btn {
+    background: linear-gradient(
+        45deg,
+        var(--accent-primary),
+        var(--accent-secondary)
+    );
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+}
+
+.btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    box-shadow: 0 10px 25px var(--shadow);
+}
+
+/* Hide fullpage.js watermark */
+div.fp-watermark {
+    display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .logo-container {
+        top: 1rem;
+        left: 1rem;
+    }
+
+    .logo {
+        font-size: 1.25rem;
+    }
+
+    .nav-dock-menu {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 1rem;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .nav-dock-link {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 1rem 1.5rem;
+        width: 100%;
+    }
+
+    .nav-dock-link i {
+        font-size: 1.5rem;
+    }
+
+    .nav-dock-label {
+        font-size: 1rem;
+    }
+
+    .nav-dock-hint {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .section {
+        padding: 1rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+    }
+}
+
+/* Additional Animations and Polish */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200px 0;
+    }
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+.animate-in {
+    animation: slideInUp 0.6s ease-out;
+}
+
+.fade-in {
+    animation: fadeIn 0.8s ease-out;
+}
+
+.pulse-hover:hover {
+    animation: pulse 0.6s ease-in-out;
+}
+
+.shimmer {
+    background: linear-gradient(
+        90deg,
+        var(--bg-secondary) 0%,
+        rgba(99, 102, 241, 0.1) 50%,
+        var(--bg-secondary) 100%
+    );
+    background-size: 200px 100%;
+    animation: shimmer 2s infinite;
+}
+
+.message:hover .pin-btn {
+    opacity: 1;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px var(--shadow-lg);
+}
+
+.btn:active {
+    transform: translateY(-1px);
+}
+
+.nav-link::after {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--accent-primary);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-link.active::after,
+.nav-link:hover::after {
+    width: 100%;
+}
+
+/* Glassmorphism effects */
+.glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Smooth scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--accent-primary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-secondary);
+}
+
+/* Loading states */
+.loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.loading::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(99, 102, 241, 0.1),
+        transparent
+    );
+    animation: shimmer 1.5s infinite;
+}
+
+/* Mobile responsive grid adjustments */
+@media (max-width: 768px) {
+    .chat-container,
+    .notes-container {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    .chat-sidebar,
+    .notes-sidebar {
+        order: -1;
+        max-height: 200px;
+    }
+
+    .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
+    }
+
+    .cards-header {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+
+    .search-container input {
+        width: 100% !important;
+    }
+}
+
+/* Chat Input Dropdown Styling */
+select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1rem;
+    padding-right: 3rem;
+    cursor: pointer;
+    min-width: 130px;
+    transition: all 0.2s ease;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    transform: translateY(-1px);
+}
+
+select:hover {
+    border-color: var(--text-secondary);
+}
+
+/* Dropdown animation and state improvements */
+select {
+    position: relative;
+    z-index: 1;
+}
+
+select:focus {
+    z-index: 10;
+}
+
+/* Better option spacing and typography */
+select option {
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.875rem;
+    letter-spacing: 0.025em;
+}
+
+/* Focus ring for accessibility */
+select:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+/* Enhanced dropdown options styling */
+select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 0.75rem 1rem;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 500;
+    border: none;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    margin: 2px;
+}
+
+select option:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    transform: translateX(2px);
+}
+
+select option:checked,
+select option:focus {
+    background: linear-gradient(
+        45deg,
+        var(--accent-primary),
+        var(--accent-secondary)
+    );
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+/* Custom dropdown container for better control */
+.dropdown-container {
+    position: relative;
+}
+
+.dropdown-container select {
+    box-shadow:
+        0 4px 6px -1px var(--shadow),
+        0 2px 4px -1px var(--shadow);
+    border-radius: 24px;
+    overflow: hidden;
+}
+
+.dropdown-container select:focus {
+    box-shadow:
+        0 10px 25px -5px var(--shadow-lg),
+        0 4px 6px -2px var(--shadow);
+    transform: translateY(-1px);
+}
+
+/* Enhanced dropdown list styling */
+.dropdown-container select[size],
+.dropdown-container select[multiple] {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 2px solid var(--border-color);
+}
+
+/* Scrollbar styling for dropdown */
+.dropdown-container select::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dropdown-container select::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+}
+
+.dropdown-container select::-webkit-scrollbar-thumb {
+    background: var(--accent-primary);
+    border-radius: 3px;
+}
+
+.dropdown-container select::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-secondary);
+}
+
+/* Dark theme support for select */
+[data-theme="dark"] select {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.3),
+        0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] select:focus {
+    box-shadow:
+        0 10px 15px -3px rgba(0, 0, 0, 0.4),
+        0 4px 6px -2px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] select option:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+[data-theme="dark"] select option:checked,
+[data-theme="dark"] select option:focus {
+    background: linear-gradient(
+        45deg,
+        var(--accent-primary),
+        var(--accent-secondary)
+    );
+    color: white;
+    border-color: var(--accent-primary);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
+/* Mobile responsive adjustments for chat input */
+@media (max-width: 768px) {
+    .chat-input-container {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+
+    .chat-input-group {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+
+    select {
+        min-width: auto;
+        width: 100%;
+    }
+}
+
+/* Keep send button from stretching with textarea */
+.chat-input-container {
+    align-items: flex-end; /* button stays aligned to bottom, not stretched */
+}
+.chat-send-btn {
+    align-self: flex-start; /* avoid vertical stretching in the row */
+    min-height: 44px; /* match input min height visually */
+}
+
+/* On mobile when stacked, let button span naturally */
+@media (max-width: 768px) {
+    .chat-input-container {
+        align-items: stretch;
+    }
+}
+
+/* Input wrapper (no longer holds send button absolutely) */
+.input-wrap {
+    position: relative;
+    display: flex;
+}
+/* Internal attach button still overlays left; textarea gets left padding only */
+.input-wrap .chat-textarea {
+    padding-left: 2.75rem; /* room for attach icon */
+    padding-right: 1rem; /* normal right padding */
+}
+/* External send button now sits as its own flex item; ensure consistent min height */
+.chat-input-group > .chat-send-btn {
+    min-height: 44px;
+}
+
+/* Attach button on the left inside textarea */
+.input-wrap .chat-attach-btn {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 32px;
+    width: 36px;
+    border-radius: 9999px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+.input-wrap .chat-attach-btn:hover {
+    color: var(--text-primary);
+}
+
+/* Popover for chat history anchored to attach button */
+.popover {
+    position: fixed;
+    inset: 0;
+    z-index: 2200;
+    display: none;
+}
+.popover[aria-hidden="false"] {
+    display: block;
+}
+.popover__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.28);
+}
+.popover__panel {
+    position: absolute;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px var(--shadow-lg);
+    max-width: min(92vw, 420px);
+    max-height: min(72vh, 560px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.98);
+    opacity: 0;
+    transition:
+        opacity 150ms ease,
+        transform 150ms ease;
+}
+.popover[aria-hidden="false"] .popover__panel {
+    transform: scale(1);
+    opacity: 1;
+}
+.popover__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.popover__title {
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+.popover__close {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1rem;
+}
+.popover__close:hover {
+    color: var(--text-primary);
+}
+.popover__content {
+    padding: 0.75rem;
+    overflow: auto;
+}
+
+/* Show attach only when sidebar is visible? We want opposite: hide on desktop */
+.chat-attach-btn {
+    display: inline-flex;
+}
+@media (min-width: 1024px) {
+    .chat-attach-btn {
+        display: none;
+    }
+}
+/* ==============================
+   Custom Select (UI replacement)
+   ============================== */
+.ui-select {
+    position: relative;
+    min-width: 130px;
+}
+
+.ui-select__button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 9999px; /* full rounded like inputs */
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+    box-shadow: var(--shadow-subtle);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.ui-select__button:hover {
+    border-color: var(--text-secondary);
+}
+
+.ui-select__button:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+.ui-select__button[aria-expanded="true"] {
+    transform: translateY(-1px);
+    box-shadow:
+        0 10px 25px -5px var(--shadow-lg),
+        0 4px 6px -2px var(--shadow);
+    border-color: var(--accent-primary);
+}
+
+.ui-select__chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s ease;
+}
+
+.ui-select__button[aria-expanded="true"] .ui-select__chevron {
+    transform: rotate(180deg);
+}
+
+.ui-select__menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px var(--shadow-lg);
+    padding: 6px;
+    max-height: 240px;
+    overflow-y: auto;
+    transform-origin: top center;
+    transform: scale(0.98) translateY(-4px);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+        opacity 0.15s ease,
+        transform 0.15s ease;
+}
+
+.ui-select__menu[aria-hidden="false"] {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: auto;
+}
+
+/* Floating overlay variant to escape overflow clipping */
+.ui-select__menu--floating {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 3000; /* above nav and cards */
+    right: auto; /* prevent stretching full width */
+    width: max-content; /* size to content */
+    max-width: min(90vw, 480px); /* keep within viewport */
+    white-space: nowrap; /* prevent option wrapping expanding height too much */
+}
+
+/* Open-up animation variant */
+.ui-select__menu--up {
+    transform-origin: bottom center;
+}
+.ui-select__menu--up[aria-hidden="true"] {
+    transform: scale(0.98) translateY(4px);
+    opacity: 0;
+    pointer-events: none;
+}
+.ui-select__menu--up[aria-hidden="false"] {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.ui-select__option {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: 12px;
+    color: var(--text-primary);
+    background: transparent;
+    cursor: pointer;
+    user-select: none;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.9rem;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease,
+        transform 0.15s ease;
+}
+
+.ui-select__option:hover {
+    background: var(--bg-tertiary);
+}
+
+.ui-select__option[aria-selected="true"] {
+    background: linear-gradient(
+        45deg,
+        var(--accent-primary),
+        var(--accent-secondary)
+    );
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.ui-select__option:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+/* scrollbar inside menu */
+.ui-select__menu::-webkit-scrollbar {
+    width: 8px;
+}
+.ui-select__menu::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+}
+.ui-select__menu::-webkit-scrollbar-thumb {
+    background: var(--accent-primary);
+    border-radius: 4px;
+}
+.ui-select__menu::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-secondary);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .ui-select__menu {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+}
+[data-theme="dark"] .ui-select__option:hover {
+    background: var(--bg-tertiary);
+}
+
+/* Mobile: make it full width when stacked */
+@media (max-width: 768px) {
+    .ui-select {
+        width: 100%;
+    }
+}
+
+/* ==============================
+   Subtle chat UI polish
+   ============================== */
+.chat-bubble {
+    border: 1.5px solid var(--border-color);
+    box-shadow: var(--shadow-subtle);
+    transition:
+        transform 120ms ease,
+        box-shadow 150ms ease,
+        border-color 150ms ease;
+    will-change: transform;
+    padding: 0.625rem 1rem; /* override px-6/py-4 for a tighter feel */
+    border-radius: 16px; /* reduce roundness to achieve consistent squircle look */
+}
+
+/* ==============================
+   Chat layout improvements
+   ============================== */
+/* Make chat section fill the viewport minus navbar for better use of space */
+.vh-shell {
+    min-height: calc(100vh - var(--nav-height));
+}
+
+/* Grid-based chat card: header | messages (scroll) | footer */
+.chat-card {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-height: 60vh; /* graceful minimum on small screens */
+}
+
+/* Scroll area for messages with nice momentum and containment */
+.chat-messages {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+/* On large screens, keep cards within the viewport height nicely */
+@media (min-width: 1024px) {
+    .chat-card {
+        height: calc(
+            100vh - var(--nav-height) - 40px
+        ); /* allow a bit of outer gap */
+    }
+
+    .sidebar-card {
+        position: sticky;
+        top: calc(var(--nav-height) + 24px);
+        height: calc(100vh - var(--nav-height) - 40px);
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+/* Improve small-screen stacking and padding rhythm */
+@media (max-width: 768px) {
+    .chat-header {
+        padding-bottom: 0.75rem !important;
+    }
+    .chat-messages {
+        padding-top: 0.25rem !important;
+        padding-bottom: 0.25rem !important;
+    }
+    /* Hide sidebar on small screens */
+    .sidebar-card {
+        display: none !important;
+    }
+}
+
+/* Bubble max width tuning via utility-like classes */
+.bubble-wrap {
+    max-width: 80%;
+}
+@media (min-width: 640px) {
+    .bubble-wrap {
+        max-width: 72%;
+    }
+}
+@media (min-width: 1024px) {
+    .bubble-wrap {
+        max-width: 66%;
+    }
+}
+
+.chat-bubble:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px -10px var(--shadow-lg);
+}
+
+.chat-bubble p {
+    line-height: 1.45; /* slightly tighter for compactness */
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* Assistant bubble sits on dark background; use a soft light border */
+.chat-bubble--assistant {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* User bubble keeps neutral border */
+.chat-bubble--user {
+    border-color: var(--border-color);
+}
+
+/* Input field subtle improvements */
+.chat-textarea {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    line-height: 1.5;
+    min-height: 44px;
+    /* Only expand a little, then scroll */
+    max-height: 72px; /* cap to ~2-3 lines */
+    overflow-y: auto;
+    box-shadow: var(--shadow-subtle);
+    /* Very thin boundary, overriding Tailwind's border-2 */
+    border-width: 1px !important;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+.chat-textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.chat-textarea:focus {
+    border-color: var(--text-primary) !important;
+    box-shadow:
+        0 0 0 3px rgba(99, 102, 241, 0.12),
+        0 6px 18px -8px var(--shadow-lg);
+}
+
+/* Smooth scrollbar when overflowing */
+.chat-textarea::-webkit-scrollbar {
+    width: 0px; /* hide scrollbar in WebKit */
+}
+.chat-textarea::-webkit-scrollbar-thumb {
+    /* Neutral (non-purple) thumb color */
+    background: transparent; /* hidden */
+    border-radius: 4px;
+}
+.chat-textarea::-webkit-scrollbar-track {
+    background: transparent; /* hidden */
+}
+
+/* Firefox scrollbar colors (thumb track) */
+.chat-textarea {
+    /* Firefox/Edge legacy: hide scrollbar but keep scrollability */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge legacy */
+}
+
+/* Dark theme subtle tweak for textarea scrollbar */
+[data-theme="dark"] .chat-textarea::-webkit-scrollbar-thumb {
+    background: transparent;
+}
+[data-theme="dark"] .chat-textarea {
+    scrollbar-color: transparent transparent;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Send button tweaks */
+.chat-send-btn {
+    transition:
+        transform 120ms ease,
+        box-shadow 150ms ease,
+        background-color 150ms ease,
+        color 150ms ease;
+    box-shadow: var(--shadow-subtle);
+}
+.chat-send-btn.is-active {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px -12px var(--shadow-lg);
+}
+.chat-send-btn[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    filter: grayscale(10%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .chat-bubble,
+    .chat-send-btn {
+        transition: none;
+    }
+}
+
+/* With send button moved outside, allow textarea to expand up to its original cap */
+.input-wrap .chat-textarea {
+    max-height: 72px !important; /* restore multi-line cap */
+    height: auto !important;
+    overflow-y: auto;
+}

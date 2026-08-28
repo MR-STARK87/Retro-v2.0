@@ -1,0 +1,1103 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Login / Sign Up</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            .form-container {
+                min-height: 100vh;
+                background: white;
+            }
+            .error-message {
+                color: #ef4444;
+                font-size: 0.875rem;
+                margin-top: 0.25rem;
+                display: none;
+            }
+            .error-message.show {
+                display: block;
+            }
+            .input-error {
+                border-color: #ef4444 !important;
+            }
+            .loading {
+                opacity: 0.6;
+                pointer-events: none;
+            }
+            .password-strength {
+                margin-top: 0.5rem;
+                height: 4px;
+                background-color: #e5e7eb;
+                border-radius: 2px;
+                overflow: hidden;
+                transition: all 0.3s ease;
+            }
+            .password-strength-bar {
+                height: 100%;
+                transition: all 0.3s ease;
+                border-radius: 2px;
+            }
+            .strength-weak {
+                width: 33%;
+                background-color: #ef4444;
+            }
+            .strength-medium {
+                width: 66%;
+                background-color: #f59e0b;
+            }
+            .strength-strong {
+                width: 100%;
+                background-color: #10b981;
+            }
+            .password-strength-text {
+                font-size: 0.75rem;
+                margin-top: 0.25rem;
+                font-weight: 500;
+            }
+            .text-weak {
+                color: #ef4444;
+            }
+            .text-medium {
+                color: #f59e0b;
+            }
+            .text-strong {
+                color: #10b981;
+            }
+            /* Toast notification styles */
+            .toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background-color: #10b981;
+                color: white;
+                padding: 16px 24px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                z-index: 1000;
+                animation: slideIn 0.3s ease-out;
+                max-width: 400px;
+            }
+            .toast.error {
+                background-color: #ef4444;
+            }
+            .toast.success {
+                background-color: #10b981;
+            }
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+            .toast.hiding {
+                animation: slideOut 0.3s ease-out forwards;
+            }
+        </style>
+    </head>
+    <body class="form-container flex items-center justify-center">
+        <div
+            class="flex flex-col bg-white rounded-3xl max-w-md w-full mx-4 shadow-2xl"
+        >
+            <!-- Toggle Buttons -->
+            <div class="px-6 pt-8">
+                <div class="flex bg-gray-100 rounded-full p-1">
+                    <button
+                        id="loginBtn"
+                        class="flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all duration-200 bg-black text-white"
+                    >
+                        Login
+                    </button>
+                    <button
+                        id="signupBtn"
+                        class="flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all duration-200 text-gray-600 hover:text-black"
+                    >
+                        Sign Up
+                    </button>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <form
+                id="loginForm"
+                class="px-6 py-8 sm:p-10 sm:pb-6"
+                method="POST"
+            >
+                <div
+                    class="grid items-center justify-center w-full grid-cols-1 text-left"
+                >
+                    <div>
+                        <h2
+                            class="text-lg font-medium tracking-tighter text-gray-600 lg:text-3xl"
+                        >
+                            Welcome Back
+                        </h2>
+                        <p class="mt-2 text-sm text-gray-500">
+                            Sign in to your account
+                        </p>
+                    </div>
+
+                    <div class="mt-6 space-y-4">
+                        <div>
+                            <label
+                                class="block text-sm font-medium text-gray-700 mb-2"
+                                >Email</label
+                            >
+                            <input
+                                id="loginEmail"
+                                name="email"
+                                type="email"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                                placeholder="Enter your email"
+                            />
+                            <div
+                                id="loginEmailError"
+                                class="error-message"
+                            ></div>
+                        </div>
+                        <div>
+                            <label
+                                class="block text-sm font-medium text-gray-700 mb-2"
+                                >Password</label
+                            >
+                            <input
+                                id="loginPassword"
+                                name="password"
+                                type="password"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                                placeholder="Enter your password"
+                            />
+                            <div
+                                id="loginPasswordError"
+                                class="error-message"
+                            ></div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center">
+                                <input
+                                    id="rememberMe"
+                                    type="checkbox"
+                                    class="w-4 h-4 text-black border-gray-300 rounded focus:ring-black"
+                                />
+                                <span class="ml-2 text-sm text-gray-600"
+                                    >Remember me</span
+                                >
+                            </label>
+                            <a
+                                href="#"
+                                class="text-sm text-black hover:underline"
+                                >Forgot password?</a
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex px-6 pb-8 sm:px-8 pt-2">
+                    <button
+                        id="loginSubmitBtn"
+                        type="submit"
+                        class="flex items-center justify-center w-full px-6 py-2.5 text-center text-white duration-200 bg-black border-2 border-black rounded-full hover:bg-transparent hover:border-black hover:text-black focus:outline-none focus-visible:outline-black text-sm focus-visible:ring-black transition-all"
+                    >
+                        Sign In
+                    </button>
+                </div>
+            </form>
+
+            <!-- Sign Up Form -->
+            <form id="signupForm" class="px-6 py-8 sm:p-10 sm:pb-6 hidden">
+                <div
+                    class="grid items-center justify-center w-full grid-cols-1 text-left"
+                >
+                    <div>
+                        <h2
+                            class="text-lg font-medium tracking-tighter text-gray-600 lg:text-3xl"
+                        >
+                            Create Account
+                        </h2>
+                        <p class="mt-2 text-sm text-gray-500">Join us today</p>
+                    </div>
+
+                    <div class="mt-6 space-y-4">
+                        <div>
+                            <label
+                                class="block text-sm font-medium text-gray-700 mb-2"
+                                >Username</label
+                            >
+                            <input
+                                id="signupUsername"
+                                type="text"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                                placeholder="Choose a username"
+                            />
+                            <div
+                                id="signupUsernameError"
+                                class="error-message"
+                            ></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 mb-2"
+                                    >First Name</label
+                                >
+                                <input
+                                    id="signupFirstName"
+                                    type="text"
+                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                                    placeholder="First name"
+                                />
+                                <div
+                                    id="signupFirstNameError"
+                                    class="error-message"
+                                ></div>
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 mb-2"
+                                    >Last Name</label
+                                >
+                                <input
+                                    id="signupLastName"
+                                    type="text"
+                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                                    placeholder="Last name"
+                                />
+                                <div
+                                    id="signupLastNameError"
+                                    class="error-message"
+                                ></div>
+                            </div>
+                        </div>
+                        <div>
+                            <label
+                                class="block text-sm font-medium text-gray-700 mb-2"
+                                >Email</label
+                            >
+                            <input
+                                id="signupEmail"
+                                type="email"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                                placeholder="Enter your email"
+                            />
+                            <div
+                                id="signupEmailError"
+                                class="error-message"
+                            ></div>
+                        </div>
+                        <div>
+                            <label
+                                class="block text-sm font-medium text-gray-700 mb-2"
+                                >Password</label
+                            >
+                            <input
+                                id="signupPassword"
+                                type="password"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                                placeholder="Create password"
+                            />
+                            <div
+                                id="signupPasswordError"
+                                class="error-message"
+                            ></div>
+                            <div
+                                id="signupPasswordStrength"
+                                class="password-strength"
+                                style="display: none"
+                            >
+                                <div
+                                    id="signupPasswordStrengthBar"
+                                    class="password-strength-bar"
+                                ></div>
+                            </div>
+                            <div
+                                id="signupPasswordStrengthText"
+                                class="password-strength-text"
+                                style="display: none"
+                            ></div>
+                        </div>
+                        <div>
+                            <label
+                                class="block text-sm font-medium text-gray-700 mb-2"
+                                >Confirm Password</label
+                            >
+                            <input
+                                id="signupConfirmPassword"
+                                type="password"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                                placeholder="Confirm password"
+                            />
+                            <div
+                                id="signupConfirmPasswordError"
+                                class="error-message"
+                            ></div>
+                        </div>
+                        <div class="flex items-center">
+                            <input
+                                id="agreeTerms"
+                                type="checkbox"
+                                class="w-4 h-4 text-black border-gray-300 rounded focus:ring-black"
+                            />
+                            <span class="ml-2 text-sm text-gray-600"
+                                >I agree to the
+                                <a href="#" class="text-black hover:underline"
+                                    >Terms and Conditions</a
+                                ></span
+                            >
+                        </div>
+                        <div id="termsError" class="error-message"></div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex px-6 pb-8 sm:px-8 pt-2">
+                    <button
+                        id="signupSubmitBtn"
+                        type="submit"
+                        class="flex items-center justify-center w-full px-6 py-2.5 text-center text-white duration-200 bg-black border-2 border-black rounded-full hover:bg-transparent hover:border-black hover:text-black focus:outline-none focus-visible:outline-black text-sm focus-visible:ring-black transition-all"
+                    >
+                        Create Account
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <script>
+            // Validation Rules (matching server-side validation)
+            const ValidationRules = {
+                email: {
+                    validate: (value) => {
+                        if (!value) return "Email is required";
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!emailRegex.test(value))
+                            return "Invalid email address";
+                        return null;
+                    },
+                },
+                password: {
+                    validate: (value) => {
+                        if (!value) return "Password cannot be empty";
+                        if (value.length < 8)
+                            return "Password must be at least 8 characters long";
+                        if (value.length > 100)
+                            return "Password must be at most 100 characters long";
+                        if (!/[A-Z]/.test(value))
+                            return "Password must contain at least one uppercase letter";
+                        if (!/[a-z]/.test(value))
+                            return "Password must contain at least one lowercase letter";
+                        if (!/[0-9]/.test(value))
+                            return "Password must contain at least one number";
+                        if (!/[\W_]/.test(value))
+                            return "Password must contain at least one special character";
+                        return null;
+                    },
+                },
+                username: {
+                    validate: (value) => {
+                        if (!value) return "Username is required";
+                        if (value.length < 3)
+                            return "Username must be at least 3 characters long";
+                        if (value.length > 30)
+                            return "Username must be at most 30 characters long";
+                        if (!/^[a-zA-Z0-9_]+$/.test(value))
+                            return "Username can only contain letters, numbers, and underscores";
+                        return null;
+                    },
+                },
+                firstName: {
+                    validate: (value) => {
+                        const trimmed = value.trim();
+                        if (!trimmed) return "First name is required";
+                        if (trimmed.length > 50)
+                            return "First name must be at most 50 characters long";
+                        if (!/^[a-zA-Z\s'-]+$/.test(trimmed))
+                            return "First name can only contain letters, spaces, hyphens, and apostrophes";
+                        return null;
+                    },
+                },
+                lastName: {
+                    validate: (value) => {
+                        const trimmed = value.trim();
+                        if (!trimmed) return "Last name is required";
+                        if (trimmed.length > 50)
+                            return "Last name must be at most 50 characters long";
+                        if (!/^[a-zA-Z\s'-]+$/.test(trimmed))
+                            return "Last name can only contain letters, spaces, hyphens, and apostrophes";
+                        return null;
+                    },
+                },
+                confirmPassword: {
+                    validate: (value, password) => {
+                        if (!value) return "Please confirm your password";
+                        if (value !== password) return "Passwords do not match";
+                        return null;
+                    },
+                },
+            };
+
+            // Password strength calculator
+            function calculatePasswordStrength(password) {
+                if (!password) return null;
+
+                let strength = 0;
+                const checks = {
+                    length: password.length >= 8,
+                    uppercase: /[A-Z]/.test(password),
+                    lowercase: /[a-z]/.test(password),
+                    number: /[0-9]/.test(password),
+                    special: /[\W_]/.test(password),
+                };
+
+                // Count passed checks
+                const passedChecks =
+                    Object.values(checks).filter(Boolean).length;
+
+                // Additional points for length
+                if (password.length >= 12) strength += 1;
+                if (password.length >= 16) strength += 1;
+
+                // Calculate total strength
+                strength += passedChecks;
+
+                // Determine strength level
+                if (strength <= 3) {
+                    return {
+                        level: "weak",
+                        text: "Weak",
+                        class: "strength-weak",
+                        textClass: "text-weak",
+                    };
+                } else if (strength <= 5) {
+                    return {
+                        level: "medium",
+                        text: "Medium",
+                        class: "strength-medium",
+                        textClass: "text-medium",
+                    };
+                } else {
+                    return {
+                        level: "strong",
+                        text: "Strong",
+                        class: "strength-strong",
+                        textClass: "text-strong",
+                    };
+                }
+            }
+
+            function updatePasswordStrength(
+                passwordId,
+                strengthId,
+                strengthBarId,
+                strengthTextId,
+            ) {
+                const password = document.getElementById(passwordId).value;
+                const strengthContainer = document.getElementById(strengthId);
+                const strengthBar = document.getElementById(strengthBarId);
+                const strengthText = document.getElementById(strengthTextId);
+
+                if (!password) {
+                    strengthContainer.style.display = "none";
+                    strengthText.style.display = "none";
+                    return;
+                }
+
+                const strength = calculatePasswordStrength(password);
+                if (strength) {
+                    strengthContainer.style.display = "block";
+                    strengthText.style.display = "block";
+
+                    // Remove all strength classes
+                    strengthBar.classList.remove(
+                        "strength-weak",
+                        "strength-medium",
+                        "strength-strong",
+                    );
+                    strengthText.classList.remove(
+                        "text-weak",
+                        "text-medium",
+                        "text-strong",
+                    );
+
+                    // Add current strength class
+                    strengthBar.classList.add(strength.class);
+                    strengthText.classList.add(strength.textClass);
+                    strengthText.textContent = strength.text;
+                }
+            }
+
+            // Toast notification function
+            function showToast(message, type = "success") {
+                // Remove any existing toasts
+                const existingToast = document.querySelector(".toast");
+                if (existingToast) {
+                    existingToast.remove();
+                }
+
+                // Create toast element
+                const toast = document.createElement("div");
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10C20 4.48 15.52 0 10 0ZM8 15L3 10L4.41 8.59L8 12.17L15.59 4.58L17 6L8 15Z" fill="currentColor"/>
+                    </svg>
+                    <span>${message}</span>
+                `;
+
+                document.body.appendChild(toast);
+
+                // Auto remove after 4 seconds
+                setTimeout(() => {
+                    toast.classList.add("hiding");
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 300);
+                }, 4000);
+            }
+
+            // Helper functions
+            function showError(inputId, errorId, message) {
+                const input = document.getElementById(inputId);
+                const errorDiv = document.getElementById(errorId);
+                input.classList.add("input-error");
+                errorDiv.textContent = message;
+                errorDiv.classList.add("show");
+            }
+
+            function clearError(inputId, errorId) {
+                const input = document.getElementById(inputId);
+                const errorDiv = document.getElementById(errorId);
+                input.classList.remove("input-error");
+                errorDiv.textContent = "";
+                errorDiv.classList.remove("show");
+            }
+
+            function validateField(
+                inputId,
+                errorId,
+                validationRule,
+                compareValue = null,
+            ) {
+                const input = document.getElementById(inputId);
+                const value = input.value;
+                const error =
+                    compareValue !== null
+                        ? validationRule.validate(value, compareValue)
+                        : validationRule.validate(value);
+
+                if (error) {
+                    showError(inputId, errorId, error);
+                    return false;
+                }
+                clearError(inputId, errorId);
+                return true;
+            }
+
+            // Toggle between login and signup forms
+            const loginBtn = document.getElementById("loginBtn");
+            const signupBtn = document.getElementById("signupBtn");
+            const loginForm = document.getElementById("loginForm");
+            const signupForm = document.getElementById("signupForm");
+
+            loginBtn.addEventListener("click", () => {
+                loginBtn.classList.add("bg-black", "text-white");
+                loginBtn.classList.remove("text-gray-600");
+                signupBtn.classList.remove("bg-black", "text-white");
+                signupBtn.classList.add("text-gray-600");
+                loginForm.classList.remove("hidden");
+                signupForm.classList.add("hidden");
+
+                // Clear all errors when switching
+                clearAllLoginErrors();
+            });
+
+            signupBtn.addEventListener("click", () => {
+                signupBtn.classList.add("bg-black", "text-white");
+                signupBtn.classList.remove("text-gray-600");
+                loginBtn.classList.remove("bg-black", "text-white");
+                loginBtn.classList.add("text-gray-600");
+                signupForm.classList.remove("hidden");
+                loginForm.classList.add("hidden");
+
+                // Clear all errors when switching
+                clearAllSignupErrors();
+            });
+
+            function clearAllLoginErrors() {
+                clearError("loginEmail", "loginEmailError");
+                clearError("loginPassword", "loginPasswordError");
+            }
+
+            function clearAllSignupErrors() {
+                clearError("signupUsername", "signupUsernameError");
+                clearError("signupFirstName", "signupFirstNameError");
+                clearError("signupLastName", "signupLastNameError");
+                clearError("signupEmail", "signupEmailError");
+                clearError("signupPassword", "signupPasswordError");
+                clearError(
+                    "signupConfirmPassword",
+                    "signupConfirmPasswordError",
+                );
+                const termsError = document.getElementById("termsError");
+                termsError.textContent = "";
+                termsError.classList.remove("show");
+            }
+
+            // Real-time validation for login form
+            document
+                .getElementById("loginEmail")
+                .addEventListener("blur", () => {
+                    validateField(
+                        "loginEmail",
+                        "loginEmailError",
+                        ValidationRules.email,
+                    );
+                });
+
+            document
+                .getElementById("loginEmail")
+                .addEventListener("input", () => {
+                    const errorDiv = document.getElementById("loginEmailError");
+                    if (errorDiv.classList.contains("show")) {
+                        validateField(
+                            "loginEmail",
+                            "loginEmailError",
+                            ValidationRules.email,
+                        );
+                    }
+                });
+
+            document
+                .getElementById("loginPassword")
+                .addEventListener("blur", () => {
+                    validateField(
+                        "loginPassword",
+                        "loginPasswordError",
+                        ValidationRules.password,
+                    );
+                });
+
+            document
+                .getElementById("loginPassword")
+                .addEventListener("input", () => {
+                    const errorDiv =
+                        document.getElementById("loginPasswordError");
+                    if (errorDiv.classList.contains("show")) {
+                        validateField(
+                            "loginPassword",
+                            "loginPasswordError",
+                            ValidationRules.password,
+                        );
+                    }
+                });
+
+            // Real-time validation for signup form
+            document
+                .getElementById("signupUsername")
+                .addEventListener("blur", () => {
+                    validateField(
+                        "signupUsername",
+                        "signupUsernameError",
+                        ValidationRules.username,
+                    );
+                });
+
+            document
+                .getElementById("signupUsername")
+                .addEventListener("input", () => {
+                    const errorDiv = document.getElementById(
+                        "signupUsernameError",
+                    );
+                    if (errorDiv.classList.contains("show")) {
+                        validateField(
+                            "signupUsername",
+                            "signupUsernameError",
+                            ValidationRules.username,
+                        );
+                    }
+                });
+
+            document
+                .getElementById("signupFirstName")
+                .addEventListener("blur", () => {
+                    validateField(
+                        "signupFirstName",
+                        "signupFirstNameError",
+                        ValidationRules.firstName,
+                    );
+                });
+
+            document
+                .getElementById("signupFirstName")
+                .addEventListener("input", () => {
+                    const errorDiv = document.getElementById(
+                        "signupFirstNameError",
+                    );
+                    if (errorDiv.classList.contains("show")) {
+                        validateField(
+                            "signupFirstName",
+                            "signupFirstNameError",
+                            ValidationRules.firstName,
+                        );
+                    }
+                });
+
+            document
+                .getElementById("signupLastName")
+                .addEventListener("blur", () => {
+                    validateField(
+                        "signupLastName",
+                        "signupLastNameError",
+                        ValidationRules.lastName,
+                    );
+                });
+
+            document
+                .getElementById("signupLastName")
+                .addEventListener("input", () => {
+                    const errorDiv = document.getElementById(
+                        "signupLastNameError",
+                    );
+                    if (errorDiv.classList.contains("show")) {
+                        validateField(
+                            "signupLastName",
+                            "signupLastNameError",
+                            ValidationRules.lastName,
+                        );
+                    }
+                });
+
+            document
+                .getElementById("signupEmail")
+                .addEventListener("blur", () => {
+                    validateField(
+                        "signupEmail",
+                        "signupEmailError",
+                        ValidationRules.email,
+                    );
+                });
+
+            document
+                .getElementById("signupEmail")
+                .addEventListener("input", () => {
+                    const errorDiv =
+                        document.getElementById("signupEmailError");
+                    if (errorDiv.classList.contains("show")) {
+                        validateField(
+                            "signupEmail",
+                            "signupEmailError",
+                            ValidationRules.email,
+                        );
+                    }
+                });
+
+            document
+                .getElementById("signupPassword")
+                .addEventListener("blur", () => {
+                    validateField(
+                        "signupPassword",
+                        "signupPasswordError",
+                        ValidationRules.password,
+                    );
+                });
+
+            document
+                .getElementById("signupPassword")
+                .addEventListener("input", () => {
+                    const errorDiv = document.getElementById(
+                        "signupPasswordError",
+                    );
+                    if (errorDiv.classList.contains("show")) {
+                        validateField(
+                            "signupPassword",
+                            "signupPasswordError",
+                            ValidationRules.password,
+                        );
+                    }
+                    // Update password strength in real-time
+                    updatePasswordStrength(
+                        "signupPassword",
+                        "signupPasswordStrength",
+                        "signupPasswordStrengthBar",
+                        "signupPasswordStrengthText",
+                    );
+                    // Also revalidate confirm password if it has a value
+                    const confirmPassword = document.getElementById(
+                        "signupConfirmPassword",
+                    );
+                    const confirmErrorDiv = document.getElementById(
+                        "signupConfirmPasswordError",
+                    );
+                    if (
+                        confirmPassword.value &&
+                        confirmErrorDiv.classList.contains("show")
+                    ) {
+                        validateField(
+                            "signupConfirmPassword",
+                            "signupConfirmPasswordError",
+                            ValidationRules.confirmPassword,
+                            document.getElementById("signupPassword").value,
+                        );
+                    }
+                });
+
+            document
+                .getElementById("signupConfirmPassword")
+                .addEventListener("blur", () => {
+                    const password =
+                        document.getElementById("signupPassword").value;
+                    validateField(
+                        "signupConfirmPassword",
+                        "signupConfirmPasswordError",
+                        ValidationRules.confirmPassword,
+                        password,
+                    );
+                });
+
+            document
+                .getElementById("signupConfirmPassword")
+                .addEventListener("input", () => {
+                    const errorDiv = document.getElementById(
+                        "signupConfirmPasswordError",
+                    );
+                    if (errorDiv.classList.contains("show")) {
+                        const password =
+                            document.getElementById("signupPassword").value;
+                        validateField(
+                            "signupConfirmPassword",
+                            "signupConfirmPasswordError",
+                            ValidationRules.confirmPassword,
+                            password,
+                        );
+                    }
+                });
+
+            // Login form submission
+            loginForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                // Validate all fields
+                const emailValid = validateField(
+                    "loginEmail",
+                    "loginEmailError",
+                    ValidationRules.email,
+                );
+                const passwordValid = validateField(
+                    "loginPassword",
+                    "loginPasswordError",
+                    ValidationRules.password,
+                );
+
+                if (!emailValid || !passwordValid) {
+                    return;
+                }
+
+                // If validation passes, submit the form
+                const submitBtn = document.getElementById("loginSubmitBtn");
+                submitBtn.disabled = true;
+                submitBtn.classList.add("loading");
+                submitBtn.textContent = "Signing in...";
+
+                try {
+                    const response = await fetch(
+                        "http://localhost:8000/api/v1/auth/login",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            credentials: "include",
+                            body: JSON.stringify({
+                                email: document.getElementById("loginEmail")
+                                    .value,
+                                password:
+                                    document.getElementById("loginPassword")
+                                        .value,
+                            }),
+                        },
+                    );
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        // Success - show success toast and redirect
+                        showToast(
+                            "Login successful! Redirecting...",
+                            "success",
+                        );
+                        // You can redirect here after a short delay
+                        setTimeout(() => {
+                            // window.location.href = '/dashboard';
+                        }, 1500);
+                    } else {
+                        // Show error toast
+                        showToast(
+                            data.message || "Login failed. Please try again.",
+                            "error",
+                        );
+                    }
+                } catch (error) {
+                    console.error("Login error:", error);
+                    showToast("An error occurred. Please try again.", "error");
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove("loading");
+                    submitBtn.textContent = "Sign In";
+                }
+            });
+
+            // Signup form submission
+            signupForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                // Validate all fields
+                const usernameValid = validateField(
+                    "signupUsername",
+                    "signupUsernameError",
+                    ValidationRules.username,
+                );
+                const firstNameValid = validateField(
+                    "signupFirstName",
+                    "signupFirstNameError",
+                    ValidationRules.firstName,
+                );
+                const lastNameValid = validateField(
+                    "signupLastName",
+                    "signupLastNameError",
+                    ValidationRules.lastName,
+                );
+                const emailValid = validateField(
+                    "signupEmail",
+                    "signupEmailError",
+                    ValidationRules.email,
+                );
+                const passwordValid = validateField(
+                    "signupPassword",
+                    "signupPasswordError",
+                    ValidationRules.password,
+                );
+                const confirmPasswordValid = validateField(
+                    "signupConfirmPassword",
+                    "signupConfirmPasswordError",
+                    ValidationRules.confirmPassword,
+                    document.getElementById("signupPassword").value,
+                );
+
+                // Validate terms checkbox
+                const agreeTerms = document.getElementById("agreeTerms");
+                const termsError = document.getElementById("termsError");
+                let termsValid = true;
+                if (!agreeTerms.checked) {
+                    termsError.textContent =
+                        "You must agree to the Terms and Conditions";
+                    termsError.classList.add("show");
+                    termsValid = false;
+                } else {
+                    termsError.textContent = "";
+                    termsError.classList.remove("show");
+                }
+
+                if (
+                    !usernameValid ||
+                    !firstNameValid ||
+                    !lastNameValid ||
+                    !emailValid ||
+                    !passwordValid ||
+                    !confirmPasswordValid ||
+                    !termsValid
+                ) {
+                    return;
+                }
+
+                // If validation passes, submit the form
+                const submitBtn = document.getElementById("signupSubmitBtn");
+                submitBtn.disabled = true;
+                submitBtn.classList.add("loading");
+                submitBtn.textContent = "Creating account...";
+
+                try {
+                    const response = await fetch(
+                        "http://localhost:8000/api/v1/auth/register",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            credentials: "include",
+                            body: JSON.stringify({
+                                username:
+                                    document.getElementById("signupUsername")
+                                        .value,
+                                firstName: document
+                                    .getElementById("signupFirstName")
+                                    .value.trim(),
+                                lastName: document
+                                    .getElementById("signupLastName")
+                                    .value.trim(),
+                                email: document.getElementById("signupEmail")
+                                    .value,
+                                password:
+                                    document.getElementById("signupPassword")
+                                        .value,
+                                confirmPassword: document.getElementById(
+                                    "signupConfirmPassword",
+                                ).value,
+                            }),
+                        },
+                    );
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        // Success - show toast
+                        showToast(
+                            "Registration successful! Please check your email to verify your account.",
+                            "success",
+                        );
+                        // Clear form and hide password strength
+                        signupForm.reset();
+                        clearAllSignupErrors();
+                        // Hide password strength indicator
+                        document.getElementById(
+                            "signupPasswordStrength",
+                        ).style.display = "none";
+                        document.getElementById(
+                            "signupPasswordStrengthText",
+                        ).style.display = "none";
+                    } else {
+                        // Show error toast
+                        showToast(
+                            data.message ||
+                                "Registration failed. Please try again.",
+                            "error",
+                        );
+                    }
+                } catch (error) {
+                    console.error("Registration error:", error);
+                    showToast("An error occurred. Please try again.", "error");
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove("loading");
+                    submitBtn.textContent = "Create Account";
+                }
+            });
+        </script>
+    </body>
+</html>

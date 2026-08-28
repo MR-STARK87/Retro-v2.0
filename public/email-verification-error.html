@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Verification Failed - Retro</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    "Helvetica Neue", Arial, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            /* Animated background elements */
+            .bg-decoration {
+                position: absolute;
+                border-radius: 50%;
+                opacity: 0.1;
+                animation: float 20s infinite ease-in-out;
+            }
+
+            .bg-decoration:nth-child(1) {
+                width: 300px;
+                height: 300px;
+                background: white;
+                top: -100px;
+                left: -100px;
+                animation-delay: 0s;
+            }
+
+            .bg-decoration:nth-child(2) {
+                width: 200px;
+                height: 200px;
+                background: white;
+                bottom: -50px;
+                right: -50px;
+                animation-delay: 5s;
+            }
+
+            .bg-decoration:nth-child(3) {
+                width: 150px;
+                height: 150px;
+                background: white;
+                top: 50%;
+                right: 10%;
+                animation-delay: 10s;
+            }
+
+            @keyframes float {
+                0%,
+                100% {
+                    transform: translateY(0) rotate(0deg);
+                }
+                50% {
+                    transform: translateY(-30px) rotate(180deg);
+                }
+            }
+
+            .container {
+                background: white;
+                border-radius: 24px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                max-width: 500px;
+                width: 100%;
+                padding: 60px 40px;
+                text-align: center;
+                position: relative;
+                z-index: 1;
+                animation: slideUp 0.6s ease-out;
+            }
+
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .logo {
+                font-size: 42px;
+                font-weight: 800;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin-bottom: 10px;
+                letter-spacing: -1px;
+            }
+
+            .tagline {
+                font-size: 14px;
+                color: #6b7280;
+                margin-bottom: 40px;
+                font-weight: 500;
+            }
+
+            .error-container {
+                width: 100px;
+                height: 100px;
+                margin: 0 auto 30px;
+                position: relative;
+            }
+
+            .error-icon {
+                width: 100px;
+                height: 100px;
+                border-radius: 50%;
+                display: block;
+                stroke-width: 3;
+                stroke: #ef4444;
+                stroke-miterlimit: 10;
+                box-shadow: inset 0px 0px 0px #ef4444;
+                animation:
+                    fillError 0.4s ease-in-out 0.4s forwards,
+                    scaleError 0.3s ease-in-out 0.9s both;
+            }
+
+            .error-circle {
+                stroke-dasharray: 166;
+                stroke-dashoffset: 166;
+                stroke-width: 3;
+                stroke-miterlimit: 10;
+                stroke: #ef4444;
+                fill: none;
+                animation: strokeCircle 0.6s cubic-bezier(0.65, 0, 0.45, 1)
+                    forwards;
+            }
+
+            .error-x {
+                transform-origin: 50% 50%;
+                stroke-dasharray: 48;
+                stroke-dashoffset: 48;
+                animation: strokeX 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s
+                    forwards;
+            }
+
+            @keyframes strokeCircle {
+                100% {
+                    stroke-dashoffset: 0;
+                }
+            }
+
+            @keyframes strokeX {
+                100% {
+                    stroke-dashoffset: 0;
+                }
+            }
+
+            @keyframes fillError {
+                100% {
+                    box-shadow: inset 0px 0px 0px 30px #ef4444;
+                }
+            }
+
+            @keyframes scaleError {
+                0%,
+                100% {
+                    transform: none;
+                }
+                50% {
+                    transform: scale3d(1.1, 1.1, 1);
+                }
+            }
+
+            h1 {
+                font-size: 32px;
+                color: #111827;
+                margin-bottom: 16px;
+                font-weight: 700;
+            }
+
+            .message {
+                font-size: 16px;
+                color: #6b7280;
+                line-height: 1.6;
+                margin-bottom: 40px;
+            }
+
+            .warning-box {
+                background: linear-gradient(135deg, #fff7ed 0%, #fef2f2 100%);
+                border-radius: 16px;
+                padding: 24px;
+                margin-bottom: 30px;
+                border: 1px solid #fed7aa;
+            }
+
+            .warning-box h3 {
+                font-size: 16px;
+                color: #ea580c;
+                margin-bottom: 12px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .warning-box p {
+                font-size: 14px;
+                color: #4b5563;
+                line-height: 1.5;
+            }
+
+            .reasons {
+                text-align: left;
+                margin-top: 16px;
+            }
+
+            .reasons li {
+                font-size: 14px;
+                color: #6b7280;
+                margin-bottom: 8px;
+                line-height: 1.5;
+            }
+
+            .btn {
+                display: inline-block;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                text-decoration: none;
+                padding: 16px 40px;
+                border-radius: 12px;
+                font-weight: 600;
+                font-size: 16px;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                margin: 0 8px;
+            }
+
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            }
+
+            .btn:active {
+                transform: translateY(0);
+            }
+
+            .btn-secondary {
+                background: white;
+                color: #667eea;
+                border: 2px solid #667eea;
+                box-shadow: none;
+            }
+
+            .btn-secondary:hover {
+                background: #f9fafb;
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+            }
+
+            .action-buttons {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 16px;
+                justify-content: center;
+                margin-top: 30px;
+            }
+
+            .footer {
+                margin-top: 40px;
+                padding-top: 30px;
+                border-top: 1px solid #e5e7eb;
+            }
+
+            .footer p {
+                font-size: 13px;
+                color: #9ca3af;
+            }
+
+            .support-info {
+                background: #f9fafb;
+                padding: 20px;
+                border-radius: 12px;
+                margin-top: 24px;
+                border: 1px solid #e5e7eb;
+            }
+
+            .support-info p {
+                font-size: 13px;
+                color: #6b7280;
+                margin-bottom: 8px;
+            }
+
+            .support-info a {
+                color: #667eea;
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+            .support-info a:hover {
+                text-decoration: underline;
+            }
+
+            @media (max-width: 480px) {
+                .container {
+                    padding: 40px 24px;
+                }
+
+                h1 {
+                    font-size: 26px;
+                }
+
+                .logo {
+                    font-size: 36px;
+                }
+
+                .action-buttons {
+                    flex-direction: column;
+                }
+
+                .btn {
+                    width: 100%;
+                    margin: 0;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="bg-decoration"></div>
+        <div class="bg-decoration"></div>
+        <div class="bg-decoration"></div>
+
+        <div class="container">
+            <div class="logo">Retro</div>
+            <div class="tagline">Your AI-Powered Smart Study Assistant</div>
+
+            <div class="error-container">
+                <svg
+                    class="error-icon"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 52 52"
+                >
+                    <circle
+                        class="error-circle"
+                        cx="26"
+                        cy="26"
+                        r="25"
+                        fill="none"
+                    />
+                    <path
+                        class="error-x"
+                        fill="none"
+                        d="M16 16 L36 36 M36 16 L16 36"
+                    />
+                </svg>
+            </div>
+
+            <h1>Verification Link Expired ⏰</h1>
+            <p class="message">
+                We're sorry, but the email verification link you clicked has
+                expired or is invalid. Don't worry, this is easy to fix!
+            </p>
+
+            <div class="warning-box">
+                <h3>
+                    <span>⚠️</span>
+                    Why did this happen?
+                </h3>
+                <ul class="reasons">
+                    <li>
+                        🕐 The verification link expired (links are valid for 10
+                        minutes)
+                    </li>
+                    <li>🔗 The link may have been altered or incomplete</li>
+                    <li>✅ Your email might already be verified</li>
+                    <li>🔄 You may have requested a new verification link</li>
+                </ul>
+            </div>
+
+            <div class="action-buttons">
+                <a href="/api/v1/auth/resend-verification" class="btn"
+                    >Request New Link</a
+                >
+                <a href="/login" class="btn btn-secondary">Go to Login</a>
+            </div>
+
+            <div class="support-info">
+                <p><strong>Need Help?</strong></p>
+                <p>
+                    If you continue to experience issues, please contact our
+                    support team at
+                    <a href="mailto:support@retro.app">support@retro.app</a>
+                </p>
+            </div>
+
+            <div class="footer">
+                <p>© 2024 Retro. Your trusted study companion.</p>
+            </div>
+        </div>
+    </body>
+</html>
