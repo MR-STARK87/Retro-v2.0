@@ -147,5 +147,30 @@ When adding a new route group: create a router file in `src/routes/`, import it 
 - Keep AI calls isolated in `utils`; controllers parse model JSON defensively (try/catch around `JSON.parse`).
 - **Current behavior note:** `enhanceNote` (`src/controllers/note.js:448`) overwrites `note.content`/`plainText` immediately without user confirmation, despite the guideline. Consider adding a preview/confirm step before persisting.
 
+## Git & Version Control
+
+Repo is initialized at the project root (`./.git/`, branch `main`, initial commit `a8ba440` — 76 files). No remote is set yet; add one when ready.
+
+- **Config:** `user.name=Syed Zaid Ali` / `user.email=zaidali809687@gmail.com` (from global `git config`). Verified via `git config --list`.
+- **.gitignore** (50 lines) covers: `node_modules/`, `package-lock.json` (ignored for this minor project — remove the line if you want lockfile tracking), `.env` + `.env.*local`, `logs/`/`*.log`, OS/IDE (` .DS_Store`, `.vscode/`), `dist/`/`build/`, `public/music/*.mp3|wav|ogg` (keeps `README.md` + `.gitkeep`), and `coverage/`. Checked via `git check-ignore -v .env` → `.gitignore:6:.env` and `node_modules/` → ignored.
+- **Tracked:** `.env.example` (now clean — fixed stray `bro i` prefix at line 1), `src/`, `public/*.html|css`, `CLAUDE.md`, `README.md`, `package.json`, `test-routes.js`. **Not tracked:** `.env` (real secrets), `node_modules/`, `package-lock.json`, `logs/`.
+- **Workflow (any agent/session can run in this workdir):**
+  ```bash
+  git status                 # what changed
+  git diff                   # unstaged diff
+  git diff --staged          # staged diff
+  git add .                  # or git add src/views/partials/profile-icon.ejs
+  git commit -m "feat: concise message"
+  git log --oneline -5       # history
+  git branch -a              # branches
+  # first remote:
+  git remote add origin <url>
+  git push -u origin main
+  ```
+  Any new Claude Code / opencode session running `bash` in `C:\My work folder\Claude Desktop\session5\My Minor Project` can use `git` directly — the repo is on disk, not in session memory. Run `git status`/`git log` to re-hydrate context.
+- **Conventions:** keep commits scoped (`feat:`, `fix:`, `docs:`, `style:`, `chore:`), one logical change per commit, branch per feature (`git checkout -b feat/xyz`). Keep `.env` out of history; if a secret was ever committed, rotate it and use `git filter-repo`.
+
 ## Known gaps (not blocking, but worth fixing)
 - `src/controllers/auth.js:243` `refreshAccessToken` references `cookieOptions` out of scope (defined only in `loginUser`). Will throw `ReferenceError` on refresh.
+- `.gitignore:3` ignores `package-lock.json` — intentional for submission lightness, but for reproducible installs consider removing that line and committing the lockfile.
+- `public/music/` currently contains one committed MP3 name with spaces and `&`; `.gitignore` will ignore future MP3/WAV/OGG unless you `git add -f` or add a `.gitkeep`.
