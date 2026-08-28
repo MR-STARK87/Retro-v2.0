@@ -4,6 +4,7 @@ import {
   createChatSession,
   getChatSessions,
   getChatSession,
+  updateChatSession,
   deleteChatSession,
 } from "../controllers/chatSession.js";
 
@@ -17,6 +18,9 @@ router.get("/", tokenChecker, getChatSessions);
 
 // Get a single chat session by ID
 router.get("/:sessionId", tokenChecker, getChatSession);
+
+// Update a chat session (e.g. retitle)
+router.patch("/:sessionId", tokenChecker, updateChatSession);
 
 // Delete a specific chat session by ID
 router.delete("/:sessionId", tokenChecker, deleteChatSession);

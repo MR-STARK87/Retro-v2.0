@@ -25,6 +25,9 @@
 <!-- Sidebar Overlay -->
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
+<!-- Toast notifications -->
+<div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
 <!-- Chat Section Content -->
 <div class="vh-shell" style="height: 100%; display: flex; flex-direction: column;">
     <div class="content-wrapper" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
@@ -33,10 +36,29 @@
                 <!-- Dynamic User Greeting -->
                 <div id="userGreeting" class="user-greeting" style="display: none;">
                     <h1 class="greeting-text"></h1>
+                    <div class="greeting-suggestions">
+                        <button class="suggestion-chip" data-prompt="What's the best way to structure my study time today?">
+                            <i class="fas fa-calendar-check"></i> Plan my study time
+                        </button>
+                        <button class="suggestion-chip" data-prompt="Quiz me to test my knowledge - pick any topic and ask me one question at a time.">
+                            <i class="fas fa-question-circle"></i> Quiz me
+                        </button>
+                        <button class="suggestion-chip" data-prompt="Explain active recall and spaced repetition, and how I can use them to study better.">
+                            <i class="fas fa-lightbulb"></i> Study techniques
+                        </button>
+                        <button class="suggestion-chip" data-prompt="Give me practical tips to stay focused while studying for long sessions.">
+                            <i class="fas fa-bullseye"></i> Focus tips
+                        </button>
+                    </div>
                 </div>
                 <div class="chat-thread">
                     <!-- Chat messages will be dynamically inserted here -->
                 </div>
+
+                <!-- Scroll to bottom button -->
+                <button id="scrollToBottomBtn" class="scroll-to-bottom-btn" aria-label="Scroll to latest message" style="display: none;">
+                    <i class="fas fa-arrow-down"></i>
+                </button>
             </div>
 
             <div class="chat-input-container">
@@ -693,6 +715,315 @@
         margin: 0;
     }
 
+    /* Markdown content in assistant bubbles */
+    .md-body {
+        white-space: normal;
+        min-width: 0;
+    }
+
+    .md-body .md-p {
+        margin: 0;
+    }
+
+    .md-body .md-p + .md-p {
+        margin-top: 0.5rem;
+    }
+
+    .md-body .md-heading {
+        margin: 0.75rem 0 0.35rem;
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+    .md-body .md-heading:first-child {
+        margin-top: 0;
+    }
+
+    .md-body .md-list {
+        margin: 0.35rem 0;
+        padding-left: 1.25rem;
+    }
+
+    .md-body .md-list li {
+        margin: 0.2rem 0;
+    }
+
+    .md-body .md-quote {
+        margin: 0.5rem 0;
+        padding-left: 0.75rem;
+        border-left: 3px solid rgba(255, 255, 255, 0.3);
+        opacity: 0.85;
+    }
+
+    .md-body .md-hr {
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        margin: 0.75rem 0;
+    }
+
+    .chat-bubble--assistant a {
+        color: #93c5fd;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    .md-code {
+        font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+        font-size: 0.85em;
+        background: rgba(255, 255, 255, 0.12);
+        padding: 0.1em 0.35em;
+        border-radius: 6px;
+    }
+
+    .md-pre {
+        position: relative;
+        margin: 0.5rem 0;
+        padding: 0.75rem 1rem;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        overflow-x: auto;
+    }
+
+    /* Markdown tables */
+    .md-table-wrap {
+        overflow-x: auto;
+        margin: 0.5rem 0;
+        max-width: 100%;
+    }
+
+    .md-table {
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        width: max-content;
+        max-width: 100%;
+    }
+
+    .md-table th,
+    .md-table td {
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 0.4rem 0.75rem;
+        text-align: left;
+        vertical-align: top;
+    }
+
+    .md-table th {
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.07);
+        white-space: nowrap;
+    }
+
+    .md-copy-btn {
+        position: absolute;
+        top: 0.4rem;
+        right: 0.4rem;
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        opacity: 0;
+        cursor: pointer;
+        font-size: 0.7rem;
+        transition:
+            opacity 0.15s ease,
+            background-color 0.15s ease;
+    }
+
+    .md-pre:hover .md-copy-btn {
+        opacity: 0.65;
+    }
+
+    .md-copy-btn:hover {
+        opacity: 1 !important;
+        background: rgba(255, 255, 255, 0.18);
+    }
+
+    .md-copy-btn.copied {
+        opacity: 1 !important;
+        color: #10b981;
+        border-color: rgba(16, 185, 129, 0.5);
+    }
+
+    .md-pre code {
+        font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+        font-size: 0.82rem;
+        line-height: 1.5;
+        white-space: pre;
+    }
+
+    /* Message meta row (timestamp + copy) */
+    .msg-meta {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.4rem;
+        margin-top: 0.15rem;
+    }
+
+    .msg-timestamp {
+        font-size: 0.65rem;
+        color: currentColor;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+        user-select: none;
+    }
+
+    .chat-bubble:hover .msg-timestamp {
+        opacity: 0.5;
+    }
+
+    .msg-copy-btn {
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: currentColor;
+        opacity: 0;
+        cursor: pointer;
+        font-size: 0.7rem;
+        transition:
+            opacity 0.15s ease,
+            background-color 0.15s ease;
+    }
+
+    .chat-bubble:hover .msg-copy-btn {
+        opacity: 0.55;
+    }
+
+    .msg-copy-btn:hover {
+        opacity: 1 !important;
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    .msg-copy-btn.copied {
+        opacity: 1 !important;
+        color: #10b981;
+    }
+
+    /* Retro typing indicator */
+    /* Typing indicator - slim mono line, no bubble */
+    .typing-indicator {
+        font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+        font-size: 0.8rem;
+        letter-spacing: 0.01em;
+        color: var(--text-secondary);
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.15rem;
+        padding: 0.15rem 0.5rem;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    .typing-prompt {
+        opacity: 0.45;
+        margin-right: 0.35rem;
+    }
+
+    .typing-word {
+        display: inline-block;
+        animation: typingWordIn 0.45s ease;
+    }
+
+    @keyframes typingWordIn {
+        from {
+            opacity: 0;
+            transform: translateY(3px);
+            filter: blur(2px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0);
+        }
+    }
+
+    .typing-dots {
+        display: inline-flex;
+    }
+
+    .typing-dots span {
+        animation: typingDotFade 1.2s ease-in-out infinite;
+    }
+
+    .typing-dots span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-dots span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typingDotFade {
+        0%,
+        100% {
+            opacity: 0.25;
+        }
+        40% {
+            opacity: 1;
+        }
+    }
+
+    /* Scroll to bottom button */
+    .scroll-to-bottom-btn {
+        position: absolute;
+        bottom: 1.25rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: #000;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 20;
+        transition:
+            transform 0.15s ease,
+            box-shadow 0.15s ease;
+    }
+
+    .scroll-to-bottom-btn:hover {
+        transform: translateX(-50%) translateY(-2px);
+    }
+
+    .scroll-to-bottom-btn.has-new {
+        animation: scrollBtnPulse 1.2s ease infinite;
+    }
+
+    @keyframes scrollBtnPulse {
+        0%,
+        100% {
+            box-shadow:
+                0 6px 20px -6px rgba(0, 0, 0, 0.4),
+                0 0 0 0 rgba(59, 130, 246, 0.5);
+        }
+        50% {
+            box-shadow:
+                0 6px 20px -6px rgba(0, 0, 0, 0.4),
+                0 0 0 8px rgba(59, 130, 246, 0);
+        }
+    }
+
+    [data-theme="dark"] .scroll-to-bottom-btn {
+        border-color: var(--border-color);
+    }
+
     /* Chat Input */
     .chat-input-container {
         align-items: flex-end;
@@ -887,6 +1218,117 @@
     }
 
     /* Animations */
+    /* Toast notifications */
+    .toast-container {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        z-index: 10000;
+        pointer-events: none;
+    }
+
+    .toast {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        max-width: 340px;
+        padding: 0.75rem 1rem;
+        background: #111;
+        color: #fff;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        pointer-events: auto;
+        animation: toastIn 0.25s ease;
+    }
+
+    .toast i {
+        flex: 0 0 auto;
+    }
+
+    .toast-error {
+        border-left: 3px solid #ef4444;
+    }
+
+    .toast-success {
+        border-left: 3px solid #10b981;
+    }
+
+    .toast-info {
+        border-left: 3px solid #3b82f6;
+    }
+
+    .toast.leaving {
+        animation: toastOut 0.25s ease forwards;
+    }
+
+    @keyframes toastIn {
+        from {
+            opacity: 0;
+            transform: translateY(8px) scale(0.97);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    @keyframes toastOut {
+        to {
+            opacity: 0;
+            transform: translateY(8px) scale(0.97);
+        }
+    }
+
+    /* Suggestion chips under the greeting */
+    .greeting-suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.6rem;
+        max-width: 640px;
+    }
+
+    .suggestion-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.55rem 1rem;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-family: "IBM Plex Sans", sans-serif;
+        cursor: pointer;
+        transition:
+            transform 0.15s ease,
+            box-shadow 0.15s ease,
+            border-color 0.15s ease;
+    }
+
+    .suggestion-chip:hover {
+        transform: translateY(-2px);
+        border-color: #000;
+        box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.35);
+    }
+
+    .suggestion-chip i {
+        font-size: 0.75rem;
+        opacity: 0.6;
+    }
+
+    [data-theme="dark"] .suggestion-chip {
+        border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .suggestion-chip:hover {
+        border-color: var(--text-primary);
+    }
+
     @keyframes fadeIn {
         from {
             opacity: 0;
@@ -900,17 +1342,6 @@
 
     .message-fade-in {
         animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes pulse {
-        0%, 100% {
-            opacity: 0.4;
-            transform: scale(1);
-        }
-        50% {
-            opacity: 1;
-            transform: scale(1.2);
-        }
     }
 
     /* Dark theme adjustments for backgrounds */
@@ -965,6 +1396,8 @@
         right: 0;
         bottom: 0;
         display: none;
+        flex-direction: column;
+        gap: 1.75rem;
         align-items: center;
         justify-content: center;
         padding: 2rem;
@@ -1085,6 +1518,296 @@
         return div.innerHTML;
     }
 
+    // Safe markdown renderer for assistant messages.
+    // Input is escaped FIRST, then formatted - untrusted text can never inject HTML.
+    function renderMarkdown(text) {
+        const escaped = escapeHtml(text);
+
+        // Pull out fenced code blocks so their contents get no further formatting
+        const codeBlocks = [];
+        const src = escaped.replace(/```(?:[a-zA-Z0-9+-]*)\n?([\s\S]*?)```/g, (m, code) => {
+            codeBlocks.push(`<pre class="md-pre"><code>${code.replace(/\n$/, "")}</code></pre>`);
+            return `\u0000CB${codeBlocks.length - 1}\u0000`;
+        });
+
+        const inline = (s) =>
+            s
+                .replace(/`([^`\n]+)`/g, '<code class="md-code">$1</code>')
+                .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+                .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>")
+                .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+        const lines = src.split("\n");
+        const out = [];
+        let listType = null;
+
+        const closeList = () => {
+            if (listType) {
+                out.push(`</${listType}>`);
+                listType = null;
+            }
+        };
+
+        // Table helpers (GitHub-style: header | separator | rows)
+        const isTableSeparator = (s) => s.includes("-") && /^\|?[\s:|-]+\|?$/.test(s);
+        const splitRow = (row) =>
+            row.replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
+
+        let i = 0;
+        while (i < lines.length) {
+            const rawLine = lines[i];
+            const line = rawLine.trimEnd();
+            const stripped = line.trim();
+
+            // Table: current line has pipes and the next non-blank line
+            // is a |---|---| separator (some models pad rows with blank lines)
+            if (stripped.includes("|")) {
+                let sep = i + 1;
+                while (sep < lines.length && !lines[sep].trim()) sep++;
+                if (sep < lines.length && isTableSeparator(lines[sep].trim())) {
+                    closeList();
+                    const headerCells = splitRow(stripped);
+                    i = sep + 1;
+                    const bodyRows = [];
+                    while (i < lines.length) {
+                        const row = lines[i].trim();
+                        if (!row) {
+                            // Blank line: keep the table alive only if the next
+                            // non-blank line is another pipe row
+                            let j = i + 1;
+                            while (j < lines.length && !lines[j].trim()) j++;
+                            if (j < lines.length && lines[j].trim().includes("|")) {
+                                i = j;
+                                continue;
+                            }
+                            break;
+                        }
+                        if (!row.includes("|")) break;
+                        bodyRows.push(splitRow(row));
+                        i++;
+                    }
+                    const thead = headerCells.map((c) => `<th>${inline(c)}</th>`).join("");
+                    const tbody = bodyRows
+                        .map((r) => `<tr>${r.map((c) => `<td>${inline(c)}</td>`).join("")}</tr>`)
+                        .join("");
+                    out.push(
+                        `<div class="md-table-wrap"><table class="md-table"><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table></div>`,
+                    );
+                    continue;
+                }
+            }
+
+            if (/^\u0000CB\d+\u0000$/.test(stripped)) {
+                closeList();
+                out.push(stripped);
+                i++;
+                continue;
+            }
+            if (!stripped) {
+                closeList();
+                i++;
+                continue;
+            }
+
+            const heading = stripped.match(/^(#{1,3})\s+(.*)$/);
+            if (heading) {
+                closeList();
+                const level = heading[1].length + 2;
+                out.push(`<h${level} class="md-heading">${inline(heading[2])}</h${level}>`);
+                i++;
+                continue;
+            }
+            if (/^(-{3,}|\*{3,})$/.test(stripped)) {
+                closeList();
+                out.push('<hr class="md-hr">');
+                i++;
+                continue;
+            }
+            const quote = stripped.match(/^&gt;\s?(.*)$/);
+            if (quote) {
+                closeList();
+                out.push(`<blockquote class="md-quote">${inline(quote[1])}</blockquote>`);
+                i++;
+                continue;
+            }
+            const ulItem = stripped.match(/^[-*]\s+(.*)$/);
+            if (ulItem) {
+                if (listType !== "ul") {
+                    closeList();
+                    out.push('<ul class="md-list">');
+                    listType = "ul";
+                }
+                out.push(`<li>${inline(ulItem[1])}</li>`);
+                i++;
+                continue;
+            }
+            const olItem = stripped.match(/^\d+[.)]\s+(.*)$/);
+            if (olItem) {
+                if (listType !== "ol") {
+                    closeList();
+                    out.push('<ol class="md-list">');
+                    listType = "ol";
+                }
+                out.push(`<li>${inline(olItem[1])}</li>`);
+                i++;
+                continue;
+            }
+            closeList();
+            out.push(`<p class="md-p">${inline(stripped)}</p>`);
+            i++;
+        }
+        closeList();
+
+        return out
+            .join("\n")
+            .replace(/\u0000CB(\d+)\u0000/g, (m, i) => codeBlocks[Number(i)]);
+    }
+
+    // Scroll helpers
+    function isNearBottom(el, threshold = 120) {
+        return el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+    }
+
+    function scrollToBottom(el, smooth = false) {
+        el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+    }
+
+    // Copy message text with clipboard fallback
+    function fallbackCopyText(text, done) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand("copy");
+            done();
+        } catch (err) {
+            /* clipboard unavailable */
+        }
+        ta.remove();
+    }
+
+    function copyMessageText(btn, rawText) {
+        const done = () => {
+            const icon = btn.querySelector("i");
+            icon.className = "fas fa-check";
+            btn.classList.add("copied");
+            setTimeout(() => {
+                icon.className = "far fa-copy";
+                btn.classList.remove("copied");
+            }, 1500);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(rawText).then(done).catch(() => fallbackCopyText(rawText, done));
+        } else {
+            fallbackCopyText(rawText, done);
+        }
+    }
+
+    // Typing indicator - a random "activity" word that keeps shuffling
+    const TYPING_WORDS = [
+        "thinking",
+        "reasoning",
+        "wandering",
+        "pondering",
+        "musing",
+        "contemplating",
+        "reflecting",
+        "daydreaming",
+        "canoodling",
+        "deliberating",
+    ];
+
+    // Toast notifications
+    function showToast(message, type = "error") {
+        const container = document.getElementById("toastContainer");
+        if (!container) return;
+        const icons = {
+            error: "fa-exclamation-circle",
+            success: "fa-check-circle",
+            info: "fa-info-circle",
+        };
+        const toast = document.createElement("div");
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `<i class="fas ${icons[type] || icons.error}"></i><span>${escapeHtml(message)}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add("leaving");
+            setTimeout(() => toast.remove(), 250);
+        }, 3500);
+    }
+
+    // Copy buttons for markdown code blocks
+    function addCodeBlockCopyButtons(scope) {
+        scope.querySelectorAll(".md-pre").forEach((pre) => {
+            if (pre.querySelector(".md-copy-btn")) return;
+            const btn = document.createElement("button");
+            btn.className = "md-copy-btn";
+            btn.setAttribute("aria-label", "Copy code");
+            btn.title = "Copy code";
+            btn.innerHTML = '<i class="far fa-copy"></i>';
+            btn.addEventListener("click", function () {
+                copyMessageText(this, pre.querySelector("code").textContent);
+            });
+            pre.appendChild(btn);
+        });
+    }
+
+    // Auto-title a session from its first user message (fire and forget)
+    async function maybeAutoTitleSession(sessionId, firstMessage) {
+        const trimmed = firstMessage.trim();
+        if (!sessionId || !trimmed) return;
+        const title = trimmed.slice(0, 40) + (trimmed.length > 40 ? "..." : "");
+        try {
+            await fetch(`/api/v1/chat-sessions/${sessionId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ title }),
+            });
+        } catch (error) {
+            // Non-critical - the session just keeps its default title
+        }
+    }
+
+    function createTypingIndicator() {
+        const el = document.createElement("div");
+        el.className = "flex justify-start message-fade-in";
+        el.innerHTML = `
+            <div class="typing-indicator">
+                <span class="typing-prompt">&gt;</span><span class="typing-word">thinking</span><span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>
+            </div>
+        `;
+
+        const wordEl = el.querySelector(".typing-word");
+        let lastIndex = 0;
+        const timer = setInterval(() => {
+            let next;
+            do {
+                next = Math.floor(Math.random() * TYPING_WORDS.length);
+            } while (next === lastIndex);
+            lastIndex = next;
+            wordEl.textContent = TYPING_WORDS[next];
+            // Restart the entrance animation for the new word
+            wordEl.style.animation = "none";
+            void wordEl.offsetWidth;
+            wordEl.style.animation = "";
+        }, 1300 + Math.random() * 700);
+        el._stopTyping = () => clearInterval(timer);
+
+        return el;
+    }
+
+    function removeTypingIndicator(loadingId) {
+        const el = document.getElementById(`loading-${loadingId}`);
+        if (el) {
+            if (el._stopTyping) el._stopTyping();
+            el.remove();
+        }
+    }
+
     // Get random greeting
     function getRandomGreeting(name) {
         const randomIndex = Math.floor(Math.random() * greetings.length);
@@ -1093,45 +1816,27 @@
 
     // Load and display user greeting
     async function loadUserGreeting() {
-        console.log('🎉 Loading user greeting...');
+        const greetingElement = document.getElementById('userGreeting');
+        const greetingText = greetingElement.querySelector('.greeting-text');
+
         try {
             const response = await fetch('/api/v1/auth/me', {
                 method: 'GET',
                 credentials: 'include'
             });
 
-            console.log('Response status:', response.status);
-
+            let firstName = 'Friend';
             if (response.ok) {
                 const data = await response.json();
-                console.log('User data received:', data);
                 const fullFirstName = data.user && data.user.firstName ? data.user.firstName : 'Friend';
-                const firstName = fullFirstName.split(' ')[0]; // Get just the first word
-                console.log('First name:', firstName);
-
-                const greetingElement = document.getElementById('userGreeting');
-                const greetingText = greetingElement.querySelector('.greeting-text');
-
-                const greeting = getRandomGreeting(firstName);
-                console.log('Selected greeting:', greeting);
-                greetingText.textContent = greeting;
-                greetingElement.style.display = 'flex';
-                greetingElement.style.zIndex = '10';
-                console.log('✅ Greeting displayed successfully');
-            } else {
-                console.log('⚠️ Not authenticated, showing default greeting');
-                // If not authenticated, show default greeting
-                const greetingElement = document.getElementById('userGreeting');
-                const greetingText = greetingElement.querySelector('.greeting-text');
-                greetingText.textContent = getRandomGreeting('Friend');
-                greetingElement.style.display = 'flex';
-                greetingElement.style.zIndex = '10';
+                firstName = fullFirstName.split(' ')[0];
             }
+
+            greetingText.textContent = getRandomGreeting(firstName);
+            greetingElement.style.display = 'flex';
+            greetingElement.style.zIndex = '10';
         } catch (error) {
-            console.error('❌ Failed to load user data:', error);
-            // Show default greeting on error
-            const greetingElement = document.getElementById('userGreeting');
-            const greetingText = greetingElement.querySelector('.greeting-text');
+            console.error('Failed to load user data:', error);
             greetingText.textContent = getRandomGreeting('Friend');
             greetingElement.style.display = 'flex';
         }
@@ -1139,7 +1844,6 @@
 
     // Hide greeting with animation
     function hideGreeting() {
-        console.log('👋 Hiding greeting...');
         const greetingElement = document.getElementById('userGreeting');
         if (greetingElement && greetingElement.style.display !== 'none') {
             // Hide immediately by reducing z-index so messages show through
@@ -1149,14 +1853,12 @@
                 greetingElement.style.display = 'none';
                 greetingElement.classList.remove('fade-out');
                 greetingElement.style.zIndex = '10'; // Reset for next time
-                console.log('✅ Greeting hidden');
             }, 500);
         }
     }
 
     // Helper function to reset greeting (for testing)
     window.resetGreeting = function() {
-        console.log('🔄 Resetting chat and greeting...');
         // Clear the chat thread
         const chatThread = document.querySelector('.chat-thread');
         if (chatThread) {
@@ -1195,9 +1897,16 @@
     let chatSessions = [];
 
     // Append message function - Define globally so it's accessible everywhere
-    function appendMessage(message, isUser) {
+    function appendMessage(message, isUser, timestamp) {
         const chatMessages = document.querySelector(".chat-messages .chat-thread");
         const messagesContainer = document.querySelector(".chat-messages");
+
+        const ts = timestamp ? new Date(timestamp) : new Date();
+        const timeLabel = ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+        const body = isUser
+            ? `<p>${escapeHtml(message)}</p>`
+            : `<div class="md-body">${renderMarkdown(message)}</div>`;
 
         const messageElement = document.createElement("div");
         messageElement.classList.add("flex", "message-fade-in", isUser ? "justify-end" : "justify-start");
@@ -1205,12 +1914,33 @@
         messageElement.innerHTML = `
             <div class="bubble-wrap">
                 <div class="bg-${isUser ? "gray-100" : "black"} rounded-3xl text-${isUser ? "gray-800" : "white"} chat-bubble chat-bubble--${isUser ? "user" : "assistant"}">
-                    <p>${escapeHtml(message)}</p>
+                    ${body}
+                    <div class="msg-meta">
+                        <span class="msg-timestamp">${timeLabel}</span>
+                        ${isUser ? "" : '<button class="msg-copy-btn" aria-label="Copy message" title="Copy message"><i class="far fa-copy"></i></button>'}
+                    </div>
                 </div>
             </div>
         `;
+
+        if (!isUser) {
+            messageElement.querySelector(".msg-copy-btn")?.addEventListener("click", function () {
+                copyMessageText(this, message);
+            });
+            addCodeBlockCopyButtons(messageElement);
+        }
+
+        // Only auto-scroll if the user is near the bottom (or just sent a message)
+        const nearBottom = messagesContainer ? isNearBottom(messagesContainer) : true;
+        const scrollBtn = document.getElementById("scrollToBottomBtn");
+        if (!nearBottom && !isUser && scrollBtn) {
+            scrollBtn.classList.add("has-new");
+        }
+
         chatMessages.appendChild(messageElement);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        if (nearBottom || isUser) {
+            scrollToBottom(messagesContainer);
+        }
     }
 
     // Chat History Sidebar Functions
@@ -1313,7 +2043,6 @@
             const emptySession = await findEmptySession();
 
             if (emptySession) {
-                console.log('Reusing empty session:', emptySession._id);
                 currentChatSessionId = emptySession._id;
             } else {
                 // Create new session only if no empty one exists
@@ -1347,7 +2076,7 @@
 
         } catch (error) {
             console.error('Error creating chat session:', error);
-            alert('Failed to create new chat session');
+            showToast("Couldn't start a new chat", "error");
         }
     }
 
@@ -1378,7 +2107,7 @@
                     userGreeting.style.display = 'none';
                 }
                 session.messages.forEach(msg => {
-                    appendMessage(msg.content, msg.sender === 'user');
+                    appendMessage(msg.content, msg.sender === 'user', msg.createdAt);
                 });
             } else {
                 hasUserSentMessage = false;
@@ -1392,7 +2121,7 @@
 
         } catch (error) {
             console.error('Error loading chat session:', error);
-            alert('Failed to load chat session');
+            showToast("Couldn't load that chat", "error");
         }
     }
 
@@ -1444,7 +2173,7 @@
 
         } catch (error) {
             console.error('Error deleting chat session:', error);
-            alert('Failed to delete chat session');
+            showToast("Couldn't delete that chat", "error");
         }
     }
 
@@ -1479,27 +2208,19 @@
         const hasExistingMessages = chatMessages && chatMessages.children.length > 0;
         hasUserSentMessage = hasExistingMessages;
 
-        console.log('🚀 Chat loaded. Has existing messages?', hasExistingMessages);
-
         // Initialize chat session on page load - reuse empty session if available
         if (!currentChatSessionId) {
-            console.log('📝 No session ID found, looking for empty session or creating new...');
             const emptySession = await findEmptySession();
             if (emptySession) {
-                console.log('Found empty session, reusing:', emptySession._id);
                 currentChatSessionId = emptySession._id;
             } else {
-                console.log('No empty session found, creating new...');
                 await createNewChatSession();
             }
         }
 
         // Load user greeting only if chat is empty
         if (!hasExistingMessages) {
-            console.log('📝 Loading greeting - chat is empty');
             loadUserGreeting();
-        } else {
-            console.log('⏭️ Skipping greeting - chat has messages');
         }
 
         // Auto-resize textarea
@@ -1521,18 +2242,48 @@
         if (textarea) {
             textarea.addEventListener("input", autosize);
 
-            // Submit on Ctrl/Cmd+Enter
+            // Enter sends, Shift+Enter inserts a newline
             textarea.addEventListener("keydown", (e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && sendBtn && !sendBtn.disabled) {
-                    sendBtn.click();
+                if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
+                    e.preventDefault();
+                    if (sendBtn && !sendBtn.disabled) {
+                        sendBtn.click();
+                    }
                 }
             });
         }
 
+        // Suggestion chips: send the prompt straight away
+        document.querySelectorAll(".suggestion-chip").forEach((chip) => {
+            chip.addEventListener("click", () => {
+                textarea.value = chip.dataset.prompt;
+                textarea.dispatchEvent(new Event("input"));
+                if (sendBtn && !sendBtn.disabled) {
+                    sendBtn.click();
+                }
+            });
+        });
+
         // Ensure the latest messages are visible on load
         const messagesContainer = document.querySelector(".chat-messages");
+        const scrollBtn = document.getElementById("scrollToBottomBtn");
         if (messagesContainer) {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            scrollToBottom(messagesContainer);
+
+            // Scroll-to-bottom button: show when scrolled away from the latest messages
+            messagesContainer.addEventListener("scroll", () => {
+                const show = !isNearBottom(messagesContainer, 160);
+                if (scrollBtn) {
+                    scrollBtn.style.display = show ? "flex" : "none";
+                    if (!show) {
+                        scrollBtn.classList.remove("has-new");
+                    }
+                }
+            });
+            scrollBtn?.addEventListener("click", () => {
+                scrollToBottom(messagesContainer, true);
+                scrollBtn.classList.remove("has-new");
+            });
         }
 
         // appendMessage is now defined globally above
@@ -1546,12 +2297,13 @@
             if (!currentChatSessionId) {
                 const newSession = await createNewChatSession();
                 if (!newSession) {
-                    alert('Failed to create chat session. Please try again.');
+                    showToast("Couldn't start a chat session. Try again.", "error");
                     return;
                 }
             }
 
             // Hide greeting on first message
+            const isFirstMessageInSession = !hasUserSentMessage;
             if (!hasUserSentMessage) {
                 hideGreeting();
                 hasUserSentMessage = true;
@@ -1564,22 +2316,10 @@
 
             // Show loading indicator
             const loadingId = Date.now();
-            const loadingMessage = document.createElement("div");
-            loadingMessage.className = "flex justify-start";
+            const loadingMessage = createTypingIndicator();
             loadingMessage.id = `loading-${loadingId}`;
-            loadingMessage.innerHTML = `
-                <div class="bubble-wrap">
-                    <div class="bg-black rounded-3xl text-white chat-bubble">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="width: 8px; height: 8px; background: white; border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
-                            <div style="width: 8px; height: 8px; background: white; border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.2s;"></div>
-                            <div style="width: 8px; height: 8px; background: white; border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.4s;"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
             chatMessages.appendChild(loadingMessage);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            scrollToBottom(messagesContainer);
 
             try {
                 let apiEndpoint = "/api/v1/chat";
@@ -1608,8 +2348,7 @@
                 });
 
                 // Remove loading indicator
-                const loadingEl = document.getElementById(`loading-${loadingId}`);
-                if (loadingEl) loadingEl.remove();
+                removeTypingIndicator(loadingId);
 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
@@ -1627,9 +2366,9 @@
                 if (data.success && data.response) {
                     appendMessage(data.response, false);
 
-                    // If note was referenced, show it in the response
-                    if (data.noteReference) {
-                        console.log('Note referenced:', data.noteReference);
+                    // Title the session from its first exchange
+                    if (isFirstMessageInSession) {
+                        maybeAutoTitleSession(currentChatSessionId, message);
                     }
                 } else {
                     throw new Error("Invalid response format from server");
@@ -1638,8 +2377,7 @@
                 console.error("Error connecting to chat API:", error);
 
                 // Remove loading indicator if still present
-                const loadingEl = document.getElementById(`loading-${loadingId}`);
-                if (loadingEl) loadingEl.remove();
+                removeTypingIndicator(loadingId);
 
                 // Show error message
                 appendMessage(
