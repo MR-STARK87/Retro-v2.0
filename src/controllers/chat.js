@@ -4,6 +4,80 @@ import Note from "../models/note.js";
 import { chatCompletion, extractMessageContent } from "../utils/openai.js";
 import { getPrompt, PROMPTS } from "../utils/prompts/index.js";
 import ChatSession from "../models/chatSession.js";
+import { incrementUsage } from "../middlewares/usageTracker.js";
+
+// Opt-in client-side "streaming": the provider call is NOT streamed. The
+// server receives the complete answer first (all validation and error paths
+// stay identical to non-stream mode), then paces it out in small chunks.
+const STREAM_CHUNK_MS = 20;
+const STREAM_WORDS_PER_CHUNK = 2;
+
+function streamAnswer(req, res, answer) {
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.flushHeaders();
+
+  const tokens = answer.match(/\S+\s*/g) || [answer];
+  const chunks = [];
+  for (let i = 0; i < tokens.length; i += STREAM_WORDS_PER_CHUNK) {
+    chunks.push(tokens.slice(i, i + STREAM_WORDS_PER_CHUNK).join(""));
+  }
+
+  // Stop pacing if the client disconnects mid-stream (answer is already
+  // persisted, so nothing is lost)
+  let clientClosed = false;
+  req.on("close", () => {
+    clientClosed = true;
+  });
+
+  let index = 0;
+  const timer = setInterval(() => {
+    if (clientClosed) {
+      clearInterval(timer);
+      return;
+    }
+    if (index >= chunks.length) {
+      clearInterval(timer);
+      res.end();
+      return;
+    }
+    res.write(chunks[index]);
+    index++;
+  }, STREAM_CHUNK_MS);
+}
+
+// Fire-and-forget context update (background, never blocks the response)
+function runContextUpdate(userContext, message, contextPrompt) {
+  (async () => {
+    try {
+      const contextMessages = [
+        {
+          role: "system",
+          content: contextPrompt,
+        },
+        {
+          role: "user",
+          content: `previous_context: ${userContext.context || ""}\nlatest_user_message: ${message}`,
+        },
+      ];
+
+      const contextResponse = await chatCompletion(contextMessages);
+      const updatedContextString = extractMessageContent(contextResponse);
+
+      // Parse the context JSON response
+      const contextData = JSON.parse(updatedContextString);
+
+      if (contextData.context !== undefined) {
+        userContext.context = contextData.context;
+        await userContext.save();
+      }
+    } catch (error) {
+      console.error("Error updating user context:", error);
+      // Don't throw - this happens in background
+    }
+  })();
+}
 
 /**
  * Chat endpoint that:
@@ -126,6 +200,21 @@ export const chat = asyncHandler(async (req, res) => {
   currentSession.updatedAt = Date.now();
   await currentSession.save();
 
+  // Streamed mode: paced plain-text chunks instead of a JSON envelope.
+  // trackUsage hooks res.json, which never fires here, so usage is
+  // incremented directly (the answer is complete and persisted already).
+  if (req.body.stream === true) {
+    incrementUsage(userId, "aiChatMessages").catch((err) =>
+      console.error("Failed to track usage:", err),
+    );
+
+    // Step 6: background context update, kicked off before streaming
+    runContextUpdate(userContext, message, contextPrompt);
+
+    streamAnswer(req, res, answer);
+    return;
+  }
+
   // Step 5: Send the answer to the user
   res.status(200).json({
     success: true,
@@ -133,34 +222,7 @@ export const chat = asyncHandler(async (req, res) => {
   });
 
   // Step 6: Make second API call to update context (async, don't wait)
-  (async () => {
-    try {
-      const contextMessages = [
-        {
-          role: "system",
-          content: contextPrompt,
-        },
-        {
-          role: "user",
-          content: `previous_context: ${userContext.context || ""}\nlatest_user_message: ${message}`,
-        },
-      ];
-
-      const contextResponse = await chatCompletion(contextMessages);
-      const updatedContextString = extractMessageContent(contextResponse);
-
-      // Parse the context JSON response
-      const contextData = JSON.parse(updatedContextString);
-
-      if (contextData.context !== undefined) {
-        userContext.context = contextData.context;
-        await userContext.save();
-      }
-    } catch (error) {
-      console.error("Error updating user context:", error);
-      // Don't throw - this happens in background
-    }
-  })();
+  runContextUpdate(userContext, message, contextPrompt);
 });
 
 /**
@@ -333,6 +395,20 @@ ${noteContext}`;
   });
   currentSession.updatedAt = Date.now();
   await currentSession.save();
+
+  // Streamed mode: paced plain-text chunks instead of a JSON envelope.
+  // trackUsage hooks res.json, which never fires here, so usage is
+  // incremented directly (the answer is complete and persisted already).
+  // noteReference is only sent in the JSON envelope; the frontend never
+  // reads it, so it is simply omitted here.
+  if (req.body.stream === true) {
+    incrementUsage(userId, "chatWithNote").catch((err) =>
+      console.error("Failed to track usage:", err),
+    );
+
+    streamAnswer(req, res, answer);
+    return;
+  }
 
   // Step 6: Send the answer to the user
   res.status(200).json({

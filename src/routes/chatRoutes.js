@@ -6,6 +6,10 @@ import { chat, chatWithNote } from "../controllers/chat.js";
 
 const router = express.Router();
 
+// Note: when the client sends { stream: true }, the controllers respond with
+// paced plain-text chunks, so trackUsage's res.json hook never fires — the
+// controllers call incrementUsage directly in that mode.
+
 router.post(
   "/chat",
   tokenChecker,

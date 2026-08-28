@@ -709,6 +709,7 @@
         font-size: 0.95rem;
         gap: 0.25rem;
         box-shadow: var(--shadow-subtle);
+        position: relative;
     }
 
     .chat-bubble p {
@@ -858,13 +859,24 @@
         white-space: pre;
     }
 
-    /* Message meta row (timestamp + copy) */
+    /* Message meta row (timestamp + copy) - overlays the bubble bottom-right
+       on hover so it never reserves space below the text */
     .msg-meta {
+        position: absolute;
+        right: 0.7rem;
+        bottom: 0.35rem;
         display: flex;
         align-items: center;
         justify-content: flex-end;
         gap: 0.4rem;
-        margin-top: 0.15rem;
+        padding: 0.1rem 0.45rem;
+        border-radius: 8px;
+        background: inherit;
+        visibility: hidden;
+    }
+
+    .chat-bubble:hover .msg-meta {
+        visibility: visible;
     }
 
     .msg-timestamp {
@@ -911,68 +923,36 @@
         color: #10b981;
     }
 
-    /* Retro typing indicator */
-    /* Typing indicator - slim mono line, no bubble */
+    /* Retro terminal loader - ASCII progress bar with CRT glow */
     .typing-indicator {
         font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
-        font-size: 0.8rem;
-        letter-spacing: 0.01em;
-        color: var(--text-secondary);
+        font-size: 0.9rem;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        color: var(--text-primary);
         display: inline-flex;
         align-items: baseline;
-        gap: 0.15rem;
-        padding: 0.15rem 0.5rem;
+        gap: 0.45rem;
+        padding: 0.35rem 0.75rem;
         user-select: none;
         -webkit-user-select: none;
     }
 
     .typing-prompt {
-        opacity: 0.45;
-        margin-right: 0.35rem;
+        color: var(--accent-primary);
+        font-weight: 700;
     }
 
     .typing-word {
         display: inline-block;
-        animation: typingWordIn 0.45s ease;
+        min-width: 13ch;
+        white-space: pre;
     }
 
-    @keyframes typingWordIn {
-        from {
-            opacity: 0;
-            transform: translateY(3px);
-            filter: blur(2px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-            filter: blur(0);
-        }
-    }
-
-    .typing-dots {
-        display: inline-flex;
-    }
-
-    .typing-dots span {
-        animation: typingDotFade 1.2s ease-in-out infinite;
-    }
-
-    .typing-dots span:nth-child(2) {
-        animation-delay: 0.2s;
-    }
-
-    .typing-dots span:nth-child(3) {
-        animation-delay: 0.4s;
-    }
-
-    @keyframes typingDotFade {
-        0%,
-        100% {
-            opacity: 0.25;
-        }
-        40% {
-            opacity: 1;
-        }
+    .typing-bar {
+        color: var(--accent-primary);
+        text-shadow: 0 0 10px currentColor;
+        white-space: pre;
     }
 
     /* Scroll to bottom button */
@@ -1772,30 +1752,44 @@
         }
     }
 
+    const TYPING_BAR_CELLS = 12;
+
     function createTypingIndicator() {
         const el = document.createElement("div");
         el.className = "flex justify-start message-fade-in";
         el.innerHTML = `
             <div class="typing-indicator">
-                <span class="typing-prompt">&gt;</span><span class="typing-word">thinking</span><span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>
+                <span class="typing-prompt">&gt;</span><span class="typing-word">thinking</span><span class="typing-bar">${"░".repeat(TYPING_BAR_CELLS)}</span>
             </div>
         `;
 
         const wordEl = el.querySelector(".typing-word");
+        const barEl = el.querySelector(".typing-bar");
+
         let lastIndex = 0;
-        const timer = setInterval(() => {
+        const wordTimer = setInterval(() => {
             let next;
             do {
                 next = Math.floor(Math.random() * TYPING_WORDS.length);
             } while (next === lastIndex);
             lastIndex = next;
             wordEl.textContent = TYPING_WORDS[next];
-            // Restart the entrance animation for the new word
-            wordEl.style.animation = "none";
-            void wordEl.offsetWidth;
-            wordEl.style.animation = "";
         }, 1300 + Math.random() * 700);
-        el._stopTyping = () => clearInterval(timer);
+
+        // ASCII progress bar - fills cell by cell, holds when full, restarts
+        let ticks = 0;
+        const cycle = TYPING_BAR_CELLS + 8;
+        const barTimer = setInterval(() => {
+            const step = ticks % cycle;
+            const filled = Math.min(step, TYPING_BAR_CELLS);
+            barEl.textContent = "█".repeat(filled) + "░".repeat(TYPING_BAR_CELLS - filled);
+            ticks++;
+        }, 90);
+
+        el._stopTyping = () => {
+            clearInterval(wordTimer);
+            clearInterval(barTimer);
+        };
 
         return el;
     }
@@ -1940,6 +1934,124 @@
         chatMessages.appendChild(messageElement);
         if (nearBottom || isUser) {
             scrollToBottom(messagesContainer);
+        }
+    }
+
+    // Streaming variant: builds the same DOM as appendMessage but with an
+    // empty body that gets filled chunk by chunk. finalize() wires the copy
+    // button to the full raw text once the stream completes.
+    function createStreamingMessage() {
+        const ts = new Date();
+        const timeLabel = ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+        const messageElement = document.createElement("div");
+        messageElement.classList.add("flex", "message-fade-in", "justify-start");
+        messageElement.innerHTML = `
+            <div class="bubble-wrap">
+                <div class="bg-black rounded-3xl text-white chat-bubble chat-bubble--assistant">
+                    <div class="md-body"></div>
+                    <div class="msg-meta">
+                        <span class="msg-timestamp">${timeLabel}</span>
+                        <button class="msg-copy-btn" aria-label="Copy message" title="Copy message"><i class="far fa-copy"></i></button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const bodyEl = messageElement.querySelector(".md-body");
+        const finalize = (rawText) => {
+            messageElement.querySelector(".msg-copy-btn")?.addEventListener("click", function () {
+                copyMessageText(this, rawText);
+            });
+            addCodeBlockCopyButtons(messageElement);
+        };
+
+        return { element: messageElement, bodyEl, finalize };
+    }
+
+    // Read a paced text/plain chunked response and render it as a smooth
+    // retro typewriter: network chunks silently fill a buffer while a rAF
+    // loop reveals characters at a steady pace (catching up if it lags),
+    // so text flows in letter by letter instead of arriving in bursts.
+    async function readStreamedAnswer(response, loadingId, isFirstMessage, firstUserMessage) {
+        const chatThread = document.querySelector(".chat-messages .chat-thread");
+        const messagesContainer = document.querySelector(".chat-messages");
+        const streamMsg = createStreamingMessage();
+        chatThread.appendChild(streamMsg.element);
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulated = "";
+        let networkDone = false;
+        let indicatorRemoved = false;
+
+        const removeIndicatorOnce = () => {
+            if (!indicatorRemoved) {
+                removeTypingIndicator(loadingId);
+                indicatorRemoved = true;
+            }
+        };
+
+        // Network side: keep the buffer topped up, never touch the DOM here
+        const readPromise = (async () => {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                removeIndicatorOnce();
+                accumulated += decoder.decode(value, { stream: true });
+            }
+            accumulated += decoder.decode(); // flush any pending bytes
+            removeIndicatorOnce();
+        })();
+        readPromise.finally(() => { networkDone = true; });
+
+        // Typewriter reveal: steady base pace, speeds up so it never trails
+        // the buffer by more than ~1.2s (long answers don't crawl)
+        await new Promise((resolve) => {
+            const BASE_CPS = 220;        // relaxed typing pace (chars/sec)
+            const CATCHUP_SECONDS = 1.2;
+            const CARET = "\u258C";
+            let displayed = 0;
+            let last = performance.now();
+
+            const frame = (now) => {
+                const dt = Math.min((now - last) / 1000, 0.1);
+                last = now;
+
+                const backlog = accumulated.length - displayed;
+                if (backlog > 0) {
+                    const cps = Math.max(BASE_CPS, backlog / CATCHUP_SECONDS);
+                    displayed = Math.min(accumulated.length, displayed + cps * dt);
+                    const partial = accumulated.slice(0, Math.floor(displayed));
+                    streamMsg.bodyEl.innerHTML = renderMarkdown(partial + CARET);
+                    if (messagesContainer && isNearBottom(messagesContainer)) {
+                        scrollToBottom(messagesContainer);
+                    }
+                }
+
+                if (networkDone && displayed >= accumulated.length) {
+                    resolve();
+                    return;
+                }
+                requestAnimationFrame(frame);
+            };
+            requestAnimationFrame(frame);
+        });
+
+        // Final render without the caret
+        streamMsg.bodyEl.innerHTML = renderMarkdown(accumulated || "...");
+        streamMsg.finalize(accumulated);
+
+        if (messagesContainer && isNearBottom(messagesContainer)) {
+            scrollToBottom(messagesContainer);
+        }
+
+        // Surface network errors thrown mid-stream (partial text stays up)
+        await readPromise;
+
+        // Title the session from its first exchange
+        if (isFirstMessage) {
+            maybeAutoTitleSession(currentChatSessionId, firstUserMessage);
         }
     }
 
@@ -2325,7 +2437,8 @@
                 let apiEndpoint = "/api/v1/chat";
                 let requestBody = {
                     message,
-                    chatSessionId: currentChatSessionId
+                    chatSessionId: currentChatSessionId,
+                    stream: true // opt in to paced chunked response
                 };
 
                 // Check if a note is attached
@@ -2347,10 +2460,10 @@
                     body: JSON.stringify(requestBody),
                 });
 
-                // Remove loading indicator
-                removeTypingIndicator(loadingId);
-
                 if (!response.ok) {
+                    // Errors are always JSON (streaming only starts after
+                    // the full answer is generated and persisted)
+                    removeTypingIndicator(loadingId);
                     const errorData = await response.json().catch(() => ({}));
                     if (response.status === 401) {
                         appendMessage("Your session has expired. Please login again.", false);
@@ -2362,16 +2475,24 @@
                     throw new Error(errorData.message || `Server error: ${response.status}`);
                 }
 
-                const data = await response.json();
-                if (data.success && data.response) {
-                    appendMessage(data.response, false);
-
-                    // Title the session from its first exchange
-                    if (isFirstMessageInSession) {
-                        maybeAutoTitleSession(currentChatSessionId, message);
-                    }
+                const contentType = response.headers.get("Content-Type") || "";
+                if (contentType.includes("text/plain") && response.body) {
+                    // Streamed mode: paced plain-text chunks
+                    await readStreamedAnswer(response, loadingId, isFirstMessageInSession, message);
                 } else {
-                    throw new Error("Invalid response format from server");
+                    // JSON fallback (e.g. old server, or response.body unsupported)
+                    removeTypingIndicator(loadingId);
+                    const data = await response.json();
+                    if (data.success && data.response) {
+                        appendMessage(data.response, false);
+
+                        // Title the session from its first exchange
+                        if (isFirstMessageInSession) {
+                            maybeAutoTitleSession(currentChatSessionId, message);
+                        }
+                    } else {
+                        throw new Error("Invalid response format from server");
+                    }
                 }
             } catch (error) {
                 console.error("Error connecting to chat API:", error);
