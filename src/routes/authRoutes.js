@@ -12,9 +12,11 @@ import { forgotPassword } from "../controllers/auth.js";
 import { resetPassword } from "../controllers/auth.js";
 import { resendVerificationEmail } from "../controllers/auth.js";
 import { refreshAccessToken } from "../controllers/auth.js";
+import { changeCurrentPassword } from "../controllers/auth.js";
 import {
   resetPasswordSchema,
   forgetPasswordSchema,
+  changePasswordSchema,
 } from "../validators/passwordSchemas.js";
 
 const router = express.Router();
@@ -40,4 +42,10 @@ router.post(
   resendVerificationEmail,
 );
 router.post("/refresh-token", refreshAccessToken);
+router.post(
+  "/change-password",
+  tokenChecker,
+  validate({ body: changePasswordSchema }),
+  changeCurrentPassword,
+);
 export default router;
