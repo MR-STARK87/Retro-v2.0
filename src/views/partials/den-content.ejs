@@ -1973,8 +1973,11 @@
         });
 
         document.querySelectorAll(".color-option").forEach((option) => {
-          option.addEventListener("click", async (e) => {
-            const requiredTier = e.currentTarget.dataset.tier;
+          option.addEventListener("click", async () => {
+            // Capture dataset values up front: e.currentTarget is null after any await
+            const requiredTier = option.dataset.tier;
+            const colorAttr = option.dataset.color;
+            const name = option.dataset.name;
 
             // Check if this color requires a pro/premium tier
             if (requiredTier) {
@@ -1987,8 +1990,6 @@
               }
             }
 
-            const colorAttr = e.currentTarget.dataset.color;
-            const name = e.currentTarget.dataset.name;
             if (colorAttr === "dynamic") {
               this.changeColor("dynamic", name);
             } else {
