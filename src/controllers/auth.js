@@ -13,6 +13,14 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Shared auth cookie options (httpOnly, secure in production)
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "Strict",
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+};
+
 const registerUser = asyncHandler(async (req, res) => {
   const { firstName, lastName, username, email, password, role } = req.body;
 
@@ -85,13 +93,6 @@ const loginUser = asyncHandler(async (req, res) => {
   if (!isPasswordValid) {
     return res.status(400).json({ message: "Invalid email or password" });
   }
-
-  const cookieOptions = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "Strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  };
 
   const tokens = await generateTokens(user._id);
   return res
@@ -191,30 +192,32 @@ const resendVerificationEmail = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Email is already verified" });
   }
 
-  const unHashedToken = user.emailVerificationToken;
-  const hashedToken = crypto
-    .createHash("sha256")
-    .update(unHashedToken)
-    .digest("hex");
+  // Generate a fresh token (the stored one is already hashed and cannot be
+  // recovered into a usable URL token)
+  const { unHashedToken, hashedToken, expiry } =
+    await user.generateTemporaryToken();
 
-  const expiry = Date.now() + 10 * 60 * 1000; // 10 minutes
   user.emailVerificationToken = hashedToken;
   user.emailVerificationExpiry = expiry;
   await user.save({ validateBeforeSave: false });
 
-  await sendEmail({
-    to: user.email,
-    subject: "Verify Your Email - The Sloth Project",
-    url: `${req.protocol}://${req.get(
-      "host",
-    )}/api/v1/auth/verify-email?token=${unHashedToken}`,
-    template: "verification",
-    firstName: user.firstName,
-  });
+  try {
+    await sendEmail({
+      to: user.email,
+      subject: "Verify Your Email - The Sloth Project",
+      url: `${req.protocol}://${req.get(
+        "host",
+      )}/api/v1/auth/verify-email?token=${unHashedToken}`,
+      template: "verification",
+      firstName: user.firstName,
+    });
+  } catch (emailError) {
+    console.error("Failed to send verification email:", emailError.message);
+    return res.status(500).json({ message: "Failed to send verification email" });
+  }
 
   res.status(200).json({ message: "Verification email resent successfully" });
 });
-
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies.refreshToken || req.body.refreshToken;
@@ -228,7 +231,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       incomingRefreshToken,
       process.env.REFRESH_TOKEN_SECRET,
     );
-    const user = await User.findById(decoded._id);
+    // refreshToken is select:false in the schema — must be explicitly selected
+    const user = await User.findById(decoded._id).select("+refreshToken");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -252,7 +256,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
-    res.status(404).json({ message: "User does not exist" });
+    return res.status(404).json({ message: "User does not exist" });
   }
   const { unHashedToken, hashedToken, expiry } = user.generateTemporaryToken();
 
@@ -283,9 +287,8 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
 const resetPassword = asyncHandler(async (req, res) => {
   const resetToken = req.query.token;
-  const Newpassword = req.body.password;
-  const confirmPassword = req.body.confirmPassword;
-  if (Newpassword != confirmPassword) {
+  const { password, newPassword, confirmPassword } = req.body;
+  if (newPassword !== confirmPassword) {
     return res.status(400).json({ message: "Passwords do not match" });
   }
   if (!resetToken) {
@@ -309,9 +312,9 @@ const resetPassword = asyncHandler(async (req, res) => {
     }
     user.forgotPasswordToken = undefined;
     user.forgotPasswordExpiry = undefined;
-    user.password = Newpassword;
+    user.password = newPassword;
 
-    user.save({ validateBeforeSave: false });
+    await user.save({ validateBeforeSave: false });
 
     return res.status(200).json({ message: "Password Reset Successfully " });
   } catch (error) {
@@ -320,12 +323,21 @@ const resetPassword = asyncHandler(async (req, res) => {
 });
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
-  const { Password, newPassword } = req.body;
-  const user = await User.findById(req.user?._id);
-  const isPasswordValid = await user.isPasswordCorrect(Password);
+  const { password, newPassword, confirmPassword } = req.body;
+  const user = await User.findById(req.user?._id).select("+password");
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  const isPasswordValid = await user.comparePassword(password);
   if (!isPasswordValid) {
     return res.status(400).json({ message: "Incorrect Old Password" });
   }
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ message: "Passwords do not match" });
+  }
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+  return res.status(200).json({ message: "Password Changed Successfully" });
 });
 
 export {
@@ -338,4 +350,5 @@ export {
   resendVerificationEmail,
   refreshAccessToken,
   forgotPassword,
+  changeCurrentPassword,
 };

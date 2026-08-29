@@ -19,12 +19,17 @@ This file provides guidance for Claude Code (and other agents) when working in t
 ```bash
 npm run code       # Start dev server with nodemon (src/index.js)  [primary dev command]
 node src/index.js # start without watcher
+npm run lint      # ESLint (flat config, eslint.config.js) — src/, scripts/, public/js/
+npm run smoke     # headless-Chrome CDP smoke test (needs running server + Chrome; see scripts/smoke-test.mjs)
+node scripts/css-coverage.mjs  # verifies every live DOM class has a CSS rule (needs running server + Chrome)
+npm run build:css # compile Tailwind (v3.4.17 pinned) -> public/css/tailwind.css (minified)
+npm run watch:css # same, watch mode
 node test-routes.js  # manual API smoke test suite (requires running server)
 ```
 
-- There is **no test script** wired up (`npm test` just echoes "no test specified"). `test-routes.js` is the only "test suite" — it is a manual script that assumes a running server.
-- No linter or formatter (no ESLint/Prettier). No type-check step. Code quality is maintained by following existing conventions.
+- `npm test` just echoes "no test specified". The real automated checks are `npm run smoke` (UI) and `node test-routes.js` (API, manual).
 - **Note:** `nodemon` is not listed in `package.json` dependencies/devDependencies — `npm run code` requires a global install (`npm i -g nodemon`) or adding it as a devDependency. `package-lock.json` exists on disk but is gitignored (see `.gitignore:3`).
+- **Tailwind is a compiled v3 build** (`public/css/tailwind.css`, committed). If you add/modify utility classes in views or `public/js/`, rerun `npm run build:css`. Do NOT upgrade to Tailwind v4 (v4 renamed utilities like `shadow-sm`→`shadow-xs` and would change the look). Dynamically-composed classes (e.g. `bg-${...}` ternaries in `public/js/chat.js`) must go in the `safelist` of `tailwind.config.js`.
 
 ## Environment Variables
 
@@ -53,26 +58,37 @@ ES Modules (`"type": "module"` in `package.json:6`) throughout. Use `export defa
 ### Directory layout
 ```
 My server (project root)
-├── public/           # static assets served at "/" (express.static, src/index.js:75)
+├── public/           # static assets served at "/" (express.static + maxAge 1d, src/index.js)
 │   ├── assets/images/
+│   ├── css/          # tailwind.css (compiled, committed) + app.css (app shell + shared components)
+│   ├── js/           # extracted pane scripts (deferred, classic scripts sharing window.* globals)
+│   │   ├── common/   # events.js (RetroEvents pub/sub), loader.js (loadScript cached CDN loader)
+│   │   ├── chat.js notes.js den.js flashcards.js nav.js profile.js theme.js
 │   ├── music/        # ambient music files (mp3/wav/ogg), auto-listed by /api/v1/music
 │   │   ├── Ezio's Family (...) .mp3  # one committed file with spaces & "&" (gitignored going forward)
 │   │   └── README.md
-│   ├── *.html        # standalone static pages (loginSignUp, Notes, den, cardsFinal, email-*)
+│   ├── email-verified.html, email-verification-error.html  # served by auth.js sendFile — do not delete
 │   ├── favicon.svg, icon.svg
-│   └── style.css, styles.css
+├── scripts/          # zero-dependency dev tooling (Node 22)
+│   ├── smoke-test.mjs     # CDP UI smoke test (register→onboard→drive all 4 panes, ambient, colors)
+│   ├── css-coverage.mjs   # verifies every live DOM class has a CSS rule
+│   ├── screenshot.mjs     # captures pane screenshots for visual review
+│   └── extract-inline.mjs # one-off helper used during the extraction refactor
 ├── docs/             # not code — project docs (SRS etc.)
 ├── src/
-│   ├── index.js      # Express bootstrap, CORS, static, EJS view engine, route mounting
+│   ├── index.js      # Express bootstrap, CORS, compression, static, EJS view engine, route mounting
 │   ├── db/dbConnection.js
 │   ├── controllers/  # request handlers (auth, note, card, chat, chatSession, music, subscription, onboarding, healthCheck)
 │   ├── models/       # Mongoose schemas (user, note, card, chatSession, userContext, subscription)
 │   ├── middlewares/  # tokenChecker, viewTokenChecker, redirectIfAuthenticated, validate, rateLimiter, usageTracker
+│   ├── styles/       # tailwind.css input (@tailwind base/components/utilities)
 │   ├── utils/        # asyncHandler, mail, openai, prompts/
 │   ├── validators/   # Zod schemas (register, login, password, note, flashcard, onboarding)
 │   ├── routes/       # express.Router definitions (mount order matters — see below)
-│   └── views/        # EJS templates + partials/ (app, setup, upgrade, chat, loginSignUp)
+│   └── views/        # EJS templates + partials/ (app, setup, upgrade, loginSignUp)
 ├── .env.example
+├── eslint.config.js  # ESLint flat config
+├── tailwind.config.js
 ├── package.json
 ├── test-routes.js
 ├── TECHNICAL_SPECIFICATIONS.txt / Template.txt / SRS_DOCUMENT.md
@@ -121,17 +137,19 @@ When adding a new route group: create a router file in `src/routes/`, import it 
 - `validationRules.js:3`: shared `username` (3–30, `^[a-zA-Z0-9_]+$`), `email`, `password` (8–100, upper/lower/digit/special), `firstName`, `lastName` (regex `^[a-zA-Z\s'-]+$`, 50 max).
 - `registerSchema.js:10` / `loginSchema.js:4` / `passwordSchemas.js:4` / `noteSchemas.js:4` / `flashcardSchemas.js:4` / **`onboardingSchema.js:4` (new — `completeSetupSchema` with `displayName`, `role`, `subjects[0..10]`, `goal`, `answerStyle: crisp|balanced|detailed`, `tone: casual|formal`, `anythingElse`)**.
 - `registerSchema` refines `password === confirmPassword` via `.refine` (no path, so error appears as top-level). `flashcardSchemas` / `noteSchemas` use ObjectId regex `/^[0-9a-fA-F]{24}$/` for `noteId`.
-- `passwordSchemas.js:4` exports `resetPasswordSchema` (`{password, newPassword}`) and `forgetPasswordSchema` (`{email}`) — note field name `newPassword` vs controller reading `req.body.password`/`confirmPassword` (see Known Gaps).
+- `passwordSchemas.js:4` exports `resetPasswordSchema` (`{password, newPassword, confirmPassword}` with newPassword===confirmPassword refine), `changePasswordSchema` (same shape), and `forgetPasswordSchema` (`{email}`). Controllers read the same field names.
 
-### Views (EJS)
-- Partials live in `src/views/partials/` (8 files: `head`, `theme-toggle`, `profile-icon`, `horizontal-nav`, `chat-content`, `notes-content`, `den-content`, `flashcards-content` — `head.ejs` loads Tailwind CDN, Font Awesome, Quill snow, Google Fonts).
+### Views (EJS) & frontend architecture
+- Partials live in `src/views/partials/` (8 files: `head`, `theme-toggle`, `profile-icon`, `horizontal-nav`, `chat-content`, `notes-content`, `den-content`, `flashcards-content` — `head.ejs` loads compiled Tailwind, Font Awesome, Quill snow CSS, Google Fonts, and the deferred `common/events.js` + `common/loader.js`).
+- **Pane logic lives in `public/js/*.js`** (extracted 1:1 from the partials; loaded via `<script defer>` in partial include order: theme → profile → chat → notes → den → flashcards → nav). All panes still share `window.*` globals (`window.ambientMode`, `window.pomodoroTimer`, `window.quill`…).
+- **Cross-pane events** (`public/js/common/events.js`, `window.RetroEvents`): `section:change {index,name}` (nav.js), `ambient:toggled {active}` (den.js), `den:timer-progress {progress}` (den.js → ambient dynamic sky). Panes must NOT reach into each other's internals — subscribe/dispatch instead. `visibility` of `#ambientToggle`/`#colorPickerContainer` is owned exclusively by nav.js via the `data-visible` attribute.
+- **Lazy loading**: three.js r121 + vanta.clouds load on first ambient activation via `window.loadScript` (`public/js/common/loader.js`); AmbientMode guards races with `enableGeneration`.
 - `app.ejs:16` assembles: head → theme-toggle → profile-icon → a `.horizontal-container` with 4 sections (chat, notes, den, flashcards) → nav → ambient/music controls → modals (flashcard, read-mode, delete-confirm) + inline dark-mode CSS.
 - `setup.ejs` — 7-step onboarding wizard (name → role → subjects → goal → style/tone → anythingElse → review). Posts to `POST /api/v1/onboarding` (`setup.ejs:480`), stores `stableContext` server-side (`onboarding.js:53`). Theme-aware, progress bar, chip multi-select, optional steps 3/4/6 skippable.
 - `loginSignUp.ejs` renders both `/login` and `/signup` (`defaultView` picks form); client-side validation mirrors `validationRules.js`; success login redirects to `/chat` (`loginSignUp.ejs:947`) while `viewRoutes` gated redirects use `/app` (intentional split — see Known Gaps).
-- `upgrade.ejs` / `chat.ejs` are standalone pages (chat.ejs is legacy; primary chat lives inside `app.ejs`).
-- Styling: Tailwind CDN + inline `<style>` with CSS variables (`--bg-primary`, etc.) and `[data-theme="dark"]` overrides. Theme toggle uses `data-theme` attribute on `<body>`/`<html>` with `localStorage` persistence.
+- `upgrade.ejs` is a standalone page. (Legacy `chat.ejs` and standalone HTML prototypes were removed — `/chat` redirects to `/app`; only `email-verified.html` / `email-verification-error.html` remain in `public/`, served by `auth.js`.)
+- Styling: compiled Tailwind v3 (`/css/tailwind.css`) + `/css/app.css` (app shell + shared components, formerly `styles.css`) + pane-local inline `<style>` blocks with CSS variables (`--bg-primary`, etc.) and `[data-theme="dark"]` overrides. Theme toggle uses `data-theme` attribute on `<body>`/`<html>` with `localStorage` persistence.
 - View routes (`src/routes/viewRoutes.js:8`): `/login` + `/signup` use `redirectIfAuthenticated`; `/setup` (protected, redirects to `/app` if `setupCompleted`); `/app` (protected, redirects to `/setup` if not completed); `/upgrade` (protected); `/chat` → redirect `/app`; `/home` → redirect `/app`; `/` does manual JWT decode and redirects to `/app` or `/login` (not using `viewTokenChecker`).
-- `public/*.html` files are static and independent of EJS.
 
 ### Music (`public/music/`)
 - `musicController.js:14` lists `public/music/`, streams with Range support (`206`), path-traversal guarded (`musicController.js:76`).
@@ -192,15 +210,18 @@ Repo is initialized at the project root (`./.git/`, branch `main`, HEAD `758f830
 - **Conventions:** keep commits scoped (`feat:`, `fix:`, `docs:`, `style:`, `chore:`), one logical change per commit, branch per feature (`git checkout -b feat/xyz`). Keep `.env` out of history; if a secret was ever committed, rotate it and use `git filter-repo`.
 
 ## Known gaps (not blocking, but worth fixing)
-- `src/controllers/auth.js:243` `refreshAccessToken` references `cookieOptions` out of scope (defined only in `loginUser:89`). Will throw `ReferenceError` on refresh — needs top-level `const cookieOptions = {httpOnly:true, secure:..., sameSite:"Strict", maxAge:...}`.
-- `src/controllers/auth.js:322` `changeCurrentPassword` is incomplete: calls `user.isPasswordCorrect` (method is `comparePassword` in `user.js:100`), never handles `newPassword`/`confirmPassword`, and never sends a success response.
-- `src/controllers/auth.js:254` `forgotPassword` missing `return` on `!user` branch — will continue and throw on `user.generateTemporaryToken()` when user is null.
-- `src/controllers/auth.js:194` `resendVerificationEmail` re-hashes an already-hashed `emailVerificationToken` and reuses it as `unHashedToken`, so the emailed URL will never verify; should call `generateTemporaryToken()` instead.
 - `src/utils/openai.js:8` hardcodes `apiKey:"dummy"` + `baseURL:"http://127.0.0.1:8319/v1"` + `model:"claude-opus-5"`; `.env.example:14` still documents `GROQ_API_KEY`/Groq — env and code are out of sync.
-- `src/validators/passwordSchemas.js:4` `resetPasswordSchema` expects `{password, newPassword}` but `auth.js:285` reads `{password, confirmPassword}` from `req.query.token` + `req.body`; validation will never match the controller.
 - `src/views/loginSignUp.ejs:947` redirects after login to `/chat` while `viewRoutes.js:43` guards `/app` and `redirectIfAuthenticated` redirects to `/app` — split causes extra redirect (`/chat` → `/app` via `viewRoutes.js:62`).
 - `src/controllers/auth.js:47` registration still accepts unused `role` from body; `registerSchema.js` doesn't validate it; `user.js` has no `role` field — silently dropped.
 - `public/music/` currently contains one committed MP3 name with spaces and `&`; `.gitignore:43` will ignore future MP3/WAV/OGG unless you `git add -f` or rely on the existing tracked file.
 - `.gitignore:3` ignores `package-lock.json` — intentional for submission lightness, but for reproducible installs consider removing that line and committing the lockfile (it already exists on disk).
-- `src/index.js:67` global `express.json()` runs before `subscriptionRoutes` webhook's `express.raw()` — works today because the router re-parses, but fragile; consider mounting the webhook router *before* the global JSON parser or using `express.json({verify:...})` split.
+- `src/index.js` global `express.json()` runs before `subscriptionRoutes` webhook's `express.raw()` — works today because the router re-parses, but fragile; consider mounting the webhook router *before* the global JSON parser or using `express.json({verify:...})` split.
+- Mailtrap free-tier send quota can exhaust (SMTP `verify()` still passes) — registration continues on email failure by design, but `resend-verification-email` returns 500 `{message:"Failed to send verification email"}` when the quota is hit.
+- `resetPassword` requires a `password` field in the body that the controller ignores (only `newPassword` is saved) — kept for API compatibility; consider dropping it from `changePasswordSchema`/`resetPasswordSchema` in a future API cleanup.
+
+## Fixed in `optimizing-retro` branch (historical context)
+- Auth bugs: `cookieOptions` scope ReferenceError in `refreshAccessToken`, incomplete `changeCurrentPassword` (now `POST /api/v1/auth/change-password`), missing `return` in `forgotPassword`, `resendVerificationEmail` re-hashing an already-hashed token, `refreshToken` not selected (`select:false`) so refresh always 401'd, `resetPasswordSchema` field-name mismatch.
+- Frontend refactor: ~206 KB inline JS extracted to `public/js/` (defer, same order); cross-pane coupling via `RetroEvents` CustomEvents; debug `console.log`s and defensive `setTimeout` re-checks removed; latent bug fixed where nav called nonexistent `ambientMode.deactivate()` (now suspend/resume on `section:change`).
+- Performance: three.js+vanta lazy-load on first ambient activation (~700 KB saved on chat-first load); Quill/marked deferred; Tailwind Play CDN → compiled v3.4.17 build (24 KB, pixel-identical; safelist for chat.js ternary classes); `compression()` gzip + `express.static` maxAge 1d.
+- CSS: `styles.css`+`style.css` consolidated to `public/css/app.css` (dead rules deleted, ambient-visibility `!important` arms race collapsed to the `data-visible` pair); legacy `chat.ejs` + standalone HTML prototypes (`den.html`, `Notes.html`, `cardsFinal.html`, `loginSignUp.html`) deleted.
 
