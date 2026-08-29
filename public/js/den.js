@@ -490,6 +490,9 @@
 
         this.isActive = false;
         this.vantaEffect = null;
+        // Guards against stale async Vanta initialization completing after a
+        // disable/re-enable race
+        this.enableGeneration = 0;
         // True when ambient was suspended because the user left the DEN pane
         this.suspended = false;
         // Last pomodoro progress (0..1) received via den:timer-progress
@@ -701,7 +704,7 @@
         this.persistAmbientPrefs();
       }
 
-      enableAmbientMode() {
+      async enableAmbientMode() {
         this.toggleBtn.textContent = "Ambient: On";
         this.toggleBtn.setAttribute("aria-pressed", "true");
         this.toggleBtn.classList.add("text-white", "bg-purple-600", "border-purple-600");
@@ -721,6 +724,19 @@
 
         // Add class to body to trigger glassmorphism on nav elements
         document.body.classList.add('ambient-active');
+
+        // Lazy-load three.js + vanta on first activation (cached afterwards)
+        const gen = ++this.enableGeneration;
+        try {
+          await window.loadScript("https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js");
+          await window.loadScript("https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.clouds.min.js");
+        } catch (err) {
+          console.error("Failed to load Vanta dependencies:", err);
+          return;
+        }
+
+        // Ambient may have been toggled off (or re-toggled) while loading
+        if (gen !== this.enableGeneration || !this.isActive || this.vantaEffect) return;
 
         if (typeof VANTA !== 'undefined' && VANTA.CLOUDS) {
           this.vantaEffect = VANTA.CLOUDS({
@@ -751,6 +767,8 @@
       }
 
       disableAmbientMode() {
+        // Invalidate any in-flight lazy-load from enableAmbientMode()
+        this.enableGeneration++;
         this.toggleBtn.textContent = "Ambient: Off";
         this.toggleBtn.setAttribute("aria-pressed", "false");
         this.toggleBtn.classList.remove("text-white", "bg-purple-600", "border-purple-600");
