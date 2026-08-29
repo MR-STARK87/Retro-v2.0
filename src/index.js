@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import compression from "compression";
 import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./db/dbConnection.js";
@@ -64,6 +65,9 @@ if (process.env.NODE_ENV === "development") {
   );
 }
 
+// gzip/deflate responses (before static + API routes)
+app.use(compression());
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -72,7 +76,7 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 // Serve static files from the public directory
-app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.static(path.join(__dirname, "../public"), { maxAge: "1d" }));
 
 // API Routes
 app.use("/api/v1/health", healthCheckRoute);

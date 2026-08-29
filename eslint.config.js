@@ -20,11 +20,43 @@ export default [
       // Existing codebase throws replacement errors without { cause } —
       // warning-level until the pattern is cleaned up.
       "preserve-caught-error": "warn",
+      // Empty catch blocks are an accepted idiom in this codebase
+      "no-empty": ["error", { allowEmptyCatch: true }],
     },
   },
   {
-    // EJS partials and views embed JS; eslint can't parse them, but the
-    // extracted static files under public/js are lintable.
-    files: ["src/**/*.js", "scripts/**/*.mjs", "public/js/**/*.js"],
+    // Extracted browser scripts: runtime globals injected by other scripts
+    // and CDN libraries, plus idioms (empty catch blocks, control-char regexes
+    // in sanitizers) that are intentional in this codebase.
+    files: ["public/js/**/*.js"],
+    rules: {
+      "no-undef": ["error", { typeof: true }],
+      "no-empty": "off",
+      "no-control-regex": "off",
+    },
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        RetroEvents: "readonly",
+        VANTA: "readonly",
+        THREE: "readonly",
+        Quill: "readonly",
+        marked: "readonly",
+        loadScript: "readonly",
+        escapeHtml: "readonly",
+        goToSection: "readonly",
+        closeReadMode: "readonly",
+        openReadMode: "readonly",
+        renderNotesList: "readonly",
+        saveNote: "readonly",
+        syncNotes: "readonly",
+        enhanceWithRetro: "readonly",
+        deleteNote: "readonly",
+        toggleTheme: "readonly",
+      },
+    },
+  },
+  {
+    files: ["src/**/*.js", "scripts/**/*.mjs"],
   },
 ];
