@@ -356,21 +356,23 @@ async function main() {
     if (!ready) return finish("app never finished booting");
     pass("app booted (all partial scripts ran)");
 
-    // 5. Navigate through all 4 panes
+    // 5. Navigate through all 4 panes by clicking the nav dots
+    //    (nav.js no longer exposes a window.goToSection global)
     const sections = ["Chat", "Notes", "Den", "Cards"];
+    const sectionClasses = ["show-chat", "show-notes", "show-den", "show-flashcards"];
     for (let i = 0; i < 4; i++) {
-      await cdp.evaluate(`goToSection(${i})`);
+      await cdp.evaluate(`document.querySelector('.nav-dot[data-section="${i}"]').click()`);
       await sleep(900);
       const state = await cdp.evaluate(
         `document.querySelector('.horizontal-container').className`,
       );
-      if (!state.includes(["show-chat", "show-notes", "show-den", "show-flashcards"][i]))
+      if (!state.includes(sectionClasses[i]))
         fail(`section ${i} (${sections[i]}) did not activate (container="${state}")`);
       else pass(`navigated to ${sections[i]}`);
     }
 
     // 6. Note read-mode modal (on Notes pane)
-    await cdp.evaluate("goToSection(1)");
+    await cdp.evaluate(`document.querySelector('.nav-dot[data-section="1"]').click()`);
     await sleep(900);
     await cdp.evaluate(
       `localStorage.setItem("retroNotes", JSON.stringify([{ id: "smoke1", title: "Smoke Note", html: "<p>hello smoke</p>", updatedAt: new Date().toISOString() }]))`,
@@ -391,7 +393,7 @@ async function main() {
     await cdp.evaluate("closeReadMode()");
 
     // 7. Ambient mode on DEN
-    await cdp.evaluate("goToSection(2)");
+    await cdp.evaluate(`document.querySelector('.nav-dot[data-section="2"]').click()`);
     await sleep(1200);
     const toggleVisible = await cdp.evaluate(
       `document.getElementById('ambientToggle').getAttribute('data-visible')`,
@@ -459,6 +461,34 @@ async function main() {
       `window.ambientMode.isActive === false && window.ambientMode.vantaEffect === null`,
     );
     activeOff ? pass("ambient mode deactivated cleanly") : fail("ambient mode did not deactivate");
+
+    // 9b. Suspend/resume: activate ambient, leave DEN, verify the effect is
+    // torn down, return to DEN, verify it comes back
+    await cdp.evaluate(`document.getElementById('ambientToggle').click()`);
+    const resumed = await waitFor(
+      cdp,
+      "window.ambientMode && window.ambientMode.vantaEffect !== null",
+      { timeout: 30000, label: "ambient re-activation" },
+    );
+    if (resumed) {
+      await cdp.evaluate(`document.querySelector('.nav-dot[data-section="0"]').click()`);
+      await sleep(1200);
+      const suspended = await cdp.evaluate(
+        `window.ambientMode.isActive === false && window.ambientMode.vantaEffect === null && window.ambientMode.suspended === true`,
+      );
+      suspended ? pass("ambient suspended when leaving DEN") : fail("ambient not suspended when leaving DEN");
+      await cdp.evaluate(`document.querySelector('.nav-dot[data-section="2"]').click()`);
+      const restored = await waitFor(
+        cdp,
+        "window.ambientMode && window.ambientMode.isActive === true && window.ambientMode.vantaEffect !== null",
+        { timeout: 30000, label: "ambient resume on DEN return" },
+      );
+      restored ? pass("ambient resumed when returning to DEN") : fail("ambient did not resume on DEN return");
+    } else {
+      fail("ambient could not be re-activated for suspend/resume check");
+    }
+    await cdp.evaluate(`document.getElementById('ambientToggle').click()`);
+    await sleep(800);
     cdp.close();
 
     // 10. Verdict on console errors

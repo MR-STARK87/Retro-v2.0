@@ -412,10 +412,14 @@
         this.progressBar.style.width = `${Math.min(100, Math.max(0, rawProgress))}%`;
         this.progressText.textContent = `${Math.round(rawProgress)}%`;
 
-        if (window.ambientMode && (this.isRunning || smooth)) {
-          window.ambientMode.updateDynamicColor(
-            Math.min(1, Math.max(0, (this.totalTime - this.timeLeft) / Math.max(1, this.totalTime)))
-          );
+        if (this.isRunning || smooth) {
+          // Announce progress; AmbientMode subscribes via den:timer-progress
+          if (window.RetroEvents) {
+            RetroEvents.emit(
+              'den:timer-progress',
+              Math.min(1, Math.max(0, (this.totalTime - this.timeLeft) / Math.max(1, this.totalTime)))
+            );
+          }
         }
 
         this.completedSessionsEl.textContent = this.completedSessions;
@@ -483,32 +487,20 @@
 
     class AmbientMode {
       constructor() {
-        console.log('🌌 AmbientMode constructor called');
 
         this.isActive = false;
         this.vantaEffect = null;
+        // True when ambient was suspended because the user left the DEN pane
+        this.suspended = false;
+        // Last pomodoro progress (0..1) received via den:timer-progress
+        this.lastTimerProgress = 0;
 
-        console.log('🔍 Looking for ambientToggle element...');
         this.toggleBtn = document.getElementById("ambientToggle");
-        console.log('🔍 ambientToggle found:', this.toggleBtn);
 
         if (this.toggleBtn) {
-          console.log('✅ Toggle button exists in DOM');
-
           // CRITICAL: Remove any inline styles and set initial data-visible state
           this.toggleBtn.removeAttribute('style');
           this.toggleBtn.setAttribute('data-visible', 'false'); // Will be set to true by navigation script when on DEN section
-
-          const styles = window.getComputedStyle(this.toggleBtn);
-          console.log('🎨 Initial toggle styles:', {
-            display: styles.display,
-            visibility: styles.visibility,
-            opacity: styles.opacity,
-            position: styles.position,
-            top: styles.top,
-            right: styles.right,
-            zIndex: styles.zIndex
-          });
         } else {
           console.error('❌ CRITICAL: ambientToggle NOT FOUND in DOM during AmbientMode construction!');
         }
@@ -519,17 +511,9 @@
         this.colorOptions = document.getElementById("colorOptions");
         this.currentColorIndicator = document.getElementById("currentColorIndicator");
 
-        console.log('🔍 All DEN elements check:', {
-          vantaBg: !!this.vantaBg,
-          colorPickerContainer: !!this.colorPickerContainer,
-          colorPickerToggle: !!this.colorPickerToggle,
-          colorOptions: !!this.colorOptions,
-          currentColorIndicator: !!this.currentColorIndicator
-        });
 
         // CRITICAL: Initialize color picker container with data-visible
         if (this.colorPickerContainer) {
-          console.log('✅ Color picker container exists, initializing...');
           this.colorPickerContainer.removeAttribute('style');
           this.colorPickerContainer.setAttribute('data-visible', 'false');
         } else {
@@ -551,21 +535,27 @@
         this.initializeToggle();
         this.initializeColorPicker();
         this.loadAmbientPrefs();
+
+        // Dynamic sky colors follow pomodoro progress via events (no direct
+        // window.pomodoroTimer reach-in)
+        if (window.RetroEvents) {
+          RetroEvents.on('den:timer-progress', (progress) => {
+            this.lastTimerProgress = progress;
+            this.updateDynamicColor(progress);
+          });
+        }
       }
 
       initializeToggle() {
-        console.log('🎯 Initializing ambient toggle button...');
         if (!this.toggleBtn) {
           console.error('❌ Cannot initialize toggle - button is null!');
           return;
         }
 
         this.toggleBtn.addEventListener("click", () => {
-          console.log('🖱️ Ambient toggle clicked!');
           this.toggle();
         });
 
-        console.log('✅ Toggle button click handler attached');
       }
 
       initializeColorPicker() {
@@ -639,9 +629,8 @@
           this.isDynamicMode = true;
           this.persistAmbientPrefs();
           this.currentColorIndicator.className = "w-3 h-3 rounded-full bg-gradient-to-r from-blue-400 via-yellow-400 to-purple-600";
-          if (this.isActive && this.vantaEffect && window.pomodoroTimer) {
-            const progress = (window.pomodoroTimer.totalTime - window.pomodoroTimer.timeLeft) / Math.max(1, window.pomodoroTimer.totalTime);
-            this.updateDynamicColor(progress);
+          if (this.isActive && this.vantaEffect) {
+            this.updateDynamicColor(this.lastTimerProgress);
           }
           return;
         } else {
@@ -713,7 +702,6 @@
       }
 
       enableAmbientMode() {
-        console.log('✨ Enabling ambient mode...');
         this.toggleBtn.textContent = "Ambient: On";
         this.toggleBtn.setAttribute("aria-pressed", "true");
         this.toggleBtn.classList.add("text-white", "bg-purple-600", "border-purple-600");
@@ -752,15 +740,17 @@
             cloudOpacity: 0.8,
           });
 
-          if (this.isDynamicMode && window.pomodoroTimer) {
-            const progress = (window.pomodoroTimer.totalTime - window.pomodoroTimer.timeLeft) / Math.max(1, window.pomodoroTimer.totalTime);
-            this.updateDynamicColor(progress);
+          if (this.isDynamicMode) {
+            this.updateDynamicColor(this.lastTimerProgress);
           }
+        }
+
+        if (window.RetroEvents) {
+          RetroEvents.emit('ambient:toggled', { active: true });
         }
       }
 
       disableAmbientMode() {
-        console.log('🔴 Disabling ambient mode...');
         this.toggleBtn.textContent = "Ambient: Off";
         this.toggleBtn.setAttribute("aria-pressed", "false");
         this.toggleBtn.classList.remove("text-white", "bg-purple-600", "border-purple-600");
@@ -785,6 +775,26 @@
           this.vantaEffect.destroy();
           this.vantaEffect = null;
         }
+
+        if (window.RetroEvents) {
+          RetroEvents.emit('ambient:toggled', { active: false });
+        }
+      }
+
+      // Tear down the Vanta effect while the user is away from the DEN pane,
+      // remembering to restore it when they return (see resume()).
+      suspend() {
+        if (!this.isActive || !this.vantaEffect) return;
+        this.suspended = true;
+        this.isActive = false;
+        this.disableAmbientMode();
+      }
+
+      resume() {
+        if (!this.suspended) return;
+        this.suspended = false;
+        this.isActive = true;
+        this.enableAmbientMode();
       }
 
       loadAmbientPrefs() {
@@ -877,7 +887,6 @@
 
           // Check if current color is not the default (free tier only gets default)
           if (this.currentSkyColor !== defaultColor || this.isDynamicMode) {
-            console.log('🔒 Resetting to free tier default color');
             this.currentSkyColor = defaultColor;
             this.isDynamicMode = false;
             this.persistAmbientPrefs();
@@ -982,15 +991,21 @@
 
     // Initialize on DOMContentLoaded or immediately if already loaded
     function initializeDEN() {
-      console.log('🏁 initializeDEN called');
-      console.log('🔍 Checking if ambientToggle exists before creating AmbientMode...');
-      const preCheck = document.getElementById('ambientToggle');
-      console.log('🔍 Pre-check result:', preCheck);
-
       window.pomodoroTimer = new PomodoroTimer();
       window.ambientMode = new AmbientMode();
 
-      console.log('✅ DEN initialized - pomodoroTimer and ambientMode created');
+      // Suspend the Vanta effect while away from the DEN pane (index 2),
+      // restore it when the user returns.
+      if (window.RetroEvents) {
+        RetroEvents.on('section:change', ({ index }) => {
+          if (!window.ambientMode) return;
+          if (index !== 2) {
+            window.ambientMode.suspend();
+          } else {
+            window.ambientMode.resume();
+          }
+        });
+      }
 
       window.addEventListener("resize", () => {
         if (window.ambientMode && window.ambientMode.vantaEffect) {
@@ -1136,12 +1151,9 @@
       });
     }
 
-    console.log('📄 DEN content script readyState:', document.readyState);
     if (document.readyState === 'loading') {
-      console.log('⏳ Waiting for DOMContentLoaded to initialize DEN...');
       document.addEventListener('DOMContentLoaded', initializeDEN);
     } else {
-      console.log('✅ DOM already loaded, initializing DEN immediately...');
       initializeDEN();
     }
 
