@@ -294,8 +294,8 @@ async function main() {
   const creds = {
     firstName: "Smoke",
     lastName: "Test",
-    username: `smoke_${stamp}`,
-    email: `smoke_${stamp}@test.com`,
+    username: `smoke_${stamp}_${Math.floor(Math.random()*1e6)}`,
+    email: `smoke_${stamp}_${Math.floor(Math.random()*1e6)}@test.com`,
     password: `Sm0ke!${stamp}`,
     confirmPassword: `Sm0ke!${stamp}`,
   };
