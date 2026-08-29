@@ -69,23 +69,32 @@ class ApiClient {
     }
   }
 
-  async request(path, { method = "GET", body } = {}) {
-    const res = await fetch(`${this.baseUrl}${path}`, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        ...(this.cookies.size ? { Cookie: this.cookieHeader() } : {}),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    this.captureCookies(res);
-    let json = null;
-    try {
-      json = await res.json();
-    } catch {
-      /* non-JSON response */
+  async request(path, { method = "GET", body, retries = 2 } = {}) {
+    let lastErr;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const res = await fetch(`${this.baseUrl}${path}`, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+            ...(this.cookies.size ? { Cookie: this.cookieHeader() } : {}),
+          },
+          body: body ? JSON.stringify(body) : undefined,
+        });
+        this.captureCookies(res);
+        let json = null;
+        try {
+          json = await res.json();
+        } catch {
+          /* non-JSON response */
+        }
+        return { status: res.status, json };
+      } catch (err) {
+        lastErr = err;
+        await sleep(500);
+      }
     }
-    return { status: res.status, json };
+    throw lastErr;
   }
 }
 
