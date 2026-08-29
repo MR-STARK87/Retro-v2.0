@@ -23,7 +23,8 @@ import http from "node:http";
 const BASE_URL = process.env.BASE_URL || "http://localhost:8000";
 const CHROME_PATH =
   process.env.CHROME_PATH || "C:/Program Files/Google/Chrome/Application/chrome.exe";
-const CDP_PORT = 9223;
+// Random port per run so a zombie Chrome from a previous run can't collide.
+const CDP_PORT = 9200 + Math.floor(Math.random() * 100);
 
 // Console errors that are known-benign under this harness (API stubbing side
 // effects). Real failures = uncaught exceptions and [VANTA] errors.
@@ -247,6 +248,15 @@ async function launchChrome(startUrl) {
   throw new Error("Chrome DevTools endpoint never became available");
 }
 
+function killChrome(proc) {
+  // SIGTERM alone does not kill Chrome on Windows — taskkill the whole tree.
+  if (process.platform === "win32" && proc.pid) {
+    spawn("taskkill", ["/PID", String(proc.pid), "/T", "/F"], { stdio: "ignore" });
+  } else {
+    proc.kill("SIGTERM");
+  }
+}
+
 async function getPageTarget() {
   for (let i = 0; i < 30; i++) {
     const res = await fetch(`http://127.0.0.1:${CDP_PORT}/json/list`);
@@ -462,7 +472,7 @@ async function main() {
       pass("no uncaught exceptions or [VANTA] errors");
     }
   } finally {
-    proc.kill("SIGTERM");
+    killChrome(proc);
     proxy.server.close();
     setTimeout(() => {
       try {
