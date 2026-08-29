@@ -43,8 +43,25 @@ Place your MP3 files in this folder to play them on the DEN page music player!
 
 ## Current Status
 
-This folder currently contains:
-- No music files yet! Add some MP3s to get started 🎵
+Tracks currently in this folder:
+
+| Track | Source | License |
+|---|---|---|
+| Ezio's Family (Møme Remix) | Assassin's Creed & Møme | kept for testing |
+| Ambient Rain and Distant Thunder | USC/Sunset Editorial — Gold Tape 46 (archive.org) | CC0 1.0 |
+| Long Thunderstorm | USC/Sunset Editorial — Gold Tape 46 (archive.org) | CC0 1.0 |
+| Crackling Fireplace | USC/Sunset Editorial — Red Library: Fire (archive.org) | CC0 1.0 |
+| Campfire Burning | USC/Sunset Editorial — Red Library: Fire (archive.org) | CC0 1.0 |
+| Tropical Forest Ambience | USC/Sunset Editorial — SSE Library: Ambience (archive.org) | CC0 1.0 |
+| Night Jungle | USC/Sunset Editorial — SSE Library: Ambience (archive.org) | CC0 1.0 |
+| Crickets at Night | USC/Sunset Editorial — Gold Tape 16-18 (archive.org) | CC0 1.0 |
+| Ocean Waves on the Beach | USC/Sunset Editorial — SSE Library: Water (archive.org) | CC0 1.0 |
+| Gentle Forest Stream | USC/Sunset Editorial — SSE Library: Water (archive.org) | CC0 1.0 |
+| Whistling Wind | USC/Sunset Editorial — SSE Library: Wind (archive.org) | CC0 1.0 |
+
+The CC0 tracks are public-domain recordings from the USC Cinema / Sunset Editorial
+sound effect collections, digitized and hosted by the Internet Archive. No
+attribution is legally required, but the sources are listed above for provenance.
 
 ## Need Help?
 

@@ -52,6 +52,7 @@
                 .replace(/`([^`\n]+)`/g, '<code class="md-code">$1</code>')
                 .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
                 .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>")
+                .replace(/~~([^~\n]+)~~/g, "<del>$1</del>")
                 .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 
         const lines = src.split("\n");
@@ -149,6 +150,23 @@
             }
             const ulItem = stripped.match(/^[-*]\s+(.*)$/);
             if (ulItem) {
+                // Task list item: - [x] done / - [ ] todo (GitHub-style checklists)
+                const task = ulItem[1].match(/^\[( |x|X)\]\s+(.*)$/);
+                if (task) {
+                    if (listType !== "ul") {
+                        closeList();
+                        out.push('<ul class="md-list md-checklist">');
+                        listType = "ul";
+                    }
+                    const checked = task[1].toLowerCase() === "x";
+                    out.push(
+                        `<li class="md-task${checked ? " md-task-done" : ""}">` +
+                            `<span class="md-check" aria-hidden="true">${checked ? "\u2611" : "\u2610"}</span>` +
+                            `${inline(task[2])}</li>`,
+                    );
+                    i++;
+                    continue;
+                }
                 if (listType !== "ul") {
                     closeList();
                     out.push('<ul class="md-list">');
