@@ -401,6 +401,12 @@ async function main() {
     toggleVisible === "true"
       ? pass("ambient toggle visible on DEN")
       : fail(`ambient toggle data-visible="${toggleVisible}" on DEN`);
+    const toggleDisplayed = await cdp.evaluate(
+      `window.getComputedStyle(document.getElementById('ambientToggle')).display !== 'none'`,
+    );
+    toggleDisplayed
+      ? pass("ambient toggle rendered (computed display)")
+      : fail("ambient toggle computed display is none on DEN");
 
     await cdp.evaluate(`document.getElementById('ambientToggle').click()`);
     const vantaReady = await waitFor(
