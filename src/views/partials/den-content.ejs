@@ -471,6 +471,9 @@
                 <button class="control-btn control-btn-play" id="playPauseBtn" aria-label="Play/Pause">
                   <i class="fas fa-play"></i>
                 </button>
+                <button class="control-btn control-btn-loop" id="loopBtn" aria-label="Toggle loop" title="Loop current track">
+                  <i class="fas fa-redo"></i>
+                </button>
                 <button class="control-btn" id="nextBtn" aria-label="Next track">
                   <i class="fas fa-forward"></i>
                 </button>
@@ -893,54 +896,70 @@
 
   .progress-bar {
     width: 100%;
-    height: 4px;
+    height: 6px;
     background: #e5e7eb;
-    border-radius: 2px;
+    border-radius: 999px;
     overflow: visible;
     cursor: pointer;
     position: relative;
+    transition: height 0.2s ease;
+  }
+
+  .progress-bar:hover {
+    height: 8px;
   }
 
   .progress-fill {
     height: 100%;
-    background: #8b5cf6;
-    border-radius: 2px;
-    transition: width 0.1s linear;
+    background: linear-gradient(90deg, #7c3aed, #a855f7, #d946ef);
+    border-radius: 999px;
+    transition: width 0.15s linear;
     position: relative;
     box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
   }
 
-  /* Waveform animation when playing */
+  /* Playhead knob — grows on hover or while playing */
+  .progress-fill::before {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #a855f7;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.7);
+    transform: translateY(-50%) scale(0);
+    transition: transform 0.2s ease;
+  }
+
+  .progress-bar:hover .progress-fill::before,
+  .progress-fill.playing::before {
+    transform: translateY(-50%) scale(1);
+  }
+
+  /* Light sweep across the filled portion while playing */
   .progress-fill.playing::after {
     content: '';
     position: absolute;
-    top: -2px;
-    right: 0;
-    width: 3px;
-    height: calc(100% + 4px);
-    background: #8b5cf6;
-    border-radius: 2px;
-    box-shadow: 0 0 12px rgba(139, 92, 246, 0.8),
-                0 0 20px rgba(139, 92, 246, 0.4);
-    animation: waveform 0.8s ease-in-out infinite;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.35),
+      transparent);
+    animation: shimmer 2.4s linear infinite;
+    overflow: hidden;
   }
 
-  @keyframes waveform {
-    0%, 100% {
-      transform: scaleY(1);
-      opacity: 0.8;
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
     }
-    25% {
-      transform: scaleY(1.3);
-      opacity: 1;
-    }
-    50% {
-      transform: scaleY(0.8);
-      opacity: 0.9;
-    }
-    75% {
-      transform: scaleY(1.5);
-      opacity: 1;
+
+    100% {
+      transform: translateX(100%);
     }
   }
 
@@ -988,6 +1007,33 @@
 
   .control-btn-play:hover {
     background: #1f2937;
+  }
+
+  /* Loop toggle — active state is unmistakable */
+  .control-btn-loop.active {
+    background: #8b5cf6;
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25),
+                0 0 14px rgba(139, 92, 246, 0.6);
+  }
+
+  .control-btn-loop.active:hover {
+    background: #7c3aed;
+    color: #ffffff;
+  }
+
+  .control-btn-loop.active i {
+    animation: loop-spin 0.5s ease;
+  }
+
+  @keyframes loop-spin {
+    from {
+      transform: rotate(-360deg);
+    }
+
+    to {
+      transform: rotate(0deg);
+    }
   }
 
   .control-btn i {
@@ -1285,7 +1331,7 @@
   }
 
   [data-theme="dark"] .progress-fill {
-    background: #8b5cf6;
+    background: linear-gradient(90deg, #8b5cf6, #a78bfa, #d946ef);
     box-shadow: 0 0 10px rgba(139, 92, 246, 0.6);
   }
 
@@ -1299,11 +1345,10 @@
     box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
   }
 
-  /* Waveform animation in dark mode */
-  [data-theme="dark"] .progress-fill.playing::after {
-    background: #a78bfa;
-    box-shadow: 0 0 12px rgba(167, 139, 250, 0.9),
-                0 0 20px rgba(167, 139, 250, 0.5);
+  /* Playhead knob in dark mode */
+  [data-theme="dark"] .progress-fill::before {
+    border-color: #a78bfa;
+    box-shadow: 0 0 12px rgba(167, 139, 250, 0.9);
   }
 
   [data-theme="dark"] .control-btn {
@@ -1314,6 +1359,18 @@
 
   [data-theme="dark"] .control-btn:hover {
     background: var(--bg-primary);
+  }
+
+  [data-theme="dark"] .control-btn-loop.active {
+    background: #8b5cf6;
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.35),
+                0 0 14px rgba(139, 92, 246, 0.7);
+  }
+
+  [data-theme="dark"] .control-btn-loop.active:hover {
+    background: #7c3aed;
+    color: #ffffff;
   }
 
   [data-theme="dark"] .music-player-close-btn {

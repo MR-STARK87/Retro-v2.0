@@ -1184,6 +1184,7 @@
     const playPauseBtn = document.getElementById('playPauseBtn');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
+    const loopBtn = document.getElementById('loopBtn');
     const progressContainer = document.getElementById('progressContainer');
     const progressFill = document.getElementById('progressFill');
     const volumeContainer = document.getElementById('volumeContainer');
@@ -1197,6 +1198,7 @@
 
     let playlist = [];
     let currentTrackIndex = -1;
+    let loopEnabled = false;
 
     // Toggle to expanded view
     musicPlayerToggle.addEventListener('click', () => {
@@ -1331,8 +1333,22 @@
       }
     });
 
+    // Loop toggle — replay current track instead of advancing
+    loopBtn.addEventListener('click', () => {
+      loopEnabled = !loopEnabled;
+      audioPlayer.loop = loopEnabled;
+      loopBtn.classList.toggle('active', loopEnabled);
+      loopBtn.setAttribute('aria-pressed', String(loopEnabled));
+      loopBtn.title = loopEnabled ? 'Loop: ON' : 'Loop: OFF';
+    });
+
     // Auto-play next track when current ends
     audioPlayer.addEventListener('ended', () => {
+      if (loopEnabled) {
+        audioPlayer.currentTime = 0;
+        audioPlayer.play();
+        return;
+      }
       if (currentTrackIndex < playlist.length - 1) {
         loadTrack(currentTrackIndex + 1);
         audioPlayer.play();
@@ -1362,7 +1378,7 @@
       }
     });
 
-    // Add playing class for waveform animation
+    // Add playing class for playhead/shimmer animation
     audioPlayer.addEventListener('play', () => {
       progressFill.classList.add('playing');
     });
