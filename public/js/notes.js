@@ -203,7 +203,6 @@
             return;
         }
         if (!rawTitle && !plain) {
-            console.log("Empty note not saved.");
             return;
         }
         if (!rawTitle) {
@@ -241,7 +240,6 @@
             currentNoteId = note.id;
         }
         storeNotes(notes);
-        console.log("Note saved locally", note);
 
         // Prepare payload for server
         const payload = {
@@ -299,7 +297,6 @@
     }
 
     function createNewNote() {
-        console.log("Creating new note...");
         saveNote(true);
         currentNoteId = null;
         document.getElementById("noteTitle").value = "";
@@ -310,15 +307,12 @@
     window.saveNote = saveNote;
 
     async function enhanceWithRetro() {
-        console.log("=== ENHANCE WITH RETRO CALLED ===");
 
         // Save note first to ensure we have a remote ID
-        console.log("Saving note first...");
         await saveNote(false);
 
         const titleInput = document.getElementById("noteTitle");
         const title = titleInput.value.trim() || "Untitled Note";
-        console.log("Note title:", title);
 
         if (!title || title === "Untitled Note") {
             showNoteToast("Please add a title to your note before enhancing", "error");
@@ -328,8 +322,6 @@
         // Get the note from local storage to get remoteId
         const notes = getStoredNotes();
         const note = currentNoteId ? notes.find(n => n.id === currentNoteId) : null;
-        console.log("Current note:", note);
-        console.log("Remote ID:", note?.remoteId);
 
         if (!note || !note.remoteId) {
             showNoteToast("Please save the note to the server first before enhancing", "error");
@@ -338,7 +330,6 @@
 
         // Check if note has content
         const content = quill.getText().trim();
-        console.log("Content length:", content.length);
         if (!content || content.length < 10) {
             showNoteToast("Note content is too short to enhance. Add at least 10 characters.", "error");
             return;
@@ -362,11 +353,6 @@
             // No need to add Authorization header - HTTP-only cookie is sent automatically
 
             const requestBody = { noteId: note.remoteId };
-            console.log("=== MAKING FETCH REQUEST ===");
-            console.log("URL: /api/v1/notes/enhance");
-            console.log("Method: POST");
-            console.log("Headers:", headers);
-            console.log("Body:", requestBody);
 
             const response = await fetch("/api/v1/notes/enhance", {
                 method: "POST",
@@ -375,10 +361,6 @@
                 body: JSON.stringify(requestBody),
             });
 
-            console.log("=== RESPONSE RECEIVED ===");
-            console.log("Status:", response.status);
-            console.log("Status Text:", response.statusText);
-            console.log("OK:", response.ok);
 
             if (!response.ok) {
                 console.error("Response not OK. Status:", response.status);
@@ -410,8 +392,6 @@
             }
 
             const data = await response.json();
-            console.log("=== RESPONSE DATA ===");
-            console.log("Data:", data);
 
             if (!data || !data.success) {
                 throw new Error(data?.message || "Invalid enhance response");
@@ -458,7 +438,6 @@
     window.enhanceWithRetro = enhanceWithRetro;
 
     async function syncNotes() {
-        console.log("Syncing notes...");
         showNoteToast("Syncing notes...", "info");
 
         try {
@@ -779,7 +758,6 @@
     quill.on("text-change", function () {
         clearTimeout(autoSaveTimeout);
         autoSaveTimeout = setTimeout(function () {
-            console.log("Auto-saving...");
             if (currentNoteId) {
                 saveNote(true);
             }
