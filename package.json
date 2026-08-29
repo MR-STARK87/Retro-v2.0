@@ -6,12 +6,17 @@
   "type": "module",
   "scripts": {
     "code": "nodemon src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint .",
+    "smoke": "node scripts/smoke-test.mjs"
   },
   "author": "Syed Zaid Ali",
   "license": "ISC",
   "devDependencies": {
-    "dotenv": "^17.2.2"
+    "@eslint/js": "^10.0.1",
+    "dotenv": "^17.2.2",
+    "eslint": "^10.9.1",
+    "globals": "^17.11.0"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
