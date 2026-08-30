@@ -177,7 +177,7 @@ When adding a new route group: create a router file in `src/routes/`, import it 
 
 ## Testing notes
 - `node test-routes.js` hardcodes `BASE_URL = http://localhost:8000` (`test-routes.js:9`) but the server runs on **port 3000** by default (`src/index.js:28`) — adjust `BASE_URL` (or run server on 8000) before using it. The file header comment says 3000 while code uses 8000 — trust the code value. It does destructive cleanup (deletes test notes/cards, logs out).
-- `.env.example` is mostly aligned to code (`MONGO_URI`, `CLIENT_URL`/`FRONTEND_URL`), but **AI key is stale** (`GROQ_API_KEY` vs hard-coded dummy/local provider in `openai.js:8`). Copy real secrets into local `.env`; don't assume example values work.
+- `.env.example` is aligned to code (`MONGO_URI`, `CLIENT_URL`/`FRONTEND_URL`). AI section now documents the local provider (hardcoded in `openai.js:8`) with commented-out `AI_BASE_URL`/`AI_MODEL` hints for future env-driven config. Copy real secrets into local `.env`; don't assume example values work.
 - Chat tests in `test-routes.js:660` now need `chatSessionId` — older tests that only send `message` will 404 (`chat.js:99`).
 
 ## Styling / code-style guidelines
@@ -210,7 +210,7 @@ Repo is initialized at the project root (`./.git/`, branch `main`, HEAD `758f830
 - **Conventions:** keep commits scoped (`feat:`, `fix:`, `docs:`, `style:`, `chore:`), one logical change per commit, branch per feature (`git checkout -b feat/xyz`). Keep `.env` out of history; if a secret was ever committed, rotate it and use `git filter-repo`.
 
 ## Known gaps (not blocking, but worth fixing)
-- `src/utils/openai.js:8` hardcodes `apiKey:"dummy"` + `baseURL:"http://127.0.0.1:8319/v1"` + `model:"claude-opus-5"`; `.env.example:14` still documents `GROQ_API_KEY`/Groq — env and code are out of sync.
+- `src/utils/openai.js:8` hardcodes `apiKey:"dummy"` + `baseURL:"http://127.0.0.1:8319/v1"` + `model:"claude-opus-5"`; `.env.example` now reflects this (stale `GROQ_API_KEY` removed — see commented-out `AI_BASE_URL`/`AI_MODEL` hints for making it env-driven).
 - `src/views/loginSignUp.ejs:947` redirects after login to `/chat` while `viewRoutes.js:43` guards `/app` and `redirectIfAuthenticated` redirects to `/app` — split causes extra redirect (`/chat` → `/app` via `viewRoutes.js:62`).
 - `src/controllers/auth.js:47` registration still accepts unused `role` from body; `registerSchema.js` doesn't validate it; `user.js` has no `role` field — silently dropped.
 - `public/music/` currently contains one committed MP3 name with spaces and `&`; `.gitignore:43` will ignore future MP3/WAV/OGG unless you `git add -f` or rely on the existing tracked file.
