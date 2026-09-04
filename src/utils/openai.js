@@ -3,11 +3,13 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Initialize OpenAI client — local provider (OpenAI-compatible)
-// See provider/README.md: baseURL http://127.0.0.1:8319/v1, no real key needed (dummy), model claude-opus-5
+// Initialize OpenAI client — env-driven with local fallback.
+// On Render set: AI_BASE_URL, AI_API_KEY, AI_MODEL.
+// Local default: http://127.0.0.1:8319/v1 + dummy key + claude-opus-5
+// See .env.example for details.
 const openai = new OpenAI({
-  apiKey: "dummy",
-  baseURL: "http://127.0.0.1:8319/v1",
+  apiKey: process.env.AI_API_KEY || "dummy",
+  baseURL: process.env.AI_BASE_URL || "http://127.0.0.1:8319/v1",
 });
 
 /**
@@ -18,7 +20,7 @@ const openai = new OpenAI({
  */
 export const chatCompletion = async (
   messages,
-  model = "claude-opus-5",
+  model = process.env.AI_MODEL || "claude-opus-5",
 ) => {
   try {
     const response = await openai.chat.completions.create({
