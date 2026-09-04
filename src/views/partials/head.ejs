@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="/icon.svg" />
 
 <!-- Tailwind CSS -->
-<link rel="stylesheet" href="/css/tailwind.css" />
+<link rel="stylesheet" href="/css/tailwind.css?v=<%= assetVersion %>" />
 
 <!-- Font Awesome -->
 <link
@@ -31,8 +31,8 @@
 />
 
 <!-- Cross-pane event conventions + cached script loader (must load before the pane scripts) -->
-<script defer src="/js/common/events.js"></script>
-<script defer src="/js/common/loader.js"></script>
+<script defer src="/js/common/events.js?v=<%= assetVersion %>"></script>
+<script defer src="/js/common/loader.js?v=<%= assetVersion %>"></script>
 
 <style>
     :root {

@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import compression from "compression";
 import path from "path";
+import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import connectDB from "./db/dbConnection.js";
 import healthCheckRoute from "./routes/healthCheckRoute.js";
@@ -67,6 +68,26 @@ if (process.env.NODE_ENV === "development") {
 
 // gzip/deflate responses (before static + API routes)
 app.use(compression());
+
+// Cache-busting version for static assets (?v=...). Render injects the
+// deploy commit hash; otherwise fall back to the package version in
+// production, or a fresh timestamp per boot in dev (local edits are never
+// cached, no manual bumps needed).
+let assetVersion = process.env.RENDER_GIT_COMMIT;
+if (!assetVersion) {
+  try {
+    const pkg = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
+    );
+    assetVersion =
+      process.env.NODE_ENV === "production"
+        ? `v${pkg.version}`
+        : String(Date.now());
+  } catch {
+    assetVersion = String(Date.now());
+  }
+}
+app.locals.assetVersion = assetVersion;
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
