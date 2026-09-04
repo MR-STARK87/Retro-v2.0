@@ -1,623 +1,332 @@
 <p align="center">
-  <img src="public/assets/images/logo.png" alt="Retro Logo" width="120" height="120">
+  <img src="public/icon.svg" alt="Retro — Minimal R Logo" width="92" height="92">
 </p>
 
 <h1 align="center">Retro</h1>
 
 <p align="center">
-  <strong>AI-Powered Smart Study Assistant</strong>
+  <em>One workspace. No app switching.</em><br>
+  AI-powered study assistant — chat, notes, flashcards & focus in one place.
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> •
-  <a href="#demo">Demo</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#api-reference">API</a> •
-  <a href="#tech-stack">Tech Stack</a> •
-  <a href="#contributing">Contributing</a>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen" alt="Node Version">
-  <img src="https://img.shields.io/badge/license-ISC-blue" alt="License">
-  <img src="https://img.shields.io/badge/express-5.x-lightgrey" alt="Express Version">
+  <img src="https://img.shields.io/badge/node-%3E%3D18-brightgreen" alt="Node >=18">
+  <img src="https://img.shields.io/badge/express-5.x-lightgrey" alt="Express 5">
   <img src="https://img.shields.io/badge/mongodb-8.x-green" alt="MongoDB">
-  <img src="https://img.shields.io/badge/AI-Groq%20LLM-purple" alt="AI Powered">
+  <img src="https://img.shields.io/badge/tailwind-3.4.17-38bdf8" alt="Tailwind 3.4.17">
+  <img src="https://img.shields.io/badge/AI-OpenAI_Compatible-purple" alt="AI">
+  <img src="https://img.shields.io/badge/license-ISC-blue" alt="License ISC">
+</p>
+
+<p align="center">
+  <a href="#overview">Overview</a> •
+  <a href="#features">Features</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#api-reference">API</a> •
+  <a href="#project-structure">Structure</a> •
+  <a href="#tech-stack">Stack</a>
 </p>
 
 ---
 
-## 🎯 Overview
+## Overview
 
-**Retro** is an intelligent study companion that combines the power of AI with intuitive note-taking, flashcard generation, and ambient study features. Designed to enhance your learning experience, Retro helps you organize knowledge, understand complex concepts, and retain information effectively.
+**Retro** is a full-stack study workspace that replaces the daily juggle between ChatGPT, Anki, Notion and Pomodoro/Forest timers with a single, coherent app.
 
-Whether you're a student preparing for exams, a professional learning new skills, or a lifelong learner exploring new topics, Retro adapts to your learning style and remembers your preferences across sessions.
+Built with **Express 5 + Mongoose + EJS + Tailwind CSS v3**, it provides a horizontal 4-pane interface — **Chat, Notes, Den, Flashcards** — backed by an OpenAI-compatible AI layer, JWT auth, and optional Stripe subscriptions. Designed as a minor-project submission with production-grade conventions.
 
----
+> **Objective:** Eliminate context-switching. Give students an integrated, AI-native environment to capture knowledge, clarify doubts, retain via flashcards, and stay in flow.
 
-## ✨ Features
-
-### 📝 Smart Notes Management
-- **Rich Text Editor** - Create notes with full formatting support (Quill Delta)
-- **Organize with Tags & Categories** - Keep your knowledge structured
-- **Pin, Favorite & Archive** - Quick access to important notes
-- **Color Coding** - Visual organization at a glance
-- **Full-Text Search** - Find anything instantly
-- **AI Enhancement** - Improve your notes while preserving your voice
-
-### 🤖 AI Chat Assistant (Retro)
-- **Context-Aware Conversations** - Retro remembers your preferences and learning goals
-- **Chat with Notes** - Ask questions about specific notes as reference
-- **Study Help** - Get explanations, summaries, and clarifications
-- **Persistent Memory** - Long-term context storage across sessions
-
-### 🎴 Intelligent Flashcards
-- **AI-Generated Flashcards** - Automatically create flashcards from any note
-- **Manual Creation** - Build your own custom cards
-- **Difficulty Levels** - Easy, Medium, Hard classification
-- **Spaced Repetition Tracking** - Review counts and timestamps
-- **Filter & Search** - Find cards by difficulty, tags, or content
-
-### 🎵 Ambient Study Music
-- **Background Music Streaming** - Focus with ambient sounds
-- **Seekable Playback** - Jump to any point in the track
-- **Multiple Formats** - Support for MP3, WAV, and OGG
-
-### 🌙 Study Environment (DEN)
-- **Focus Timer** - Pomodoro-style study sessions
-- **Ambient Mode** - Immersive study atmosphere
-- **Theme Customization** - Light/Dark modes with sky color options
-- **Distraction-Free Interface** - Clean, minimal design
+**Live demo video:** [`Retro_Final-Edit.mp4`](https://raw.githubusercontent.com/MR-STARK87/Samadhan-2.0/main/Retro_Final-Edit.mp4) — also available at [`Samadhan-2.0/Retro_Final-Edit.mp4`](https://github.com/MR-STARK87/Samadhan-2.0/blob/main/Retro_Final-Edit.mp4)
 
 ---
 
-## 🖼️ Screenshots
+## Features
 
-<details>
-<summary>Click to view screenshots</summary>
+### AI Chat — Context-aware, streaming-ready
+- Persistent chat sessions (6 collections: `User`, `Note`, `Card`, `ChatSession`, `UserContext`, `Subscription`)
+- **Chat** and **Chat with Note** (note injected as reference context)
+- Streaming mode (`{ stream: true }` → `text/plain` paced chunks) with correct quota accounting
+- Stable onboarding context (`stableContext` / `displayName` / `setupCompleted`) never overwritten by the mutable AI-generated `context`
 
-### Chat Interface
-The AI chat interface where you can have context-aware conversations with Retro.
+### Smart Notes
+- **Quill Delta** storage (`{ ops: [...] }`) + derived `plainText` for search
+- Tags, categories, colors, pin / favorite / archive
+- Full-text search (`$regex` + text index on `plainText`/`title`)
+- **AI Enhance** — preserves voice, returns `{ enhanced, improvements, preserved }`
 
-### Notes Dashboard
-Organize, search, and manage all your notes in one place.
+### Flashcards
+- Manual or **AI-generated** from any note (`{ numberOfCards, cards: [{ title, content }] }`)
+- Difficulty (`easy` / `medium` / `hard`), `reviewCount`, `isAIGenerated`, background `setImmediate` save
+- Filter, search, pin, favorite, mark-reviewed
 
-### Flashcards View
-Review AI-generated or manually created flashcards with spaced repetition.
+### Den — Study Environment
+- Pomodoro-style focus timer with progress events
+- **Ambient Mode** — lazy-loaded `three.js r121 + vanta.clouds` on first activation (~700 KB saved on first paint)
+- Dynamic sky reacting to timer progress via `RetroEvents`
+- Theme-aware (light/dark via `data-theme` + `localStorage`)
 
-### DEN (Study Environment)
-Ambient study space with timer and customizable atmosphere.
+### Ambient Music
+- Lists `public/music/` (`mp3` / `wav` / `ogg`) via `/api/v1/music`
+- Streaming with **Range / 206** support + path-traversal guard; also served as static `/music/:file`
 
-</details>
+### Auth & Onboarding
+- JWT (HTTP-only `accessToken` + `refreshToken` cookies, `Authorization: Bearer` also supported)
+- Email verification (Nodemailer via Mailtrap in dev), forgot/reset, refresh, resend-verification, change-password
+- 7-step setup wizard (`/setup` → `POST /api/v1/onboarding`) → `stableContext`; guards redirect to `/app` or `/setup` correctly
 
----
-
-## 🚀 Installation
-
-### Prerequisites
-
-- **Node.js** >= 18.0.0
-- **MongoDB** >= 6.0 (local or [MongoDB Atlas](https://www.mongodb.com/atlas))
-- **Groq API Key** (for AI features) - [Get one here](https://console.groq.com/)
-- **Mailtrap Account** (for emails) - [Sign up here](https://mailtrap.io/)
-
-### Quick Start
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/retro.git
-   cd retro
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Configure environment variables**
-   
-   Create a `.env` file in the root directory:
-   ```env
-   # Server Configuration
-   PORT=3000
-   NODE_ENV=development
-
-   # Database
-   MONGO_URI=mongodb://localhost:27017/retro
-
-   # JWT Authentication
-   ACCESS_TOKEN_SECRET=your-super-secret-access-token-key-min-256-bits
-   REFRESH_TOKEN_SECRET=your-super-secret-refresh-token-key-min-256-bits
-   ACCESS_TOKEN_EXPIRY=86400
-   REFRESH_TOKEN_EXPIRY=604800
-
-   # AI Service (Groq)
-   GROQ_API_KEY=your-groq-api-key
-
-   # Email Service (Mailtrap)
-   MAILTRAP_SMTP_HOST=sandbox.smtp.mailtrap.io
-   MAILTRAP_SMTP_PORT=587
-   MAILTRAP_SMTP_USER=your-mailtrap-user
-   MAILTRAP_SMTP_PASS=your-mailtrap-pass
-
-   # Frontend URL (for CORS in production)
-   FRONTEND_URL=http://localhost:3000
-   ```
-
-4. **Add music files** (optional)
-   
-   Place your MP3, WAV, or OGG files in `public/music/` directory for ambient music feature.
-
-5. **Start the server**
-   ```bash
-   # Development mode with hot reload
-   npm run code
-
-   # Or standard start
-   node src/index.js
-   ```
-
-6. **Open in browser**
-   
-   Navigate to `http://localhost:3000`
+### Subscriptions (optional)
+- Stripe-ready tiering (Free → Pro → Premium) with webhook (`express.raw`) and `User.subscription` denormalized cache. App runs without `STRIPE_SECRET_KEY` (bootstrap warning only).
 
 ---
 
-## 📖 API Reference
+## Tech Stack
 
-### Base URL
-```
-http://localhost:3000/api/v1
-```
+| Layer | Technology |
+|-------|------------|
+| Runtime | Node.js >= 18 (dev on v22.11.0) |
+| Backend | Express 5, Mongoose 8, JWT, bcrypt, Zod, Nodemailer, Stripe |
+| Frontend | EJS, Tailwind CSS v3.4.17 (compiled `public/css/tailwind.css`), Quill Delta, Font Awesome, Google Fonts (IBM Plex + Space Grotesk) |
+| Database | MongoDB (6 models) |
+| AI | OpenAI SDK → OpenAI-compatible provider (`http://127.0.0.1:8319/v1`, `apiKey: "dummy"`, model `claude-opus-5` — see `src/utils/openai.js:8` and `provider/README.md`) |
+| Tooling | ESLint (flat config), `compression` gzip, `express.static` caching, CDP smoke test, CSS coverage script |
 
-### Authentication
-All protected routes require a JWT token via:
-- **Cookie**: `accessToken` (HTTP-only)
-- **Header**: `Authorization: Bearer <token>`
-
----
-
-### 🔐 Auth Endpoints
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `POST` | `/auth/register` | Register new user | ❌ |
-| `POST` | `/auth/login` | Login user | ❌ |
-| `POST` | `/auth/logout` | Logout user | ✅ |
-| `GET` | `/auth/me` | Get current user | ✅ |
-| `GET` | `/auth/verify-email` | Verify email address | ❌ |
-| `POST` | `/auth/forgot-password` | Request password reset | ❌ |
-| `POST` | `/auth/reset-password` | Reset password | ❌ |
-| `POST` | `/auth/refresh-token` | Refresh access token | ❌ |
-| `POST` | `/auth/resend-verification-email` | Resend verification | ✅ |
-
-<details>
-<summary>View Request/Response Examples</summary>
-
-#### Register User
-```bash
-POST /api/v1/auth/register
-Content-Type: application/json
-
-{
-  "firstName": "John",
-  "lastName": "Doe",
-  "username": "johndoe",
-  "email": "john@example.com",
-  "password": "SecurePass123!",
-  "confirmPassword": "SecurePass123!"
-}
-```
-
-#### Login
-```bash
-POST /api/v1/auth/login
-Content-Type: application/json
-
-{
-  "email": "john@example.com",
-  "password": "SecurePass123!"
-}
-```
-
-</details>
+> To switch to Groq: set `baseURL: "https://api.groq.com/openai/v1"` and `apiKey: process.env.GROQ_API_KEY` in `src/utils/openai.js`.
 
 ---
 
-### 📝 Notes Endpoints
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `POST` | `/notes` | Create note | ✅ |
-| `GET` | `/notes` | Get all notes | ✅ |
-| `GET` | `/notes/:id` | Get note by ID | ✅ |
-| `PUT` | `/notes/:id` | Update note | ✅ |
-| `DELETE` | `/notes/:id` | Delete note | ✅ |
-| `GET` | `/notes/search?query=` | Search notes | ✅ |
-| `GET` | `/notes/tags` | Get user tags | ✅ |
-| `GET` | `/notes/categories` | Get user categories | ✅ |
-| `PATCH` | `/notes/:id/pin` | Toggle pin | ✅ |
-| `PATCH` | `/notes/:id/favorite` | Toggle favorite | ✅ |
-| `PATCH` | `/notes/:id/archive` | Toggle archive | ✅ |
-| `POST` | `/notes/enhance` | AI enhance note | ✅ |
-
-<details>
-<summary>View Request/Response Examples</summary>
-
-#### Create Note
-```bash
-POST /api/v1/notes
-Content-Type: application/json
-
-{
-  "title": "Introduction to Machine Learning",
-  "content": {
-    "ops": [
-      { "insert": "Machine learning is a subset of AI...\n" }
-    ]
-  },
-  "tags": ["ai", "ml", "data-science"],
-  "category": "Computer Science",
-  "color": "#4a90d9"
-}
-```
-
-#### Response
-```json
-{
-  "success": true,
-  "message": "Note created successfully",
-  "data": {
-    "_id": "64abc123...",
-    "title": "Introduction to Machine Learning",
-    "content": { "ops": [...] },
-    "plainText": "Machine learning is a subset of AI...",
-    "tags": ["ai", "ml", "data-science"],
-    "category": "Computer Science",
-    "color": "#4a90d9",
-    "isPinned": false,
-    "isFavorite": false,
-    "isArchived": false,
-    "createdAt": "2024-01-15T10:30:00.000Z"
-  }
-}
-```
-
-</details>
-
----
-
-### 🤖 Chat Endpoints
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `POST` | `/chat` | Send message to AI | ✅ |
-| `POST` | `/chat-with-note` | Chat with note context | ✅ |
-
-<details>
-<summary>View Request/Response Examples</summary>
-
-#### Chat with Retro
-```bash
-POST /api/v1/chat
-Content-Type: application/json
-
-{
-  "message": "Explain the concept of neural networks",
-  "chatSessionId": "64abc123..."
-}
-```
-
-#### Response
-```json
-{
-  "success": true,
-  "response": "Neural networks are computing systems inspired by biological neural networks...",
-  "meta": "Explained neural networks concept"
-}
-```
-
-#### Chat with Note
-```bash
-POST /api/v1/chat-with-note
-Content-Type: application/json
-
-{
-  "message": "Summarize the key points from this note",
-  "noteId": "64abc123..."
-}
-```
-
-</details>
-
----
-
-### 🎴 Flashcards Endpoints
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `POST` | `/cards` | Create card | ✅ |
-| `POST` | `/cards/ai` | Generate from note | ✅ |
-| `GET` | `/cards` | Get all cards | ✅ |
-| `GET` | `/cards/:id` | Get card by ID | ✅ |
-| `PUT` | `/cards/:id` | Update card | ✅ |
-| `DELETE` | `/cards/:id` | Delete card | ✅ |
-| `GET` | `/cards/search?query=` | Search cards | ✅ |
-| `GET` | `/cards/note/:noteId` | Get cards by note | ✅ |
-| `DELETE` | `/cards/note/:noteId` | Delete cards by note | ✅ |
-| `PATCH` | `/cards/:id/pin` | Toggle pin | ✅ |
-| `PATCH` | `/cards/:id/favorite` | Toggle favorite | ✅ |
-| `PATCH` | `/cards/:id/review` | Mark reviewed | ✅ |
-
-<details>
-<summary>View Request/Response Examples</summary>
-
-#### Generate Flashcards from Note
-```bash
-POST /api/v1/cards/ai
-Content-Type: application/json
-
-{
-  "noteId": "64abc123..."
-}
-```
-
-#### Response
-```json
-{
-  "success": true,
-  "message": "Flashcards generated successfully",
-  "data": {
-    "noteId": "64abc123...",
-    "noteTitle": "Introduction to Machine Learning",
-    "numberOfCards": 5,
-    "cards": [
-      {
-        "title": "What is machine learning?",
-        "content": "Machine learning is a subset of AI that enables systems to learn from data..."
-      },
-      {
-        "title": "What are the types of machine learning?",
-        "content": "The three main types are: supervised, unsupervised, and reinforcement learning."
-      }
-    ]
-  }
-}
-```
-
-</details>
-
----
-
-### 💬 Chat Sessions Endpoints
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `POST` | `/chat-sessions` | Create session | ✅ |
-| `GET` | `/chat-sessions` | Get all sessions | ✅ |
-| `GET` | `/chat-sessions/:sessionId` | Get session | ✅ |
-| `DELETE` | `/chat-sessions/:sessionId` | Delete session | ✅ |
-
----
-
-### 🎵 Music Endpoints
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `GET` | `/music` | Get music list | ❌ |
-| `GET` | `/music/stream/:filename` | Stream music | ❌ |
-| `GET` | `/music/info/:filename` | Get file info | ❌ |
-
----
-
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 retro/
-├── 📁 public/
-│   ├── 📁 assets/
-│   │   └── 📁 images/          # Static images
-│   ├── 📁 music/               # Music files for streaming
-│   ├── 📄 *.html               # Static HTML pages
-│   └── 📄 *.css                # Stylesheets
-│
-├── 📁 src/
-│   ├── 📁 controllers/         # Request handlers
-│   │   ├── auth.js             # Authentication logic
-│   │   ├── card.js             # Flashcard operations
-│   │   ├── chat.js             # AI chat functionality
-│   │   ├── chatSession.js      # Session management
-│   │   ├── musicController.js  # Music streaming
-│   │   └── note.js             # Notes CRUD
-│   │
-│   ├── 📁 db/
-│   │   └── dbConnection.js     # MongoDB connection
-│   │
-│   ├── 📁 middlewares/
-│   │   ├── tokenChecker.js     # JWT verification
-│   │   ├── validate.js         # Zod validation
-│   │   └── ...                 # Other middlewares
-│   │
-│   ├── 📁 models/              # Mongoose schemas
-│   │   ├── user.js
-│   │   ├── note.js
-│   │   ├── card.js
-│   │   ├── chatSession.js
-│   │   └── userContext.js
-│   │
-│   ├── 📁 routes/              # API route definitions
-│   │   ├── authRoutes.js
-│   │   ├── noteRoutes.js
-│   │   ├── cardRoutes.js
-│   │   ├── chatRoutes.js
-│   │   ├── chatSessionRoutes.js
-│   │   ├── musicRoutes.js
-│   │   └── viewRoutes.js
-│   │
-│   ├── 📁 utils/
-│   │   ├── 📁 prompts/         # AI prompt templates
-│   │   │   ├── answeringPrompt.txt
-│   │   │   ├── contextPrompt.txt
-│   │   │   ├── flashcardPrompt.txt
-│   │   │   ├── noteEnhancePrompt.txt
-│   │   │   └── noteReferencePrompt.txt
-│   │   ├── asyncHandler.js     # Async error wrapper
-│   │   ├── mail.js             # Email utilities
-│   │   └── openai.js           # AI API client
-│   │
-│   ├── 📁 validators/          # Zod validation schemas
-│   │   ├── registerSchema.js
-│   │   ├── loginSchema.js
-│   │   ├── noteSchemas.js
-│   │   ├── flashcardSchemas.js
-│   │   └── validationRules.js
-│   │
-│   ├── 📁 views/               # EJS templates
-│   │   ├── 📁 partials/
-│   │   ├── app.ejs
-│   │   └── loginSignUp.ejs
-│   │
-│   └── 📄 index.js             # Application entry point
-│
-├── 📄 .env                     # Environment variables
-├── 📄 package.json
-├── 📄 SRS_DOCUMENT.md          # Software Requirements Spec
-└── 📄 README.md
+├── public/
+│   ├── css/                  # tailwind.css (compiled, committed) + app.css (shell + shared components)
+│   ├── js/                   # pane scripts (defer, classic scripts sharing window.* globals)
+│   │   ├── common/           # events.js (RetroEvents pub/sub), loader.js (cached CDN loader)
+│   │   └── chat.js notes.js den.js flashcards.js nav.js profile.js theme.js
+│   ├── music/                # ambient audio (mp3/wav/ogg) — auto-listed by /api/v1/music
+│   ├── favicon.svg / icon.svg
+│   └── email-verified.html / email-verification-error.html
+├── scripts/
+│   ├── smoke-test.mjs        # CDP UI smoke test (register → onboard → 4 panes)
+│   ├── css-coverage.mjs      # verifies every live DOM class has a CSS rule
+│   └── screenshot.mjs
+├── src/
+│   ├── index.js              # bootstrap: CORS, compression, static, EJS, route mounting
+│   ├── db/dbConnection.js
+│   ├── controllers/          # auth, note, card, chat, chatSession, music, subscription, onboarding, healthCheck
+│   ├── models/               # user, note, card, chatSession, userContext, subscription
+│   ├── middlewares/          # tokenChecker, viewTokenChecker, redirectIfAuthenticated, validate, rateLimiter, usageTracker
+│   ├── routes/               # auth, notes, cards, chat, chatSessions, music, subscription, onboarding, views, health
+│   ├── styles/tailwind.css   # Tailwind input (@tailwind base/components/utilities)
+│   ├── utils/                # asyncHandler, mail, openai, prompts/
+│   ├── validators/           # Zod schemas (register, login, password, note, flashcard, onboarding)
+│   └── views/                # EJS — app, setup, upgrade, loginSignUp + partials/
+├── .env.example
+├── tailwind.config.js
+├── eslint.config.js
+├── package.json
+└── README.md
 ```
 
----
-
-## 🛠️ Tech Stack
-
-### Backend
-| Technology | Purpose |
-|------------|---------|
-| **Node.js** | Runtime environment |
-| **Express.js 5** | Web framework |
-| **MongoDB** | Database |
-| **Mongoose** | ODM |
-| **JWT** | Authentication |
-| **bcrypt** | Password hashing |
-| **Zod** | Input validation |
-
-### AI & Services
-| Service | Purpose |
-|---------|---------|
-| **Groq API** | LLM inference (Llama 4 Maverick) |
-| **Mailtrap** | Email delivery |
-
-### Frontend
-| Technology | Purpose |
-|------------|---------|
-| **EJS** | Templating |
-| **Tailwind CSS** | Styling |
-| **Quill** | Rich text editor |
+Route mount order in `src/index.js:77` matters: `/api/v1/*` first, view routes at `/` last.
 
 ---
 
-## 🔧 Configuration
+## Quick Start
 
-### Environment Variables
+### Prerequisites
+- Node.js >= 18, MongoDB >= 6 (local or Atlas), Mailtrap account (dev email), Stripe account (optional)
 
-| Variable | Description | Required |
-|----------|-------------|:--------:|
-| `PORT` | Server port | ❌ |
-| `NODE_ENV` | `development` or `production` | ✅ |
-| `MONGO_URI` | MongoDB connection string | ✅ |
-| `ACCESS_TOKEN_SECRET` | JWT signing secret | ✅ |
-| `REFRESH_TOKEN_SECRET` | Refresh token secret | ✅ |
-| `ACCESS_TOKEN_EXPIRY` | Token expiry in seconds | ✅ |
-| `REFRESH_TOKEN_EXPIRY` | Refresh expiry in seconds | ✅ |
-| `GROQ_API_KEY` | Groq API key | ✅ |
-| `MAILTRAP_SMTP_HOST` | SMTP host | ✅ |
-| `MAILTRAP_SMTP_PORT` | SMTP port | ✅ |
-| `MAILTRAP_SMTP_USER` | SMTP username | ✅ |
-| `MAILTRAP_SMTP_PASS` | SMTP password | ✅ |
-| `FRONTEND_URL` | Frontend URL for CORS | ❌ |
+### 1. Clone & install
+```bash
+git clone https://github.com/MR-STARK87/Retro-v2.0.git
+cd Retro-v2.0
+npm install
+# nodemon is not in package.json — for `npm run code` install globally:
+npm i -g nodemon
+```
 
-### Password Requirements
-- Minimum 8 characters
-- At least one uppercase letter
-- At least one lowercase letter
-- At least one number
-- At least one special character
+### 2. Configure env
 
----
+Create `.env` in the project root (see `.env.example` — authoritative):
 
-## 🤝 Contributing
+```env
+PORT=3000
+NODE_ENV=development
+MONGO_URI=mongodb://localhost:27017/retro
 
-Contributions are welcome! Here's how you can help:
+ACCESS_TOKEN_SECRET=your-access-token-secret-min-32-chars
+ACCESS_TOKEN_EXPIRY=86400
+REFRESH_TOKEN_SECRET=your-refresh-token-secret-min-32-chars
+REFRESH_TOKEN_EXPIRY=604800
 
-1. **Fork the repository**
+# AI — hardcoded in src/utils/openai.js (local OpenAI-compatible, no env needed by default)
+# AI_BASE_URL=http://127.0.0.1:8319/v1
+# AI_MODEL=claude-opus-5
 
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
+MAILTRAP_SMTP_HOST=sandbox.smtp.mailtrap.io
+MAILTRAP_SMTP_PORT=587
+MAILTRAP_SMTP_USER=your-mailtrap-user
+MAILTRAP_SMTP_PASS=your-mailtrap-pass
 
-3. **Commit your changes**
-   ```bash
-   git commit -m 'Add some amazing feature'
-   ```
+FRONTEND_URL=http://localhost:3000
+CLIENT_URL=http://localhost:3000
 
-4. **Push to the branch**
-   ```bash
-   git push origin feature/amazing-feature
-   ```
+# Stripe (optional — app runs without it)
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_PRO_MONTHLY=price_...
+STRIPE_PRICE_PRO_YEARLY=price_...
+STRIPE_PRICE_PREMIUM_MONTHLY=price_...
+STRIPE_PRICE_PREMIUM_YEARLY=price_...
+```
 
-5. **Open a Pull Request**
+> `.env` is gitignored. Never commit secrets. AI defaults to local provider — no `GROQ_API_KEY` required unless you rewire `openai.js`.
 
-### Development Guidelines
+### 3. (Optional) Ambient music
+Drop `.mp3` / `.wav` / `.ogg` files into `public/music/`. Served at `/api/v1/music/stream/:filename` (Range-aware) and `/music/:filename`.
 
-- Follow the existing code style
-- Write meaningful commit messages
-- Add tests for new features
-- Update documentation as needed
-- Use conventional commits format
+### 4. Run
+```bash
+npm run code       # dev with nodemon (src/index.js)
+# or
+node src/index.js
 
----
+npm run build:css  # rebuild Tailwind after editing views/public/js
+npm run watch:css  # watch mode
+npm run lint       # ESLint (src/, scripts/, public/js/)
+npm run smoke      # CDP smoke test (needs running server + Chrome)
+```
 
-## 📋 Roadmap
-
-- [ ] **Subscription System** - Tiered access (Free, Pro, Premium)
-- [ ] **Rate Limiting** - API usage quotas
-- [ ] **Note Sharing** - Collaborate with others
-- [ ] **Export Options** - PDF, Markdown, Word
-- [ ] **Offline Mode** - PWA support
-- [ ] **Mobile App** - React Native/Flutter
-- [ ] **Advanced Search** - AI-powered semantic search
-- [ ] **Note Templates** - Pre-built templates
-- [ ] **Analytics Dashboard** - Study statistics
+Open `http://localhost:3000` → `/` redirects to `/app` (authed) or `/login`.
 
 ---
 
-## 📄 License
+## API Reference
 
-This project is licensed under the **ISC License** - see the [LICENSE](LICENSE) file for details.
+Base URL: `http://localhost:3000/api/v1`
+
+Auth via HTTP-only `accessToken` cookie **or** `Authorization: Bearer <token>` header.
+
+| Group | Method & Endpoint | Description | Auth |
+|-------|-------------------|-------------|------|
+| **Health** | `GET /health` | `{ status: "OK", message: "Server is healthy" }` | — |
+| **Auth** | `POST /auth/register` | Register | — |
+| | `POST /auth/login` | Login (sets cookies, redirects to `/app`) | — |
+| | `POST /auth/logout` | Logout | ✓ |
+| | `GET /auth/me` | Current user + memory | ✓ |
+| | `GET /auth/verify-email?token=` | Verify email | — |
+| | `POST /auth/forgot-password` | Request reset | — |
+| | `POST /auth/reset-password` | Reset (token) | — |
+| | `POST /auth/change-password` | Change (authed) | ✓ |
+| | `POST /auth/refresh-token` | Refresh access token | — |
+| | `POST /auth/resend-verification-email` | Resend verification | ✓ |
+| **Notes** | `POST /notes` | Create (Quill Delta) | ✓ |
+| | `GET /notes` | List | ✓ |
+| | `GET /notes/:id` | Get one | ✓ |
+| | `PUT /notes/:id` | Update | ✓ |
+| | `DELETE /notes/:id` | Delete | ✓ |
+| | `GET /notes/search?query=` | Search | ✓ |
+| | `GET /notes/tags` · `GET /notes/categories` | Aggregations | ✓ |
+| | `PATCH /notes/:id/pin` · `.../favorite` · `.../archive` | Toggles | ✓ |
+| | `POST /notes/enhance` | AI enhance `{ enhanced, improvements, preserved }` | ✓ |
+| **Chat** | `POST /chat` | AI chat `{ message, chatSessionId, stream? }` → `{ success, response }` or `text/plain` chunks | ✓ |
+| | `POST /chat-with-note` | Chat with note `{ message, noteId, chatSessionId?, stream? }` → `+ noteReference` | ✓ |
+| **Cards** | `POST /cards` | Create manual | ✓ |
+| | `POST /cards/ai` | Generate from note `{ noteId }` | ✓ |
+| | `GET /cards` · `GET /cards/:id` · `PUT /cards/:id` · `DELETE /cards/:id` | CRUD | ✓ |
+| | `GET /cards/search?query=` · `GET /cards/note/:noteId` · `DELETE /cards/note/:noteId` | Query | ✓ |
+| | `PATCH /cards/:id/pin` · `.../favorite` · `.../review` | Actions | ✓ |
+| **Sessions** | `POST /chat-sessions` · `GET /chat-sessions` · `GET /chat-sessions/:sessionId` · `DELETE /chat-sessions/:sessionId` | Session CRUD | ✓ |
+| **Music** | `GET /music` | List tracks | — |
+| | `GET /music/stream/:filename` | Stream (206 Range) | — |
+| | `GET /music/info/:filename` | File info | — |
+| **Onboarding** | `POST /onboarding` | Complete setup `{ displayName, role, subjects, goal, answerStyle, tone, anythingElse }` | ✓ |
+| **Subscription** | `.../subscription` | Stripe checkout/portal/webhook (optional) | ✓ |
+
+Success shape: `{ success: true, message, data }` — chat non-stream: `{ success, response }`. Errors: `{ success: false, message, errors? }`.
 
 ---
 
-## 👨‍💻 Author
+## Frontend Architecture
 
-**Syed Zaid Ali**
+- **Partials:** `src/views/partials/` — `head`, `theme-toggle`, `profile-icon`, `horizontal-nav`, `chat-content`, `notes-content`, `den-content`, `flashcards-content`
+- **Panes:** logic in `public/js/*.js` loaded via `<script defer>` in include order; globals on `window` (`ambientMode`, `pomodoroTimer`, `quill`, …)
+- **Events:** `window.RetroEvents` (`public/js/common/events.js`) — `section:change`, `ambient:toggled`, `den:timer-progress`; visibility of `#ambientToggle` / `#colorPickerContainer` owned solely by `nav.js` via `data-visible`
+- **Lazy loading:** `window.loadScript` (`public/js/common/loader.js`) for `three.js` + `vanta.clouds`
+- **Layout:** `app.ejs` assembles `.horizontal-container` with 4 × 25% sections; nav translates `0 / -25% / -50% / -75%`
+- **Views:** `loginSignUp.ejs` (dual form), `setup.ejs` (7-step wizard), `upgrade.ejs`, `app.ejs`; route guards `viewTokenChecker` / `redirectIfAuthenticated` / `hasCompletedSetup`
 
-- GitHub: [@yourusername](https://github.com/yourusername)
+---
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run code` | Dev server with nodemon (`src/index.js`) — primary dev command |
+| `node src/index.js` | Start without watcher |
+| `npm run lint` | ESLint (flat config) — `src/`, `scripts/`, `public/js/` |
+| `npm run smoke` | Headless-Chrome CDP smoke test (needs running server + Chrome) |
+| `node scripts/css-coverage.mjs` | Verifies every live DOM class has a CSS rule |
+| `npm run build:css` | Compile Tailwind v3.4.17 → `public/css/tailwind.css` (minified) |
+| `npm run watch:css` | Same, watch mode |
+
+Tailwind is a **compiled v3 build** (committed). After editing classes in views or `public/js`, rerun `build:css`. Do not upgrade to v4 (renamed utilities like `shadow-sm` → `shadow-xs`).
 
 ---
 
-## 🙏 Acknowledgments
+## Environment Variables
 
-- [Groq](https://groq.com/) for lightning-fast LLM inference
-- [MongoDB](https://www.mongodb.com/) for the database
-- [Express.js](https://expressjs.com/) team for the amazing framework
-- The open-source community for inspiration and tools
+See `.env.example` for the full reference. `src/index.js:24` loads `dotenv` first; several modules also call `dotenv.config()`.
+
+| Used by | Variable(s) | Notes |
+|---------|-------------|-------|
+| `dbConnection.js:7` | `MONGO_URI` | |
+| `index.js:28,31` | `PORT` (default 3000), `NODE_ENV`, `FRONTEND_URL`, `STRIPE_SECRET_KEY` | `allowedOrigins` also hardcodes `localhost:5173/3000/5500` |
+| `user.js` / `tokenChecker.js` / `viewTokenChecker.js` | `ACCESS_TOKEN_SECRET`, `REFRESH_TOKEN_SECRET`, `ACCESS_TOKEN_EXPIRY`, `REFRESH_TOKEN_EXPIRY` | expiries as seconds (`86400` ≈ 24h, `604800` ≈ 7d) |
+| `openai.js:8` | *(none)* — hardcoded `apiKey: "dummy"`, `baseURL: "http://127.0.0.1:8319/v1"`, model `claude-opus-5` | set `AI_BASE_URL`/`AI_MODEL` only if you make it env-driven |
+| `mail.js:6` | `MAILTRAP_SMTP_HOST`, `MAILTRAP_SMTP_PORT`, `MAILTRAP_SMTP_USER`, `MAILTRAP_SMTP_PASS` | |
+| `subscription.js` | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*`, `CLIENT_URL` | checkout/portal URLs (fallback `http://localhost:3000`) |
 
 ---
+
+## Roadmap
+
+- [x] AI chat + chat-with-note (streaming), notes (Quill Delta), flashcards (AI), den + music, JWT auth + onboarding
+- [x] Compiled Tailwind v3, lazy ambient, `RetroEvents` decoupling, `compression` + static caching
+- [ ] Note sharing & collaboration
+- [ ] Export (PDF / Markdown)
+- [ ] Semantic search & analytics dashboard
+- [ ] PWA offline + mobile app
+
+---
+
+## Contributing
+
+```bash
+git checkout -b feat/your-feature
+# make changes, follow existing style (ESM, 2-space, double quotes)
+npm run lint
+git commit -m "feat: concise message"
+git push -u origin feat/your-feature
+# open a PR against main
+```
+
+Keep controller ↔ route 1:1, isolate AI calls in `src/utils/`, parse model JSON defensively, and respect middleware order (`tokenChecker` → `rateLimiter` → `validate` → `checkUsageLimit` → `trackUsage`).
+
+---
+
+## License
+
+ISC — see [LICENSE](LICENSE) if present.
+
+---
+
+## Acknowledgments
+
+MongoDB, Express, Tailwind CSS, Quill, and the open-source community. AI via an OpenAI-compatible provider (local `claude-opus-5` by default; Groq-compatible with a one-line `openai.js` change).
 
 <p align="center">
-  Made with ❤️ for learners everywhere
-</p>
-
-<p align="center">
-  <a href="#retro">⬆️ Back to Top</a>
+  Made for learners — <a href="#retro">back to top ↑</a>
 </p>
