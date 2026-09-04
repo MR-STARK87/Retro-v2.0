@@ -187,7 +187,58 @@
         } catch (e) {
             quill.root.innerHTML = note.html || "";
         }
+        showNotesEditor();
     }
+
+    // Mobile master-detail: show the full-screen editor, hide the list.
+    // Desktop is unaffected (the class is only styled under 768px).
+    function showNotesEditor() {
+        const layout = document.querySelector(".notes-layout");
+        if (layout) layout.classList.add("notes-show-editor");
+    }
+
+    function backToNotesList() {
+        const layout = document.querySelector(".notes-layout");
+        if (layout) layout.classList.remove("notes-show-editor");
+        toggleNotesActions(false);
+    }
+
+    // Mobile "Note actions" (✦) sheet — same handlers as the desktop buttons.
+    function toggleNotesActions(force) {
+        const sheet = document.getElementById("notesActionsSheet");
+        const btn = document.getElementById("notesActionsBtn");
+        if (!sheet || !btn) return;
+        const show =
+            typeof force === "boolean"
+                ? force
+                : !sheet.classList.contains("open");
+        sheet.classList.toggle("open", show);
+        btn.setAttribute("aria-expanded", show ? "true" : "false");
+    }
+
+    function notesMenuAction(kind) {
+        toggleNotesActions(false);
+        if (kind === "enhance") enhanceWithRetro();
+        else if (kind === "sync") syncNotes();
+        else if (kind === "save") saveNote();
+        else if (kind === "read") openReadMode();
+    }
+
+    // Dismiss the sheet on outside tap / Escape.
+    document.addEventListener("click", function (e) {
+        const sheet = document.getElementById("notesActionsSheet");
+        if (!sheet || !sheet.classList.contains("open")) return;
+        if (
+            e.target.closest("#notesActionsSheet") ||
+            e.target.closest("#notesActionsBtn")
+        )
+            return;
+        toggleNotesActions(false);
+    });
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") toggleNotesActions(false);
+    });
 
     async function saveNote(skipIfEmpty = false) {
         const titleInput = document.getElementById("noteTitle");
@@ -302,6 +353,7 @@
         document.getElementById("noteTitle").value = "";
         quill.setContents([]);
         quill.focus();
+        showNotesEditor();
     }
 
     window.saveNote = saveNote;
@@ -660,6 +712,7 @@
                     currentNoteId = null;
                     document.getElementById("noteTitle").value = "";
                     quill.setContents([]);
+                    backToNotesList();
                 }
             });
 
