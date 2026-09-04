@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run lint
+
+  smoke:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:6
+        ports:
+          - 27017:27017
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - name: Install Chrome
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v1
+      - name: Start server
+        run: |
+          PORT=8000 \
+          NODE_ENV=test \
+          MONGO_URI=mongodb://localhost:27017/retro_ci \
+          ACCESS_TOKEN_SECRET=ci-access-secret-min-256-bits-long-enough-1234567890abcdef \
+          REFRESH_TOKEN_SECRET=ci-refresh-secret-min-256-bits-long-enough-0987654321fedcba \
+          ACCESS_TOKEN_EXPIRY=86400 \
+          REFRESH_TOKEN_EXPIRY=604800 \
+          nohup node src/index.js > server-ci.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fs http://localhost:8000/api/v1/health > /dev/null; then break; fi
+            sleep 2
+          done
+          curl -f http://localhost:8000/api/v1/health
+      - name: Run smoke test
+        run: node scripts/smoke-test.mjs
+        env:
+          BASE_URL: http://localhost:8000
+          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+      - name: Upload server log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-ci-log
+          path: server-ci.log
