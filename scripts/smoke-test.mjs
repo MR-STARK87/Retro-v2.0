@@ -226,17 +226,35 @@ async function launchChrome(startUrl) {
     [
       "--headless=new",
       `--remote-debugging-port=${CDP_PORT}`,
+      "--remote-debugging-address=127.0.0.1",
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
       "--enable-unsafe-swiftshader",
       "--no-first-run",
       "--disable-gpu",
       `--user-data-dir=${userDataDir}`,
       startUrl,
     ],
-    { stdio: "ignore" },
+    { stdio: ["ignore", "pipe", "pipe"] },
   );
+
+  let stderr = "";
+  let stdout = "";
+  proc.stderr?.on("data", (chunk) => {
+    stderr += chunk.toString();
+  });
+  proc.stdout?.on("data", (chunk) => {
+    stdout += chunk.toString();
+  });
 
   // Wait for the DevTools endpoint.
   for (let i = 0; i < 60; i++) {
+    if (proc.exitCode !== null) {
+      throw new Error(
+        `Chrome exited early with code ${proc.exitCode}.\nStdout:\n${stdout}\nStderr:\n${stderr}`,
+      );
+    }
     try {
       const res = await fetch(`http://127.0.0.1:${CDP_PORT}/json/list`);
       if (res.ok) return { proc, userDataDir };
@@ -245,7 +263,9 @@ async function launchChrome(startUrl) {
     }
     await sleep(500);
   }
-  throw new Error("Chrome DevTools endpoint never became available");
+  throw new Error(
+    `Chrome DevTools endpoint never became available.\nStdout:\n${stdout}\nStderr:\n${stderr}`,
+  );
 }
 
 function killChrome(proc) {
