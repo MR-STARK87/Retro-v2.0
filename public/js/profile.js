@@ -169,11 +169,12 @@
         const footerUserEl = document.getElementById('profileFooterUser');
         const catalogEl = document.getElementById('profileCatalogNo');
         const statusEl = document.getElementById('profileStatus');
+        const verifyHintEl = document.getElementById('profileVerifyHint');
 
         const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
         nameEl.textContent = fullName || user.username || 'User';
         usernameEl.textContent = user.username ? `@${user.username}` : '@user';
-        emailEl.textContent = user.email || '—';
+        if (emailEl) emailEl.textContent = user.email || '—';
         if (emailHeroEl) emailHeroEl.textContent = user.email || '—';
         if (footerUserEl) footerUserEl.textContent = user.username ? `@${user.username}` : '@user';
 
@@ -206,9 +207,11 @@
         // verified
         if (user.isEmailVerified) {
             verifiedEl.style.display = 'inline-flex';
+            if (verifyHintEl) verifyHintEl.style.display = 'none';
             if (statusEl) statusEl.textContent = 'Verified';
         } else {
             verifiedEl.style.display = 'none';
+            if (verifyHintEl) verifyHintEl.style.display = 'block';
             if (statusEl) statusEl.textContent = 'Unverified';
         }
     }
@@ -223,6 +226,7 @@
         const verifiedEl = document.getElementById('profileVerified');
         const initialsEl = document.getElementById('profileInitials');
         const footerUserEl = document.getElementById('profileFooterUser');
+        const verifyHintEl = document.getElementById('profileVerifyHint');
 
         if (nameEl) nameEl.textContent = 'Guest User';
         if (usernameEl) usernameEl.textContent = '@guest';
@@ -232,6 +236,7 @@
         if (verifiedEl) verifiedEl.style.display = 'none';
         if (initialsEl) initialsEl.textContent = 'G';
         if (footerUserEl) footerUserEl.textContent = '@guest';
+        if (verifyHintEl) verifyHintEl.style.display = 'none';
     }
 
     // Close dropdown when clicking outside
@@ -434,7 +439,7 @@
         };
 
         const stripConfig = {
-            free: { icon: 'fa-leaf', title: 'Free — Starter dossier', sub: '25 notes · 100 cards · 20 chats/mo', action: 'Upgrade', showAction: true },
+            free: { icon: 'fa-leaf', title: 'Free — Starter', sub: '25 notes · 100 cards · 20 chats/mo', action: 'Upgrade', showAction: true },
             pro: { icon: 'fa-bolt', title: 'Pro — Expanded study', sub: '500 notes · 2k cards · 300 chats/mo', action: 'Manage', showAction: true },
             premium: { icon: 'fa-crown', title: 'Premium — Unlimited', sub: 'Unlimited notes · cards · chats', action: 'Manage', showAction: true }
         };

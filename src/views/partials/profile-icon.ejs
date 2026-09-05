@@ -57,77 +57,47 @@
     </div>
 </div>
 
-<!-- Profile Modal — Retro Dossier -->
-<div id="profileModal" class="profile-modal" style="display: none;" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
-    <div class="profile-modal-content retro-dossier">
-        <!-- Top rule / eyebrow -->
-        <div class="dossier-topbar">
-            <div class="dossier-eyebrow">
-                <span class="eyebrow-mark"></span>
-                <span>RETRO</span>
-                <span class="eyebrow-dot">·</span>
-                <span>IDENTITY</span>
-                <span class="eyebrow-catalog" id="profileCatalogNo">DOSSIER — 001</span>
-            </div>
-            <button onclick="closeProfile()" class="dossier-close" aria-label="Close profile">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
+<!-- Profile Modal — Quiet Card -->
+<div id="profileModal" class="profile-modal" style="display: none;" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="profileName">
+    <div class="profile-modal-content calm-card">
+        <button onclick="closeProfile()" class="calm-close" aria-label="Close profile">
+            <i class="fas fa-times"></i>
+        </button>
 
         <!-- Hero -->
-        <div class="dossier-hero">
-            <div class="avatar-wrap">
+        <div class="calm-hero">
+            <div class="calm-avatar-wrap">
                 <div class="profile-avatar" id="profileAvatar">
                     <span id="profileInitials" class="avatar-initials">R</span>
                     <i id="profileAvatarIcon" class="fas fa-user avatar-icon" style="display:none;"></i>
                 </div>
                 <span class="avatar-tier-dot tier-free" id="profileTierDot" aria-hidden="true"></span>
             </div>
-            <div class="hero-copy">
-                <div class="hero-name-row">
-                    <h2 id="profileName" class="dossier-name">Loading...</h2>
-                    <span id="profileVerified" class="verified-pill" style="display: none;">
-                        <i class="fas fa-check"></i> Verified
-                    </span>
-                </div>
-                <p id="profileUsername" class="dossier-username">@username</p>
-                <p id="profileEmailHero" class="dossier-email-hero">email@example.com</p>
+            <div class="calm-name-row">
+                <h2 id="profileName" class="calm-name">Loading...</h2>
+                <span id="profileVerified" class="verified-pill" style="display: none;">
+                    <i class="fas fa-check"></i> Verified
+                </span>
             </div>
+            <p id="profileUsername" class="calm-username">@username</p>
+            <p id="profileEmailHero" class="calm-email">email@example.com</p>
+            <p id="profileVerifyHint" class="calm-verify-hint" style="display: none;">Check your inbox to verify your email</p>
         </div>
 
-        <!-- Ledger -->
-        <div class="dossier-ledger">
-            <div class="ledger-row">
-                <div class="ledger-cell">
-                    <span class="ledger-label">EMAIL</span>
-                    <span class="ledger-value" id="profileEmail">email@example.com</span>
-                </div>
-                <div class="ledger-cell">
-                    <span class="ledger-label">MEMBER SINCE</span>
-                    <span class="ledger-value" id="profileJoined">—</span>
-                </div>
-            </div>
-            <div class="ledger-row">
-                <div class="ledger-cell">
-                    <span class="ledger-label">TIER</span>
-                    <span class="ledger-value ledger-tier">
-                        <i id="profileTierIcon" class="fas fa-user tier-icon"></i>
-                        <span id="profileTier">Free Tier</span>
-                    </span>
-                </div>
-                <div class="ledger-cell">
-                    <span class="ledger-label">STATUS</span>
-                    <span class="ledger-value" id="profileStatus">Active</span>
-                </div>
-            </div>
-        </div>
+        <!-- One quiet caption replaces the ledger -->
+        <p class="calm-caption">
+            <i id="profileTierIcon" class="fas fa-user tier-icon tier-free"></i>
+            <span id="profileTier">Free Tier</span>
+            <span class="calm-caption-dot" aria-hidden="true">·</span>
+            <span>Member since <span id="profileJoined">—</span></span>
+        </p>
 
-        <!-- Tier CTA strip -->
+        <!-- Tier CTA -->
         <div class="dossier-tier-strip tier-free" id="profileTierStrip">
             <div class="tier-strip-copy">
                 <i id="profileTierStripIcon" class="fas fa-leaf"></i>
                 <div>
-                    <p class="tier-strip-title" id="profileTierStripTitle">Free — Starter dossier</p>
+                    <p class="tier-strip-title" id="profileTierStripTitle">Free — Starter</p>
                     <p class="tier-strip-sub" id="profileTierStripSub">25 notes · 100 cards · Basic chat</p>
                 </div>
             </div>
@@ -138,45 +108,30 @@
         </div>
 
         <!-- Footer actions -->
-        <div class="dossier-footer">
-            <span class="footer-hint">Signed in as <strong id="profileFooterUser">@user</strong></span>
-            <div class="footer-actions">
-                <button class="footer-link" onclick="closeProfile(); openMemory();">Memory</button>
-                <span class="footer-dot">·</span>
-                <button class="footer-link footer-link-danger" onclick="handleLogout()">Sign out</button>
-            </div>
+        <div class="calm-footer">
+            <button class="calm-btn" onclick="closeProfile(); openMemory();">Memory</button>
+            <button class="calm-btn calm-btn-danger" onclick="handleLogout()">Sign out</button>
         </div>
     </div>
 </div>
 
-<!-- Memory Modal — Dossier Archive -->
+<!-- Memory Modal — Quiet Archive -->
 <div id="memoryModal" class="profile-modal" style="display: none;" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="memoryModalTitle">
-    <div class="profile-modal-content retro-dossier">
-        <div class="dossier-topbar">
-            <div class="dossier-eyebrow">
-                <span class="eyebrow-mark"></span>
-                <span>RETRO</span>
-                <span class="eyebrow-dot">·</span>
-                <span>MEMORY</span>
-            </div>
-            <button onclick="closeMemory()" class="dossier-close" aria-label="Close memory">
-                <i class="fas fa-times"></i>
-            </button>
+    <div class="profile-modal-content calm-card calm-memory">
+        <button onclick="closeMemory()" class="calm-close" aria-label="Close memory">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <h2 class="calm-memory-title" id="memoryModalTitle">Memory</h2>
+        <p class="calm-memory-sub">What Retro remembers about you</p>
+
+        <div class="memory-text dossier-memory-text" id="memoryText">
+            <p>Loading...</p>
         </div>
 
-        <div class="memory-ledger minimal">
-            <div class="memory-text dossier-memory-text" id="memoryText">
-                <p>Loading...</p>
-            </div>
-        </div>
-
-        <div class="dossier-footer">
-            <span class="footer-hint">Updates after each chat</span>
-            <div class="footer-actions">
-                <button class="footer-link" onclick="closeMemory()">Done</button>
-                <span class="footer-dot">·</span>
-                <button class="footer-link footer-link-danger" onclick="handleClearMemory()">Clear</button>
-            </div>
+        <div class="calm-footer">
+            <button class="calm-btn" onclick="closeMemory()">Done</button>
+            <button class="calm-btn calm-btn-danger" onclick="handleClearMemory()">Clear</button>
         </div>
     </div>
 </div>
@@ -302,15 +257,15 @@
     .theme-check { color: #10b981 !important; font-size: 0.82rem !important; }
     .menu-version { display: none; }
 
-    /* ── Profile Modal — Dossier ── */
+    /* ── Profile + Memory Modals — Quiet Card ── */
     .profile-modal {
         position: fixed;
         inset: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(20, 20, 19, 0.45);
-        backdrop-filter: blur(12px) saturate(1.1);
-        -webkit-backdrop-filter: blur(12px) saturate(1.1);
+        background: rgba(20, 20, 19, 0.38);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -326,123 +281,81 @@
         visibility: visible;
     }
 
-    .profile-modal-content.retro-dossier {
+    /* Quiet card shell — one calm surface, generous air */
+    .profile-modal-content.calm-card {
         background: var(--bg-secondary);
         border: 1.5px solid var(--border-color);
-        border-radius: 20px;
+        border-radius: 24px;
         width: 100%;
-        max-width: 480px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0,0,0,0.04);
+        max-width: 400px;
+        max-height: calc(100vh - 3rem);
+        max-height: calc(100dvh - 3rem);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        padding: 2.5rem 2rem 1.75rem;
+        position: relative;
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.22);
         transform: scale(0.96) translateY(10px);
         transition: transform 0.36s cubic-bezier(0.34, 1.2, 0.64, 1);
-        overflow: hidden;
     }
 
-    [data-theme="dark"] .profile-modal-content.retro-dossier {
+    [data-theme="dark"] .profile-modal-content.calm-card {
         background: #141413;
         border-color: rgba(194, 192, 182, 0.14);
         box-shadow: 0 25px 60px rgba(0,0,0,0.55);
     }
 
-    .profile-modal.active .profile-modal-content.retro-dossier {
+    .profile-modal.active .profile-modal-content.calm-card {
         transform: scale(1) translateY(0);
     }
 
-    /* top bar */
-    .dossier-topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.95rem 1.25rem 0.9rem;
-        border-bottom: 1.5px solid var(--border-color);
-        background: linear-gradient(to bottom, var(--bg-secondary), var(--bg-tertiary));
-    }
-
-    [data-theme="dark"] .dossier-topbar {
-        background: #1a1a18;
-    }
-
-    .dossier-eyebrow {
-        display: flex;
-        align-items: center;
-        gap: 0.45rem;
-        font-family: "JetBrains Mono", ui-monospace, monospace;
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--text-muted);
-    }
-
-    .eyebrow-mark {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--text-primary);
-        opacity: 0.9;
-    }
-
-    .eyebrow-dot {
-        opacity: 0.4;
-    }
-
-    .eyebrow-catalog {
-        margin-left: 0.75rem;
-        padding-left: 0.75rem;
-        border-left: 1px solid var(--border-color);
-        font-weight: 400;
-        letter-spacing: 0.1em;
-        opacity: 0.7;
-    }
-
-    .dossier-close {
+    /* Floating ghost close — no band, no box */
+    .calm-close {
+        position: absolute;
+        top: 0.9rem;
+        right: 0.9rem;
         width: 36px;
         height: 36px;
-        border-radius: 10px;
-        border: 1.5px solid var(--border-color);
-        background: var(--bg-secondary);
-        color: var(--text-secondary);
+        border-radius: 50%;
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 0.95rem;
         display: grid;
         place-items: center;
         cursor: pointer;
-        transition: all 0.2s ease;
-        flex-shrink: 0;
+        transition: background 0.2s ease, color 0.2s ease;
     }
 
-    .dossier-close:hover {
+    .calm-close:hover {
         background: var(--bg-tertiary);
         color: var(--text-primary);
-        border-color: var(--text-muted);
-        transform: rotate(90deg);
     }
 
-    [data-theme="dark"] .dossier-close {
-        background: rgba(255,255,255,0.06);
-        border-color: rgba(194,192,182,0.12);
-    }
-
-    /* hero */
-    .dossier-hero {
+    /* hero — centered, breathing room */
+    .calm-hero {
         display: flex;
-        gap: 1.15rem;
-        align-items: flex-start;
-        padding: 1.4rem 1.5rem 1.25rem;
+        flex-direction: column;
+        align-items: center;
     }
 
-    .avatar-wrap {
+    .calm-avatar-wrap {
         position: relative;
         flex-shrink: 0;
-        width: 64px;
-        height: 64px;
+        width: 76px;
+        height: 76px;
+        margin-bottom: 1rem;
     }
 
     .profile-avatar {
-        width: 64px;
-        height: 64px;
+        width: 76px;
+        height: 76px;
         border-radius: 50%;
         background: #c2c0b6;
         border: 3px solid var(--bg-secondary);
-        box-shadow: 0 0 0 1.5px var(--border-color), 0 8px 20px rgba(0,0,0,0.08);
+        box-shadow: 0 10px 24px rgba(0,0,0,0.10);
         display: grid;
         place-items: center;
         overflow: hidden;
@@ -451,50 +364,47 @@
     .avatar-initials {
         font-family: "Space Grotesk", sans-serif;
         font-weight: 700;
-        font-size: 1.35rem;
+        font-size: 1.6rem;
         letter-spacing: -0.02em;
         color: #141413;
         line-height: 1;
     }
 
     .avatar-icon {
-        font-size: 1.6rem;
+        font-size: 1.8rem;
         color: #141413;
     }
 
+    /* signature: the tier halo — a soft ring of tier color around the avatar */
     .avatar-tier-dot {
         position: absolute;
-        right: -1px;
-        bottom: -1px;
-        width: 16px;
-        height: 16px;
+        inset: -8px;
+        width: auto;
+        height: auto;
         border-radius: 50%;
-        border: 2.5px solid var(--bg-secondary);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        background: transparent;
+        border: 2px solid #9ca3af;
+        opacity: 0.55;
+        box-shadow: 0 0 22px rgba(156, 163, 175, 0.35);
+        pointer-events: none;
     }
 
-    .avatar-tier-dot.tier-free { background: #9ca3af; }
-    .avatar-tier-dot.tier-pro { background: #3b82f6; }
-    .avatar-tier-dot.tier-premium { background: #f59e0b; }
+    .avatar-tier-dot.tier-free { border-color: #9ca3af; box-shadow: 0 0 22px rgba(156, 163, 175, 0.35); }
+    .avatar-tier-dot.tier-pro { border-color: #3b82f6; box-shadow: 0 0 22px rgba(59, 130, 246, 0.40); }
+    .avatar-tier-dot.tier-premium { border-color: #f59e0b; box-shadow: 0 0 22px rgba(245, 158, 11, 0.40); }
 
-    [data-theme="dark"] .avatar-tier-dot { border-color: #141413; }
-
-    .hero-copy {
-        min-width: 0;
-        flex: 1;
-        padding-top: 0.15rem;
-    }
-
-    .hero-name-row {
+    .calm-name-row {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
+        justify-content: center;
+        gap: 0.55rem;
         flex-wrap: wrap;
+        max-width: 100%;
     }
 
-    .dossier-name {
+    .calm-name {
         font-family: "Space Grotesk", sans-serif;
-        font-size: 1.35rem;
+        font-size: 1.5rem;
         font-weight: 700;
         line-height: 1.15;
         letter-spacing: -0.02em;
@@ -531,105 +441,76 @@
         color: #6ee7b7;
     }
 
-    .dossier-username {
+    .calm-username {
         font-family: "JetBrains Mono", monospace;
-        font-size: 0.82rem;
+        font-size: 0.85rem;
         color: var(--text-secondary);
-        margin: 0.28rem 0 0 0;
+        margin: 0.35rem 0 0 0;
         letter-spacing: -0.01em;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        max-width: 100%;
     }
 
-    .dossier-email-hero {
-        font-size: 0.82rem;
+    .calm-email {
+        font-size: 0.85rem;
         color: var(--text-muted);
-        margin: 0.12rem 0 0 0;
+        margin: 0.15rem 0 0 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        max-width: 100%;
     }
 
-    /* ledger */
-    .dossier-ledger {
-        border-top: 1.5px solid var(--border-color);
-        border-bottom: 1.5px solid var(--border-color);
-        background: var(--bg-tertiary);
+    .calm-verify-hint {
+        font-size: 0.8rem;
+        color: #b45309;
+        margin: 0.55rem 0 0 0;
+    }
+
+    [data-theme="dark"] .calm-verify-hint {
+        color: #fcd34d;
+    }
+
+    /* one quiet caption replaces the four-cell ledger */
+    .calm-caption {
+        margin: 1.15rem 0 0 0;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
         display: flex;
-        flex-direction: column;
-    }
-
-    [data-theme="dark"] .dossier-ledger {
-        background: rgba(255,255,255,0.03);
-    }
-
-    .ledger-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        min-height: 0;
-    }
-
-    .ledger-row + .ledger-row {
-        border-top: 1px solid var(--border-color);
-    }
-
-    .ledger-cell {
-        padding: 0.95rem 1.25rem;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 0.32rem;
-    }
-
-    .ledger-cell + .ledger-cell {
-        border-left: 1px solid var(--border-color);
-    }
-
-    .ledger-label {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.11em;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        line-height: 1;
-    }
-
-    .ledger-value {
-        font-family: "IBM Plex Sans", sans-serif;
-        font-size: 0.92rem;
-        font-weight: 500;
-        color: var(--text-primary);
-        line-height: 1.3;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .ledger-tier {
-        display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 0.45rem;
+        flex-wrap: wrap;
+        line-height: 1.4;
     }
 
-    .tier-icon { font-size: 0.9rem; opacity: 0.9; }
-    .ledger-tier .tier-icon.tier-free { color: #6b7280; }
-    .ledger-tier .tier-icon.tier-pro { color: #2563eb; }
-    .ledger-tier .tier-icon.tier-premium { color: #d97706; }
+    .calm-caption .tier-icon { font-size: 0.8rem; opacity: 0.9; }
+    .calm-caption .tier-icon.tier-free { color: #6b7280; }
+    .calm-caption .tier-icon.tier-pro { color: #2563eb; }
+    .calm-caption .tier-icon.tier-premium { color: #d97706; }
 
-    /* tier strip — signature element */
-    .dossier-tier-strip {
+    .calm-caption-dot {
+        color: var(--text-muted);
+        opacity: 0.6;
+    }
+
+    /* tier card — a soft inset panel now, not a band */
+    .calm-card .dossier-tier-strip {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        padding: 0.95rem 1.25rem;
-        border-bottom: 1px solid var(--border-color);
+        margin-top: 1.4rem;
+        padding: 1rem 1.1rem;
+        border-radius: 16px;
+        border: 1px solid transparent;
+        text-align: left;
     }
 
     .dossier-tier-strip.tier-free {
-        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        background: var(--bg-tertiary);
     }
 
     .dossier-tier-strip.tier-pro {
@@ -643,7 +524,7 @@
     }
 
     [data-theme="dark"] .dossier-tier-strip.tier-free {
-        background: #1e1e1d;
+        background: rgba(255,255,255,0.04);
         border-color: rgba(194,192,182,0.1);
     }
 
@@ -730,201 +611,88 @@
 
     .tier-strip-action i { font-size: 0.75rem; }
 
-    /* footer */
-    .dossier-footer {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        padding: 0.9rem 1.25rem;
-        background: var(--bg-secondary);
-    }
-
-    [data-theme="dark"] .dossier-footer { background: #141413; }
-
-    .footer-hint {
-        font-family: "JetBrains Mono", monospace;
-        font-size: 11px;
-        color: var(--text-muted);
-        letter-spacing: -0.01em;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .footer-hint strong { color: var(--text-secondary); font-weight: 600; }
-
-    .footer-actions {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.55rem;
-        flex-shrink: 0;
-    }
-
-    .footer-link {
-        font-family: "Space Grotesk", sans-serif;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        padding: 0;
-        opacity: 0.9;
-        transition: opacity 0.15s ease;
-    }
-
-    .footer-link:hover { opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
-
-    .footer-link-danger { color: #ef4444; }
-
-    .footer-dot { color: var(--text-muted); font-size: 0.8rem; }
-
-    /* fallback legacy profile-modal header/body for memory modal */
-    .profile-modal-header {
-        padding: 1.5rem 2rem;
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .profile-modal-header h2 {
-        margin: 0;
-        font-size: 1.5rem;
-        color: var(--text-primary);
-        font-family: "Space Grotesk", sans-serif;
-    }
-
-    .profile-close-btn {
-        background: transparent;
-        border: none;
-        font-size: 1.25rem;
-        color: var(--text-secondary);
-        cursor: pointer;
-        width: 2.5rem;
-        height: 2.5rem;
-        border-radius: 0.5rem;
+    /* footer — two quiet pills, lots of air */
+    .calm-footer {
+        margin-top: 1.4rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s ease;
+        gap: 0.6rem;
+        flex-wrap: wrap;
     }
 
-    .profile-close-btn:hover {
-        background: var(--bg-hover, rgba(0, 0, 0, 0.05));
-        color: var(--text-primary);
-    }
-
-    [data-theme="dark"] .profile-close-btn:hover {
-        background: rgba(255, 255, 255, 0.05);
-    }
-
-    .profile-modal-body {
-        padding: 2rem;
-    }
-
-    /* Memory — dossier archive */
-    .memory-dossier-hero {
-        display: flex;
-        gap: 1rem;
-        align-items: flex-start;
-        padding: 1.35rem 1.5rem 1.15rem;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .memory-seal {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        display: grid;
-        place-items: center;
-        flex-shrink: 0;
-        box-shadow: 0 8px 18px rgba(99,102,241,0.28);
-    }
-
-    .memory-seal i { color: white; font-size: 1.25rem; }
-
-    .memory-hero-copy { min-width: 0; }
-
-    .memory-title {
+    .calm-btn {
         font-family: "Space Grotesk", sans-serif;
-        font-size: 1.05rem;
-        font-weight: 700;
-        letter-spacing: -0.015em;
+        font-size: 0.88rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        padding: 0.65rem 1.4rem;
+        border-radius: 999px;
+        border: 1.5px solid var(--border-color);
+        background: transparent;
         color: var(--text-primary);
-        margin: 0;
+        cursor: pointer;
+        transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .calm-btn:hover {
+        background: var(--bg-tertiary);
+        border-color: var(--text-muted);
+    }
+
+    .calm-btn-danger {
+        color: #ef4444;
+        border-color: rgba(239, 68, 68, 0.28);
+    }
+
+    .calm-btn-danger:hover {
+        background: rgba(239, 68, 68, 0.08);
+        border-color: rgba(239, 68, 68, 0.45);
+    }
+
+    /* ── Memory — quiet archive ── */
+    .calm-memory-title {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 1.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+        margin: 0.5rem 0 0 0;
         line-height: 1.2;
     }
 
-    .memory-subtitle {
-        font-family: "IBM Plex Sans", sans-serif;
-        font-size: 0.84rem;
+    .calm-memory-sub {
+        font-size: 0.88rem;
         color: var(--text-secondary);
-        margin: 0.28rem 0 0 0;
+        margin: 0.3rem 0 0 0;
         line-height: 1.5;
     }
 
-    .memory-ledger {
-        background: var(--bg-tertiary);
-        border-bottom: 1.5px solid var(--border-color);
-    }
-
-    [data-theme="dark"] .memory-ledger {
-        background: rgba(255,255,255,0.03);
-    }
-
-    .memory-ledger-label {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.75rem;
-        padding: 0.72rem 1.25rem;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.11em;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        border-bottom: 1px solid var(--border-color);
-        background: var(--bg-secondary);
-    }
-
-    [data-theme="dark"] .memory-ledger-label { background: rgba(255,255,255,0.02); }
-
-    .memory-ledger-label i { margin-right: 0.35rem; }
-
-    .ledger-count {
-        font-weight: 600;
-        color: var(--text-secondary);
-        letter-spacing: 0.08em;
-    }
-
+    /* memory text — plain soft card, no ruled lines */
     .dossier-memory-text {
-        background: repeating-linear-gradient(to bottom, transparent 0 28px, rgba(0,0,0,0.04) 28px 29px);
+        background: var(--bg-tertiary);
         border: 1px solid var(--border-color);
-        border-radius: 12px;
-        margin: 1rem 1.25rem 0.75rem;
+        border-radius: 14px;
+        margin: 1.25rem 0 0 0;
         padding: 1rem 1.15rem;
-        min-height: 132px;
+        min-height: 120px;
         max-height: 260px;
         overflow-y: auto;
         scrollbar-width: thin;
         scrollbar-color: var(--border-color) transparent;
+        text-align: left;
     }
 
     [data-theme="dark"] .dossier-memory-text {
-        background: rgba(255,255,255,0.03);
-        background-image: repeating-linear-gradient(to bottom, transparent 0 28px, rgba(255,255,255,0.04) 28px 29px);
+        background: rgba(255,255,255,0.04);
     }
 
     .dossier-memory-text p {
         font-family: "IBM Plex Sans", sans-serif;
-        font-size: 0.94rem;
+        font-size: 0.93rem;
         color: var(--text-primary);
         margin: 0;
-        line-height: 28px;
+        line-height: 1.65;
         white-space: pre-wrap;
         word-wrap: break-word;
     }
@@ -934,21 +702,6 @@
         font-style: italic;
         opacity: 0.9;
     }
-
-    .memory-ledger-foot {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        padding: 0.55rem 1.25rem 0.85rem;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 10px;
-        letter-spacing: 0.07em;
-        text-transform: uppercase;
-        color: var(--text-muted);
-    }
-
-    .memory-chars { color: var(--text-secondary); }
 
     /* Responsive */
     @media (max-width: 768px) {
@@ -967,23 +720,19 @@
 
         .profile-modal { padding: 1rem; }
 
-        .profile-modal-content.retro-dossier {
+        .profile-modal-content.calm-card {
             max-width: 100%;
+            padding: 2rem 1.25rem 1.5rem;
+            border-radius: 20px;
         }
 
-        .dossier-hero { padding: 1.15rem 1.15rem 1rem; }
+        .calm-card .dossier-tier-strip { padding: 0.9rem 1rem; }
 
-        .ledger-cell { padding: 0.85rem 1rem; }
-
-        .dossier-tier-strip { padding: 0.85rem 1rem; }
-
-        .dossier-footer { flex-direction: column; align-items: stretch; gap: 0.7rem; }
-
-        .footer-actions { justify-content: space-between; }
+        .calm-footer .calm-btn { flex: 1; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .profile-modal, .profile-modal-content.retro-dossier, .dossier-close, .tier-strip-action { transition: none; }
+        .profile-modal, .profile-modal-content.calm-card, .calm-close, .calm-btn, .tier-strip-action { transition: none; }
     }
 </style>
 
