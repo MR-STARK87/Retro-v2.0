@@ -485,6 +485,417 @@
       window.pomodoroTimer.updateDisplay();
     };
 
+    /**
+     * Custom lightweight WebGL 3D volumetric cloud raymarching effect.
+     * Replaces Vanta.js Clouds + Three.js r121 with a zero-dependency raw WebGL
+     * implementation matching Vanta's authentic visual fidelity (Inigo Quilez
+     * volumetric raymarching) while fixing mobile performance via resolution
+     * scaling and frame rate throttling.
+     */
+    class CustomCloudEffect {
+      constructor(options = {}) {
+        this.options = Object.assign({
+          el: "#vanta-bg",
+          skyColor: 0x68c7ff,
+          cloudColor: 0xc0c0c0,
+          cloudShadowColor: 0x183550,
+          sunColor: 0xff6600,
+          sunGlareColor: 0xff9919,
+          sunlightColor: 0xff9933,
+          speed: 0.8,
+        }, options);
+
+        this.el = typeof this.options.el === "string"
+          ? document.querySelector(this.options.el)
+          : this.options.el;
+
+        if (!this.el) {
+          throw new Error("Target element not found: " + this.options.el);
+        }
+
+        this.isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
+        // Scale down internal buffer resolution: 2.0 on desktop, 4.0 on mobile
+        this.scale = this.isMobile ? 4.0 : 2.0;
+        // Throttle mobile to 30 FPS for battery & heat efficiency; 60 FPS on desktop
+        this.targetFps = this.isMobile ? 30 : 60;
+        this.frameInterval = 1000 / this.targetFps;
+        this.lastFrameTime = 0;
+
+        this.mouse = { x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 };
+        this.startTime = performance.now();
+        this.rafId = null;
+
+        // Compatibility interface expected by DEN and smoke tests
+        this.uniforms = {
+          skyColor: { value: this.hexToVec3(this.options.skyColor) },
+        };
+
+        this.initWebGL();
+        this.initListeners();
+        this.animate = this.animate.bind(this);
+        this.rafId = requestAnimationFrame(this.animate);
+      }
+
+      hexToVec3(hex) {
+        const num = typeof hex === "number" ? hex : parseInt(hex, 16);
+        return {
+          x: ((num >> 16) & 255) / 255,
+          y: ((num >> 8) & 255) / 255,
+          z: (num & 255) / 255,
+        };
+      }
+
+      initWebGL() {
+        this.canvas = document.createElement("canvas");
+        this.canvas.className = "custom-cloud-canvas";
+        this.canvas.style.position = "absolute";
+        this.canvas.style.top = "0";
+        this.canvas.style.left = "0";
+        this.canvas.style.width = "100%";
+        this.canvas.style.height = "100%";
+        this.canvas.style.pointerEvents = "none";
+        this.canvas.style.zIndex = "0";
+
+        const computedPos = window.getComputedStyle(this.el).position;
+        if (computedPos === "static") {
+          this.el.style.position = "relative";
+        }
+        this.el.appendChild(this.canvas);
+
+        const glOpts = {
+          alpha: false,
+          depth: false,
+          stencil: false,
+          antialias: false,
+          powerPreference: "high-performance",
+        };
+        this.gl = this.canvas.getContext("webgl", glOpts) || this.canvas.getContext("experimental-webgl", glOpts);
+        if (!this.gl) {
+          throw new Error("WebGL not supported");
+        }
+
+        const vsSource = `
+          attribute vec2 aPosition;
+          void main() {
+            gl_Position = vec4(aPosition, 0.0, 1.0);
+          }
+        `;
+
+            // Inigo Quilez volumetric clouds raymarching shader (authentic Vanta Clouds algorithm)
+        const fsSource = `
+          precision highp float;
+          uniform vec2 iResolution;
+          uniform vec2 iMouse;
+          uniform float iTime;
+          uniform float speed;
+          uniform vec3 skyColor;
+          uniform vec3 cloudColor;
+          uniform vec3 cloudShadowColor;
+          uniform vec3 sunColor;
+          uniform vec3 sunlightColor;
+          uniform vec3 sunGlareColor;
+
+          float hash(float p) {
+            p = fract(p * 0.011);
+            p *= (p + 7.5);
+            p *= (p + p);
+            return fract(p);
+          }
+
+          float noise(vec3 x) {
+            vec3 p = floor(x);
+            vec3 f = fract(x);
+            f = f * f * (3.0 - 2.0 * f);
+            float n = p.x + p.y * 57.0 + 113.0 * p.z;
+            return mix(
+              mix(mix(hash(n + 0.0), hash(n + 1.0), f.x),
+                  mix(hash(n + 57.0), hash(n + 58.0), f.x), f.y),
+              mix(mix(hash(n + 113.0), hash(n + 114.0), f.x),
+                  mix(hash(n + 170.0), hash(n + 171.0), f.x), f.y), f.z
+            );
+          }
+
+          const float constantTime = 1000.0;
+          float map5(in vec3 p) {
+            vec3 speed1 = vec3(0.5, 0.01, 1.0) * 0.5 * speed;
+            vec3 q = p - speed1 * (iTime + constantTime);
+            float f;
+            f  = 0.50000 * noise(q); q = q * 2.02;
+            f += 0.25000 * noise(q); q = q * 2.03;
+            f += 0.12500 * noise(q); q = q * 2.01;
+            f += 0.06250 * noise(q); q = q * 2.02;
+            f += 0.03125 * noise(q);
+            return clamp(1.5 - p.y - 2.0 + 1.75 * f, 0.0, 1.0);
+          }
+
+          float map4(in vec3 p) {
+            vec3 speed1 = vec3(0.5, 0.01, 1.0) * 0.5 * speed;
+            vec3 q = p - speed1 * (iTime + constantTime);
+            float f;
+            f  = 0.50000 * noise(q); q = q * 2.02;
+            f += 0.25000 * noise(q); q = q * 2.03;
+            f += 0.12500 * noise(q); q = q * 2.01;
+            f += 0.06250 * noise(q);
+            return clamp(1.5 - p.y - 2.0 + 1.75 * f, 0.0, 1.0);
+          }
+
+          float map3(in vec3 p) {
+            vec3 speed1 = vec3(0.5, 0.01, 1.0) * 0.5 * speed;
+            vec3 q = p - speed1 * (iTime + constantTime);
+            float f;
+            f  = 0.50000 * noise(q); q = q * 2.02;
+            f += 0.25000 * noise(q); q = q * 2.03;
+            f += 0.12500 * noise(q);
+            return clamp(1.5 - p.y - 2.0 + 1.75 * f, 0.0, 1.0);
+          }
+
+          float map2(in vec3 p) {
+            vec3 speed1 = vec3(0.5, 0.01, 1.0) * 0.5 * speed;
+            vec3 q = p - speed1 * (iTime + constantTime);
+            float f;
+            f  = 0.50000 * noise(q); q = q * 2.02;
+            f += 0.25000 * noise(q);
+            return clamp(1.5 - p.y - 2.0 + 1.75 * f, 0.0, 1.0);
+          }
+
+          const vec3 sundir = vec3(-0.707106, 0.0, -0.707106);
+
+          vec4 integrate(in vec4 sum, in float dif, in float den, in vec3 bgcol, in float t) {
+            vec3 lin = cloudColor * 1.4 + sunlightColor * dif;
+            vec4 col = vec4(mix(vec3(1.0, 0.95, 0.8), cloudShadowColor, den), den);
+            col.xyz *= lin;
+            col.xyz = mix(col.xyz, bgcol, 1.0 - exp(-0.003 * t * t));
+            col.a *= 0.4;
+            col.rgb *= col.a;
+            return sum + col * (1.0 - sum.a);
+          }
+
+          #define MARCH(STEPS,MAPLOD) for(int i=0; i<STEPS; i++) { vec3 pos = ro + t*rd; if(pos.y<-3.0 || pos.y>2.0 || sum.a > 0.99) break; float den = MAPLOD(pos); if(den>0.01) { float dif = clamp((den - MAPLOD(pos+0.3*sundir))/0.6, 0.0, 1.0); sum = integrate(sum, dif, den, bgcol, t); } t += max(0.075, 0.02*t); }
+
+          vec4 raymarch(in vec3 ro, in vec3 rd, in vec3 bgcol) {
+            vec4 sum = vec4(0.0);
+            float t = 0.0;
+            MARCH(20, map5);
+            MARCH(25, map4);
+            MARCH(30, map3);
+            MARCH(40, map2);
+            return clamp(sum, 0.0, 1.0);
+          }
+
+          mat3 setCamera(in vec3 ro, in vec3 ta, float cr) {
+            vec3 cw = normalize(ta - ro);
+            vec3 cp = vec3(sin(cr), cos(cr), 0.0);
+            vec3 cu = normalize(cross(cw, cp));
+            vec3 cv = normalize(cross(cu, cw));
+            return mat3(cu, cv, cw);
+          }
+
+          vec4 render(in vec3 ro, in vec3 rd) {
+            float sun = clamp(dot(sundir, rd), 0.0, 1.0);
+            vec3 col = skyColor - rd.y * 0.2 * vec3(1.0, 0.5, 1.0) + 0.15 * 0.5;
+            col += 0.2 * sunColor * pow(sun, 8.0);
+
+            vec4 res = raymarch(ro, rd, col);
+            col = col * (1.0 - res.w) + res.xyz;
+
+            col += 0.2 * sunGlareColor * pow(sun, 3.0);
+            return vec4(col, 1.0);
+          }
+
+          void main() {
+            vec2 p = (-iResolution.xy + 2.0 * gl_FragCoord.xy) / iResolution.y;
+
+            vec2 m = iMouse.xy;
+            m.y = (1.0 - m.y) * 0.33 + 0.28;
+
+            m.x *= 0.25;
+            m.x += sin(iTime * 0.1 + 3.1415) * 0.25 + 0.25;
+
+            vec3 ro = 4.0 * normalize(vec3(sin(3.0 * m.x), 0.4 * m.y, cos(3.0 * m.x)));
+            vec3 ta = vec3(0.0, -1.0, 0.0);
+            mat3 ca = setCamera(ro, ta, 0.0);
+
+            vec3 rd = ca * normalize(vec3(p.xy, 1.5));
+
+            gl_FragColor = render(ro, rd);
+          }
+        `;
+
+        this.program = this.createProgram(vsSource, fsSource);
+        this.gl.useProgram(this.program);
+
+        // Quad buffer
+        this.posBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.posBuffer);
+        this.gl.bufferData(
+          this.gl.ARRAY_BUFFER,
+          new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+          this.gl.STATIC_DRAW
+        );
+
+        this.aPositionLoc = this.gl.getAttribLocation(this.program, "aPosition");
+        this.gl.enableVertexAttribArray(this.aPositionLoc);
+        this.gl.vertexAttribPointer(this.aPositionLoc, 2, this.gl.FLOAT, false, 0, 0);
+
+        // Uniform locations
+        this.uResolutionLoc = this.gl.getUniformLocation(this.program, "iResolution");
+        this.uTimeLoc = this.gl.getUniformLocation(this.program, "iTime");
+        this.uMouseLoc = this.gl.getUniformLocation(this.program, "iMouse");
+        this.uSpeedLoc = this.gl.getUniformLocation(this.program, "speed");
+        this.uSkyColorLoc = this.gl.getUniformLocation(this.program, "skyColor");
+        this.uCloudColorLoc = this.gl.getUniformLocation(this.program, "cloudColor");
+        this.uCloudShadowColorLoc = this.gl.getUniformLocation(this.program, "cloudShadowColor");
+        this.uSunColorLoc = this.gl.getUniformLocation(this.program, "sunColor");
+        this.uSunlightColorLoc = this.gl.getUniformLocation(this.program, "sunlightColor");
+        this.uSunGlareColorLoc = this.gl.getUniformLocation(this.program, "sunGlareColor");
+
+        this.resize();
+        this.applyAllUniforms();
+      }
+
+      createShader(type, source) {
+        const shader = this.gl.createShader(type);
+        this.gl.shaderSource(shader, source);
+        this.gl.compileShader(shader);
+        if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+          const info = this.gl.getShaderInfoLog(shader);
+          this.gl.deleteShader(shader);
+          throw new Error("Shader compile error: " + info);
+        }
+        return shader;
+      }
+
+      createProgram(vsSource, fsSource) {
+        const vs = this.createShader(this.gl.VERTEX_SHADER, vsSource);
+        const fs = this.createShader(this.gl.FRAGMENT_SHADER, fsSource);
+        const prog = this.gl.createProgram();
+        this.gl.attachShader(prog, vs);
+        this.gl.attachShader(prog, fs);
+        this.gl.linkProgram(prog);
+        if (!this.gl.getProgramParameter(prog, this.gl.LINK_STATUS)) {
+          const info = this.gl.getProgramInfoLog(prog);
+          this.gl.deleteProgram(prog);
+          throw new Error("Program link error: " + info);
+        }
+        return prog;
+      }
+
+      applyAllUniforms() {
+        if (!this.gl || !this.program) return;
+        this.gl.useProgram(this.program);
+
+        const sky = this.hexToVec3(this.options.skyColor);
+        const cloud = this.hexToVec3(this.options.cloudColor);
+        const shadow = this.hexToVec3(this.options.cloudShadowColor);
+        const sun = this.hexToVec3(this.options.sunColor);
+        const sunlight = this.hexToVec3(this.options.sunlightColor);
+        const sunGlare = this.hexToVec3(this.options.sunGlareColor);
+
+        this.gl.uniform3f(this.uSkyColorLoc, sky.x, sky.y, sky.z);
+        this.gl.uniform3f(this.uCloudColorLoc, cloud.x, cloud.y, cloud.z);
+        this.gl.uniform3f(this.uCloudShadowColorLoc, shadow.x, shadow.y, shadow.z);
+        this.gl.uniform3f(this.uSunColorLoc, sun.x, sun.y, sun.z);
+        this.gl.uniform3f(this.uSunlightColorLoc, sunlight.x, sunlight.y, sunlight.z);
+        this.gl.uniform3f(this.uSunGlareColorLoc, sunGlare.x, sunGlare.y, sunGlare.z);
+        this.gl.uniform1f(this.uSpeedLoc, this.options.speed);
+
+        this.uniforms.skyColor.value = sky;
+      }
+
+      initListeners() {
+        this.boundMouseMove = (e) => {
+          const nx = e.clientX / window.innerWidth;
+          const ny = e.clientY / window.innerHeight;
+          this.mouse.targetX = Math.max(0, Math.min(1, nx));
+          this.mouse.targetY = Math.max(0, Math.min(1, ny));
+        };
+
+        if (!this.isMobile) {
+          window.addEventListener("mousemove", this.boundMouseMove, { passive: true });
+        }
+      }
+
+      setOptions(opts = {}) {
+        Object.assign(this.options, opts);
+        if (opts.skyColor !== undefined) {
+          const sky = this.hexToVec3(opts.skyColor);
+          this.uniforms.skyColor.value = sky;
+          if (this.gl && this.program && this.uSkyColorLoc) {
+            this.gl.useProgram(this.program);
+            this.gl.uniform3f(this.uSkyColorLoc, sky.x, sky.y, sky.z);
+          }
+        }
+        this.applyAllUniforms();
+      }
+
+      resize() {
+        if (!this.canvas || !this.gl || !this.el) return;
+        const width = this.el.clientWidth || window.innerWidth;
+        const height = this.el.clientHeight || window.innerHeight;
+
+        const renderW = Math.max(1, Math.floor(width / this.scale));
+        const renderH = Math.max(1, Math.floor(height / this.scale));
+
+        if (this.canvas.width !== renderW || this.canvas.height !== renderH) {
+          this.canvas.width = renderW;
+          this.canvas.height = renderH;
+          this.gl.viewport(0, 0, renderW, renderH);
+        }
+
+        if (this.program && this.uResolutionLoc) {
+          this.gl.useProgram(this.program);
+          this.gl.uniform2f(this.uResolutionLoc, renderW, renderH);
+        }
+      }
+
+      animate(now) {
+        this.rafId = requestAnimationFrame(this.animate);
+
+        const delta = now - this.lastFrameTime;
+        if (delta < this.frameInterval) {
+          return;
+        }
+        this.lastFrameTime = now - (delta % this.frameInterval);
+
+        if (!this.gl || !this.program) return;
+
+        // Smooth mouse dampening
+        this.mouse.x += (this.mouse.targetX - this.mouse.x) * 0.05;
+        this.mouse.y += (this.mouse.targetY - this.mouse.y) * 0.05;
+
+        const elapsedSec = (now - this.startTime) * 0.001;
+
+        this.gl.useProgram(this.program);
+        this.gl.uniform1f(this.uTimeLoc, elapsedSec);
+        this.gl.uniform2f(this.uMouseLoc, this.mouse.x, this.mouse.y);
+
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+      }
+
+      destroy() {
+        if (this.rafId) {
+          cancelAnimationFrame(this.rafId);
+          this.rafId = null;
+        }
+
+        if (this.boundMouseMove) {
+          window.removeEventListener("mousemove", this.boundMouseMove);
+        }
+
+        if (this.canvas && this.canvas.parentNode) {
+          this.canvas.parentNode.removeChild(this.canvas);
+        }
+
+        if (this.gl) {
+          if (this.posBuffer) this.gl.deleteBuffer(this.posBuffer);
+          if (this.program) this.gl.deleteProgram(this.program);
+        }
+
+        this.canvas = null;
+        this.gl = null;
+      }
+    }
+
     class AmbientMode {
       constructor() {
 
@@ -725,27 +1136,12 @@
         // Add class to body to trigger glassmorphism on nav elements
         document.body.classList.add('ambient-active');
 
-        // Lazy-load three.js + vanta on first activation (cached afterwards)
         const gen = ++this.enableGeneration;
-        try {
-          await window.loadScript("https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js");
-          await window.loadScript("https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.clouds.min.js");
-        } catch (err) {
-          console.error("Failed to load Vanta dependencies:", err);
-          return;
-        }
-
-        // Ambient may have been toggled off (or re-toggled) while loading
         if (gen !== this.enableGeneration || !this.isActive || this.vantaEffect) return;
 
-        if (typeof VANTA !== 'undefined' && VANTA.CLOUDS) {
-          this.vantaEffect = VANTA.CLOUDS({
+        try {
+          this.vantaEffect = new CustomCloudEffect({
             el: "#vanta-bg",
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: window.innerHeight,
-            minWidth: window.innerWidth,
             skyColor: this.isDynamicMode ? 0x68c7ff : this.currentSkyColor,
             cloudColor: 0xc0c0c0,
             cloudShadowColor: 0x183550,
@@ -753,12 +1149,13 @@
             sunGlareColor: 0xff9919,
             sunlightColor: 0xff9933,
             speed: 0.8,
-            cloudOpacity: 0.8,
           });
 
           if (this.isDynamicMode) {
             this.updateDynamicColor(this.lastTimerProgress);
           }
+        } catch (err) {
+          console.error("Failed to initialize custom cloud effect:", err);
         }
 
         if (window.RetroEvents) {
