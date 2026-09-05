@@ -138,6 +138,9 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   return res.status(200).json({
     user: req.user,
     memory: memory ? memory.context : null,
+    // Preferred name from the setup wizard (UserContext) — the chat
+    // greeting uses this, falling back to firstName when never set
+    displayName: memory?.displayName || null,
     message: "User fetched successfully",
   });
 });

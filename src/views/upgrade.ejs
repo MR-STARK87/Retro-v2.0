@@ -214,7 +214,8 @@
         [data-theme="dark"] .check.ok{ background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.22); color:#6ee7b7; }
         .check.no{ background:transparent; border:1px dashed var(--border-color); color:var(--text-muted); }
 
-        /* mobile: stack as cards */
+        /* mobile: stacked ledger — values keep tier labels so the
+           comparison still reads without the desktop columns */
         @media (max-width: 840px){
             .spec-wrap{ min-width:0; }
             .spec-table{ min-width:0; }
@@ -223,8 +224,31 @@
             .spec-feature{ padding:0.85rem 1rem 0.2rem; background:var(--bg-tertiary); }
             [data-theme="dark"] .spec-feature{ background:rgba(255,255,255,0.03); }
             .spec-row.spec-head{ display:grid; grid-template-columns:1fr; }
-            .spec-tier-head{ border-top:1px solid var(--border-color); }
-            .spec-row:not(.spec-head) .spec-value{ justify-content:flex-start; }
+            /* empty corner cell is dead space once stacked */
+            .spec-head > .spec-cell:first-child{ display:none; }
+            .spec-head .spec-cell + .spec-cell{ border-top:none; }
+            .spec-head .spec-tier-head + .spec-tier-head{ border-top:1px solid var(--border-color); }
+            .spec-tier-head{ border-top:1px solid var(--border-color); padding:1rem 1rem 1.1rem; gap:0.4rem; }
+            .spec-tier-head .price-amount{ font-size:1.3rem; }
+            /* absolute pill would collide with the badge on narrow cards */
+            .spec-tier-head.featured .popular-pill{ position:static; align-self:flex-start; }
+            .spec-row:not(.spec-head) .spec-value{
+                justify-content:flex-start;
+                flex-direction:column; align-items:flex-start; gap:0.15rem;
+                padding:0.7rem 1rem;
+            }
+            /* tier labels replace the lost desktop columns (theme-agnostic) */
+            .spec-row:not(.spec-head) .spec-cell:nth-child(2).spec-value::before{ content:"Free"; }
+            .spec-row:not(.spec-head) .spec-cell:nth-child(3).spec-value::before{ content:"Pro"; }
+            .spec-row:not(.spec-head) .spec-cell:nth-child(4).spec-value::before{ content:"Premium"; }
+            .spec-row:not(.spec-head) .spec-value::before{
+                font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700;
+                letter-spacing:0.09em; text-transform:uppercase; color:var(--text-muted);
+            }
+            .upgrade-head{ margin:1.1rem auto 1.25rem; }
+            .head-sub{ font-size:0.95rem; }
+            .billing-row{ gap:0.65rem; }
+            .billing-option{ padding:0.5rem 0.9rem; }
         }
 
         /* message */

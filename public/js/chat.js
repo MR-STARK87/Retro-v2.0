@@ -374,14 +374,19 @@
                 credentials: 'include'
             });
 
-            let firstName = 'Friend';
+            let name = 'Friend';
             if (response.ok) {
                 const data = await response.json();
-                const fullFirstName = data.user && data.user.firstName ? data.user.firstName : 'Friend';
-                firstName = fullFirstName.split(' ')[0];
+                if (data.displayName && data.displayName.trim()) {
+                    // Preferred name from the setup wizard — the user chose
+                    // this explicitly, so use it in full
+                    name = data.displayName.trim();
+                } else if (data.user && data.user.firstName) {
+                    name = data.user.firstName.split(' ')[0];
+                }
             }
 
-            greetingText.textContent = getRandomGreeting(firstName);
+            greetingText.textContent = getRandomGreeting(name);
             greetingElement.style.display = 'flex';
             greetingElement.style.zIndex = '10';
         } catch (error) {

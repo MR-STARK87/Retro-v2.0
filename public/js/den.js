@@ -514,10 +514,12 @@
         }
 
         this.isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
-        // Scale down internal buffer resolution: 2.0 on desktop, 4.0 on mobile
-        this.scale = this.isMobile ? 4.0 : 2.0;
-        // Throttle mobile to 30 FPS for battery & heat efficiency; 60 FPS on desktop
-        this.targetFps = this.isMobile ? 30 : 60;
+        // Scale down internal buffer resolution: 2.0 on desktop, 6.0 on phones.
+        // The raymarcher runs per-pixel, so 6.0 renders ~9x fewer pixels than
+        // full res — the main lever for weak phone GPUs. Desktop is untouched.
+        this.scale = this.isMobile ? 6.0 : 2.0;
+        // Throttle phones to 24 FPS for battery & heat efficiency; 60 FPS on desktop
+        this.targetFps = this.isMobile ? 24 : 60;
         this.frameInterval = 1000 / this.targetFps;
         this.lastFrameTime = 0;
 
@@ -567,7 +569,8 @@
           depth: false,
           stencil: false,
           antialias: false,
-          powerPreference: "high-performance",
+          // Phones get the efficiency GPU (less heat/throttling); desktop keeps max perf
+          powerPreference: this.isMobile ? "low-power" : "high-performance",
         };
         this.gl = this.canvas.getContext("webgl", glOpts) || this.canvas.getContext("experimental-webgl", glOpts);
         if (!this.gl) {

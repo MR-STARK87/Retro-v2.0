@@ -351,9 +351,12 @@
         overlay.style.display = 'flex';
         setTimeout(() => overlay.classList.add('active'), 10);
 
-        // Focus first input
+        // Focus first input on devices with a fine pointer only —
+        // on touch phones autofocus pops the keyboard and zooms the modal
         const firstInput = container.querySelector('input, textarea');
-        if (firstInput) setTimeout(() => firstInput.focus(), 100);
+        if (firstInput && window.matchMedia('(pointer: fine)').matches) {
+            setTimeout(() => firstInput.focus(), 100);
+        }
     }
 
     function closeModal() {
@@ -382,7 +385,7 @@
                       <p class="muted-small">Up to 2000 characters</p>
                     </div>
 
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; align-items:start;">
+                    <div class="modal-grid-2">
                       <div>
                         <label>Difficulty</label>
                         <div class="fc-dropdown" id="newDifficultyDropdownContainer">
@@ -516,7 +519,7 @@
                       <textarea id="editContent" required maxlength="2000" rows="3">${escapeHtml(card.content)}</textarea>
                     </div>
 
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; align-items:start;">
+                    <div class="modal-grid-2">
                       <div>
                         <label>Difficulty</label>
                         <div class="fc-dropdown" id="editDifficultyDropdownContainer">
@@ -678,7 +681,7 @@
                     <p class="modal-sub">Pick a note and AI will turn it into a set of flashcards.</p>
 
                     <label>Select a note <span style="color:#dc2626;">*</span></label>
-                    <div id="notesList" style="max-height: 380px; overflow-y: auto; margin-top:0.5rem;">
+                    <div id="notesList" class="notes-list">
                         ${notes.map(note => `
                             <div class="note-item" onclick="selectNote('${note._id}')">
                                 <div class="note-title">${escapeHtml(note.title || 'Untitled')}</div>
