@@ -1255,7 +1255,10 @@
         localStorage.setItem(STORAGE_KEYS.ambient, JSON.stringify(data));
       }
 
-      async checkUserTier() {
+      async checkUserTier(forceRefresh = false) {
+        if (this._cachedTier && !forceRefresh) {
+          return this._cachedTier;
+        }
         try {
           const response = await fetch('/api/v1/subscription/status', {
             method: 'GET',
@@ -1264,7 +1267,8 @@
 
           if (response.ok) {
             const data = await response.json();
-            return data.subscription?.tier || 'free';
+            this._cachedTier = data.subscription?.tier || 'free';
+            return this._cachedTier;
           }
           return 'free';
         } catch (error) {

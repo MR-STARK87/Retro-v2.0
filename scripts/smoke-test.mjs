@@ -458,33 +458,45 @@ async function main() {
         continue;
       }
       await cdp.evaluate(`${sel}.click()`);
-      await sleep(500);
       if (c.color === "dynamic") {
-        const dyn = await cdp.evaluate(`window.ambientMode.isDynamicMode`);
+        const dyn = await waitFor(
+          cdp,
+          "window.ambientMode && window.ambientMode.isDynamicMode === true",
+          { timeout: 10000, label: "dynamic mode enable" },
+        );
         dyn ? pass(`dynamic mode ("Timer Sync") enabled`) : fail("dynamic mode not enabled");
       } else {
         const expected = parseInt(c.color, 16);
-        const sky = await cdp.evaluate(`window.ambientMode.currentSkyColor`);
-        // skyColor uniform is a THREE.Vector3 (x/y/z = r/g/b, floats 0-1)
-        const rgb = await cdp.evaluate(
-          `(() => { const v = window.ambientMode.vantaEffect?.uniforms?.skyColor?.value; return v ? [v.x, v.y, v.z] : null; })()`,
-        );
-        const uniformOk =
-          Array.isArray(rgb) &&
-          Math.abs(rgb[0] - ((expected >> 16) & 255) / 255) < 0.01 &&
-          Math.abs(rgb[1] - ((expected >> 8) & 255) / 255) < 0.01 &&
-          Math.abs(rgb[2] - (expected & 255) / 255) < 0.01;
-        if (sky === expected && uniformOk)
+        const condition = `(() => {
+          if (!window.ambientMode || window.ambientMode.currentSkyColor !== ${expected}) return false;
+          const v = window.ambientMode.vantaEffect?.uniforms?.skyColor?.value;
+          if (!v) return false;
+          return Math.abs(v.x - ${((expected >> 16) & 255) / 255}) < 0.01 &&
+                 Math.abs(v.y - ${((expected >> 8) & 255) / 255}) < 0.01 &&
+                 Math.abs(v.z - ${(expected & 255) / 255}) < 0.01;
+        })()`;
+        const uniformOk = await waitFor(cdp, condition, {
+          timeout: 10000,
+          label: `${c.name} color apply`,
+        });
+        if (uniformOk) {
           pass(`${c.name}: skyColor ${c.color} applied (state + uniform)`);
-        else fail(`${c.name}: sky=${sky} rgb=${JSON.stringify(rgb)}, expected ${c.color}`);
+        } else {
+          const sky = await cdp.evaluate(`window.ambientMode?.currentSkyColor`);
+          const rgb = await cdp.evaluate(
+            `(() => { const v = window.ambientMode?.vantaEffect?.uniforms?.skyColor?.value; return v ? [v.x, v.y, v.z] : null; })()`,
+          );
+          fail(`${c.name}: sky=${sky} rgb=${JSON.stringify(rgb)}, expected ${c.color}`);
+        }
       }
     }
 
     // 9. Toggle ambient off
     await cdp.evaluate(`document.getElementById('ambientToggle').click()`);
-    await sleep(800);
-    const activeOff = await cdp.evaluate(
+    const activeOff = await waitFor(
+      cdp,
       `window.ambientMode.isActive === false && window.ambientMode.vantaEffect === null`,
+      { timeout: 10000, label: "ambient mode deactivation" },
     );
     activeOff ? pass("ambient mode deactivated cleanly") : fail("ambient mode did not deactivate");
 
@@ -499,10 +511,13 @@ async function main() {
     if (resumed) {
       await cdp.evaluate(`document.querySelector('.nav-dot[data-section="0"]').click()`);
       await sleep(1200);
-      const suspended = await cdp.evaluate(
+      const suspended = await waitFor(
+        cdp,
         `window.ambientMode.isActive === false && window.ambientMode.vantaEffect === null && window.ambientMode.suspended === true`,
+        { timeout: 10000, label: "ambient suspended when leaving DEN" },
       );
       suspended ? pass("ambient suspended when leaving DEN") : fail("ambient not suspended when leaving DEN");
+      await sleep(500);
       await cdp.evaluate(`document.querySelector('.nav-dot[data-section="2"]').click()`);
       const restored = await waitFor(
         cdp,
