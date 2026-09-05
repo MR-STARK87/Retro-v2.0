@@ -11,7 +11,7 @@ This file provides guidance for Claude Code (and other agents) when working in t
 - **Frontend:** EJS templates + Tailwind CSS (CDN) + Quill Delta rich text + Font Awesome + Quill snow theme (see `src/views/partials/head.ejs:1`) + horizontal 4-pane layout (`app.ejs`)
 - **Database:** MongoDB (6 collections: User, Note, Card, ChatSession, UserContext, Subscription)
 - **AI:** OpenAI SDK pointed at an OpenAI-compatible endpoint — **currently** `http://127.0.0.1:8319/v1` with `apiKey: "dummy"` and default model `claude-opus-5` in `src/utils/openai.js:8` (local provider; comment refs `provider/README.md`). `.env.example` still advertises `GROQ_API_KEY` for `https://api.groq.com/openai/v1` — code no longer reads it (stale env var, see Known Gaps).
-- **Emails:** Nodemailer (Mailtrap SMTP in development, `src/utils/mail.js:5`)
+- **Emails:** Nodemailer via Resend SMTP (`src/utils/mail.js:5`) — free tier 3,000/mo, 100/day
 - **Payments:** Stripe (optional — app runs without it, bootstrap warning in `src/index.js:98`)
 
 ## Commands
@@ -43,10 +43,10 @@ Create a `.env` in the project root. **`src/index.js:24` loads `dotenv` first**,
 | `index.js:28,31` | `PORT` (default 3000), `NODE_ENV`, `FRONTEND_URL` (CORS allowlist in production), `STRIPE_SECRET_KEY` (optional) | `allowedOrigins` also hardcodes `localhost:5173/3000/5500` |
 | `user.js:105` / `tokenChecker.js:24` / `viewTokenChecker.js:23` / `controllers/auth.js` | `ACCESS_TOKEN_SECRET`, `REFRESH_TOKEN_SECRET`, `ACCESS_TOKEN_EXPIRY`, `REFRESH_TOKEN_EXPIRY` (expiries parsed as int via `parseInt` — treat as seconds) | 86400≈24h, 604800≈7d |
 | `openai.js:8` | **none of `GROQ_API_KEY`** — file hardcodes `apiKey:"dummy"`, `baseURL:"http://127.0.0.1:8319/v1"`, default model `claude-opus-5` | `.env.example:14` still lists `GROQ_API_KEY` for Groq; keeping both works but `GROQ_API_KEY` is currently unused |
-| `mail.js:6` | `MAILTRAP_SMTP_HOST`, `MAILTRAP_SMTP_PORT`, `MAILTRAP_SMTP_USER`, `MAILTRAP_SMTP_PASS` |  |
+| `mail.js:5` | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` (defaults to `onboarding@resend.dev` test sender) | test sender only reaches your own inbox; set a verified domain address to mail all users |
 | `subscription.js:7,100,354` | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PRO_MONTHLY`, `STRIPE_PRICE_PRO_YEARLY`, `STRIPE_PRICE_PREMIUM_MONTHLY`, `STRIPE_PRICE_PREMIUM_YEARLY`, `CLIENT_URL` (checkout `success_url`/`cancel_url` + portal `return_url`; falls back to `http://localhost:3000`) |  |
 
-Key values: `PORT=3000`, `NODE_ENV=development`, `MONGO_URI`, secrets min 256-bit, `ACCESS_TOKEN_EXPIRY` in seconds (86400 ≈ 24h), `REFRESH_TOKEN_EXPIRY` in seconds (604800 ≈ 7d), Mailtrap SMTP creds, `FRONTEND_URL` + `CLIENT_URL` (both default to `http://localhost:3000`).
+Key values: `PORT=3000`, `NODE_ENV=development`, `MONGO_URI`, secrets min 256-bit, `ACCESS_TOKEN_EXPIRY` in seconds (86400 ≈ 24h), `REFRESH_TOKEN_EXPIRY` in seconds (604800 ≈ 7d), `RESEND_API_KEY` + `RESEND_FROM_EMAIL`, `FRONTEND_URL` + `CLIENT_URL` (both default to `http://localhost:3000`).
 
 Do **not** commit `.env`. `.gitignore:6` ignores `.env` + `.env.*local`.
 
@@ -216,7 +216,7 @@ Repo is initialized at the project root (`./.git/`, branch `main`, HEAD `758f830
 - `public/music/` currently contains one committed MP3 name with spaces and `&`; `.gitignore:43` will ignore future MP3/WAV/OGG unless you `git add -f` or rely on the existing tracked file.
 - `.gitignore:3` ignores `package-lock.json` — intentional for submission lightness, but for reproducible installs consider removing that line and committing the lockfile (it already exists on disk).
 - `src/index.js` global `express.json()` runs before `subscriptionRoutes` webhook's `express.raw()` — works today because the router re-parses, but fragile; consider mounting the webhook router *before* the global JSON parser or using `express.json({verify:...})` split.
-- Mailtrap free-tier send quota can exhaust (SMTP `verify()` still passes) — registration continues on email failure by design, but `resend-verification-email` returns 500 `{message:"Failed to send verification email"}` when the quota is hit.
+- Resend free tier has no overage — hitting 100/day or 3,000/mo hard-fails sends. Registration continues on email failure by design, but `resend-verification-email` returns 500 `{message:"Failed to send verification email"}`. Watch usage in the Resend dashboard.
 - `resetPassword` requires a `password` field in the body that the controller ignores (only `newPassword` is saved) — kept for API compatibility; consider dropping it from `changePasswordSchema`/`resetPasswordSchema` in a future API cleanup.
 
 ## Fixed in `optimizing-retro` branch (historical context)

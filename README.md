@@ -72,7 +72,7 @@ Built with **Express 5 + Mongoose + EJS + Tailwind CSS v3**, it provides a horiz
 
 ### Auth & Onboarding
 - JWT (HTTP-only `accessToken` + `refreshToken` cookies, `Authorization: Bearer` also supported)
-- Email verification (Nodemailer via Mailtrap in dev), forgot/reset, refresh, resend-verification, change-password
+- Email verification (Nodemailer via Resend SMTP), forgot/reset, refresh, resend-verification, change-password
 - 7-step setup wizard (`/setup` → `POST /api/v1/onboarding`) → `stableContext`; guards redirect to `/app` or `/setup` correctly
 
 ### Subscriptions (optional)
@@ -136,7 +136,7 @@ Route mount order in `src/index.js:77` matters: `/api/v1/*` first, view routes a
 ## Quick Start
 
 ### Prerequisites
-- Node.js >= 18, MongoDB >= 6 (local or Atlas), Mailtrap account (dev email), Stripe account (optional)
+- Node.js >= 18, MongoDB >= 6 (local or Atlas), Resend account + API key (free tier email), Stripe account (optional)
 
 ### 1. Clone & install
 ```bash
@@ -165,10 +165,11 @@ REFRESH_TOKEN_EXPIRY=604800
 # AI_BASE_URL=http://127.0.0.1:8319/v1
 # AI_MODEL=claude-opus-5
 
-MAILTRAP_SMTP_HOST=sandbox.smtp.mailtrap.io
-MAILTRAP_SMTP_PORT=587
-MAILTRAP_SMTP_USER=your-mailtrap-user
-MAILTRAP_SMTP_PASS=your-mailtrap-pass
+# Email — Resend SMTP (free: 3,000/mo, 100/day). Test sender
+# onboarding@resend.dev only reaches your own inbox; after verifying
+# your domain at resend.com/domains, set your address (no code change).
+RESEND_API_KEY=re_your_resend_api_key_here
+RESEND_FROM_EMAIL=onboarding@resend.dev
 
 FRONTEND_URL=http://localhost:3000
 CLIENT_URL=http://localhost:3000
@@ -286,7 +287,7 @@ See `.env.example` for the full reference. `src/index.js:24` loads `dotenv` firs
 | `index.js:28,31` | `PORT` (default 3000), `NODE_ENV`, `FRONTEND_URL`, `STRIPE_SECRET_KEY` | `allowedOrigins` also hardcodes `localhost:5173/3000/5500` |
 | `user.js` / `tokenChecker.js` / `viewTokenChecker.js` | `ACCESS_TOKEN_SECRET`, `REFRESH_TOKEN_SECRET`, `ACCESS_TOKEN_EXPIRY`, `REFRESH_TOKEN_EXPIRY` | expiries as seconds (`86400` ≈ 24h, `604800` ≈ 7d) |
 | `openai.js:8` | *(none)* — hardcoded `apiKey: "dummy"`, `baseURL: "http://127.0.0.1:8319/v1"`, model `claude-opus-5` | set `AI_BASE_URL`/`AI_MODEL` only if you make it env-driven |
-| `mail.js:6` | `MAILTRAP_SMTP_HOST`, `MAILTRAP_SMTP_PORT`, `MAILTRAP_SMTP_USER`, `MAILTRAP_SMTP_PASS` | |
+| `mail.js:5` | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | test sender reaches only your inbox; verified-domain address mails everyone |
 | `subscription.js` | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*`, `CLIENT_URL` | checkout/portal URLs (fallback `http://localhost:3000`) |
 
 ---

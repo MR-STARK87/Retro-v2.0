@@ -3,146 +3,102 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-  host: process.env.MAILTRAP_SMTP_HOST,
-  port: Number(process.env.MAILTRAP_SMTP_PORT) || 587,
+  // Resend SMTP (https://resend.com/docs/send-with-nodemailer-smtp)
+  host: "smtp.resend.com",
+  port: 465,
+  secure: true,
   auth: {
-    user: process.env.MAILTRAP_SMTP_USER,
-    pass: process.env.MAILTRAP_SMTP_PASS,
+    user: "resend",
+    pass: process.env.RESEND_API_KEY,
   },
 });
 
-// Custom HTML Email Templates with black/white minimal design and monospace font
+// Test mode uses Resend's shared onboarding@resend.dev sender, which only
+// delivers to the Resend account owner's inbox — enough to prove live
+// mailing end-to-end. After verifying a custom domain in Resend, set
+// RESEND_FROM_EMAIL to it (e.g. noreply@yourdomain.com) and all users
+// start receiving. No code change needed for that switch.
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+
+if (!process.env.RESEND_API_KEY) {
+  console.warn(
+    "⚠️  WARNING: RESEND_API_KEY is not set — outbound email will fail. " +
+      "Add it to your .env (see .env.example). Registration still works; " +
+      "only email delivery is affected.",
+  );
+}
+
+// Custom HTML Email Templates — Retro calm identity: warm paper background,
+// soft card, Space Grotesk-style headings, mono eyebrow accents, one black
+// pill button. Table layout + inline styles only (email-client safe, no
+// webfonts — system stacks everywhere).
 const EMAIL_TEMPLATES = {
   verification: (firstName, url) => `<!DOCTYPE html>
   <html lang="en">
   <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Verify Your Email – Retro</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
-  </style>
+  <title>Verify your email – Retro</title>
   </head>
-  <body style="margin:0; padding:0; background:#ffffff; font-family:'JetBrains Mono', 'Courier New', monospace;">
-    <!-- Wrapper -->
-    <table role="presentation" width="100%" style="padding:60px 20px; background:#ffffff;">
-      <tr>
-        <td align="center">
-          <!-- Card -->
-          <table role="presentation" width="100%" style="max-width:520px; background:#ffffff; border:1px solid #000000;">
-            <!-- Brand Header -->
-            <tr>
-              <td style="padding:48px 40px 8px 40px; text-align:left;">
-                <h1 style="margin:0; font-size:18px; font-weight:600; color:#000000; letter-spacing:3px; text-transform:uppercase;">
-                  RETRO
-                </h1>
-              </td>
-            </tr>
-            <!-- Headline -->
-            <tr>
-              <td style="padding:32px 40px 0 40px; text-align:left;">
-                <h2 style="margin:0; font-size:24px; font-weight:500; color:#000; letter-spacing:-0.3px; line-height:1.3;">
-                  Verify your email
-                </h2>
-              </td>
-            </tr>
-            <!-- Subtext -->
-            <tr>
-              <td style="padding:20px 40px 0 40px; text-align:left;">
-                <p style="margin:0; font-size:13px; color:#000; line-height:1.8; letter-spacing:0px; font-weight:400;">
-                  Welcome, <strong style="font-weight:600;">${firstName}</strong>.
-                </p>
-              </td>
-            </tr>
-            <!-- Body Text -->
-            <tr>
-              <td style="padding:16px 40px 0 40px; text-align:left;">
-                <p style="margin:0; font-size:12px; color:#000; line-height:1.8; letter-spacing:0px; font-weight:400; opacity:0.8;">
-                  To get started and ensure the security of your account, we need to verify your email address.
-                </p>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:12px 40px 32px 40px; text-align:left;">
-                <p style="margin:0; font-size:12px; color:#000; line-height:1.8; letter-spacing:0px; font-weight:400; opacity:0.8;">
-                  Click the button below to verify your email address and activate your account. This link will expire in 24 hours:
-                </p>
-              </td>
-            </tr>
-            <!-- Button -->
-            <tr>
-              <td style="padding:0 40px 40px 40px;" align="left">
-                <a href="${url}"
-                   style="display:inline-block; padding:14px 28px; background:#000; color:#fff;
-                          font-size:12px; font-weight:500; text-decoration:none; letter-spacing:0.5px;
-                          border:1px solid #000;">
-                  Verify email address
-                </a>
-              </td>
-            </tr>
-            <!-- Divider -->
-            <tr>
-              <td style="padding:0 40px;">
-                <div style="width:100%; height:1px; background:#000;"></div>
-              </td>
-            </tr>
-            <!-- Alternative Link -->
-            <tr>
-              <td style="padding:32px 40px 24px 40px; text-align:left;">
-                <p style="margin:0 0 12px 0; font-size:11px; color:#000; letter-spacing:0.3px; font-weight:500;">
-                  Or copy this link
-                </p>
-                <p style="margin:0; font-size:10px; color:#000; word-break:break-all; line-height:1.7; font-weight:400; opacity:0.6;">
-                  ${url}
-                </p>
-              </td>
-            </tr>
-            <!-- Security Note -->
-            <tr>
-              <td style="padding:24px 40px 0 40px; text-align:left;">
-                <p style="margin:0; font-size:11px; color:#000; line-height:1.7; font-weight:400; opacity:0.6;">
-                  If you didn't create an account with us, you can safely ignore this email.
-                </p>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:8px 40px 0 40px; text-align:left;">
-                <p style="margin:0; font-size:11px; color:#000; line-height:1.7; font-weight:400; opacity:0.6;">
-                  This verification link will expire in 24 hours for security reasons.
-                </p>
-              </td>
-            </tr>
-            <!-- Help Text -->
-            <tr>
-              <td style="padding:16px 40px 0 40px; text-align:left;">
-                <p style="margin:0; font-size:11px; color:#000; line-height:1.7; font-weight:400; opacity:0.6;">
-                  Need help? Just reply to this email and we'll be happy to assist you.
-                </p>
-              </td>
-            </tr>
-            <!-- Signature -->
-            <tr>
-              <td style="padding:24px 40px 0 40px; text-align:left;">
-                <p style="margin:0; font-size:12px; color:#000; line-height:1.7; font-weight:500; letter-spacing:0.3px;">
-                  Welcome aboard,
-                </p>
-                <p style="margin:4px 0 0 0; font-size:12px; color:#000; line-height:1.7; font-weight:600; letter-spacing:0.5px;">
-                  The Retro Project
-                </p>
-              </td>
-            </tr>
-            <!-- Footer -->
-            <tr>
-              <td style="padding:32px 40px 48px 40px; text-align:left;">
-                <p style="margin:0; font-size:10px; color:#000; letter-spacing:0.3px; font-weight:400; opacity:0.4;">
-                  © ${new Date().getFullYear()} Retro
-                </p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
+  <body style="margin:0; padding:0; background:#f7f7f5; font-family:-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; -webkit-text-size-adjust:100%;">
+  <span style="display:none; max-height:0; overflow:hidden; opacity:0;">Verify your Retro account — this link expires in 10 minutes.</span>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f7f5; padding:48px 20px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px; background:#ffffff; border:1px solid #e8e6e1; border-radius:20px; overflow:hidden;">
+          <tr>
+            <td style="padding:44px 40px 0 40px;">
+              <p style="margin:0; font-family:ui-monospace, 'Cascadia Mono', Menlo, Consolas, monospace; font-size:11px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#8a8781;">
+                Retro · Email verification
+              </p>
+              <h1 style="margin:14px 0 0 0; font-size:26px; font-weight:700; letter-spacing:-0.02em; line-height:1.2; color:#1a1a1a;">
+                Verify your email
+              </h1>
+              <p style="margin:14px 0 0 0; font-size:15px; line-height:1.6; color:#1a1a1a;">
+                Welcome, <strong>${firstName}</strong>.
+              </p>
+              <p style="margin:10px 0 0 0; font-size:14px; line-height:1.7; color:#55534e;">
+                You're one tap away from getting started. Confirm this address so we know it's really you — this link expires in 10 minutes.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:30px 40px 0 40px;">
+              <a href="${url}" style="display:inline-block; padding:14px 36px; background:#1a1a1a; color:#ffffff; font-size:14px; font-weight:600; text-decoration:none; letter-spacing:-0.01em; border-radius:999px;">
+                Verify email address
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:30px 40px 0 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f7f5; border-radius:12px;">
+                <tr>
+                  <td style="padding:16px 18px;">
+                    <p style="margin:0 0 8px 0; font-size:12px; font-weight:600; color:#55534e;">Button not working? Paste this link</p>
+                    <p style="margin:0; font-family:ui-monospace, Menlo, Consolas, monospace; font-size:11px; line-height:1.7; color:#8a8781; word-break:break-all;">${url}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:26px 40px 0 40px;">
+              <p style="margin:0; font-size:12px; line-height:1.7; color:#8a8781;">
+                Didn't create a Retro account? Just ignore this email — nothing will happen.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:30px 40px 36px 40px; border-top:1px solid #f0efeb;">
+              <p style="margin:14px 0 0 0; font-size:12px; color:#8a8781;">Need a hand? Just reply to this email.</p>
+              <p style="margin:14px 0 0 0; font-size:12px; font-weight:600; color:#1a1a1a;">The Retro Project</p>
+              <p style="margin:6px 0 0 0; font-size:11px; color:#b0ada6;">© ${new Date().getFullYear()} Retro</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
   </body>
   </html>`,
 
@@ -152,118 +108,84 @@ const EMAIL_TEMPLATES = {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Reset Your Password</title>
+      <title>Reset your password – Retro</title>
     </head>
-    <body style="margin: 0; padding: 0; font-family: 'Courier New', 'Consolas', monospace; background-color: #f3f4f6;">
-      <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f3f4f6;">
-        <tr>
-          <td align="center" style="padding: 40px 20px;">
-            <!-- Main Card Container -->
-            <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 24px; overflow: hidden;">
-
-              <!-- Email Body -->
-              <tr>
-                <td style="padding: 40px 40px 30px 40px;">
-                  <!-- Greeting -->
-                  <h2 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 500; color: #4b5563; letter-spacing: -0.5px;">
-                    Password Reset
-                  </h2>
-                  <p style="margin: 0 0 24px 0; font-size: 14px; font-weight: 400; color: #6b7280;">
-                    Reset your password securely.
-                  </p>
-
-                  <!-- Personalized Greeting -->
-                  <div style="margin: 0 0 24px 0; padding: 20px; background-color: #f9fafb; border-radius: 16px;">
-                    <p style="margin: 0 0 8px 0; font-size: 13px; color: #6b7280; font-weight: 400;">
-                      Hello,
-                    </p>
-                    <p style="margin: 0; font-size: 20px; font-weight: 300; color: #000000; letter-spacing: -0.3px;">
-                      ${firstName}
-                    </p>
-                  </div>
-
-                  <!-- Intro Text -->
-                  <p style="margin: 0 0 12px 0; font-size: 14px; font-weight: 400; color: #6b7280; line-height: 1.6;">
-                    We received a request to reset your password.
-                  </p>
-                  <p style="margin: 0 0 32px 0; font-size: 14px; font-weight: 400; color: #6b7280; line-height: 1.6;">
-                    Click the button below to create a new password. If you didn't make this request, you can ignore this email.
-                  </p>
-
-                  <!-- Action Button -->
-                  <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                      <td align="center" style="padding: 0 0 32px 0;">
-                        <a href="${url}" style="display: inline-block; width: 100%; max-width: 100%; padding: 14px 24px; background-color: #000000; color: #ffffff; text-decoration: none; border-radius: 9999px; font-weight: 500; font-size: 14px; text-align: center; border: 2px solid #000000; box-sizing: border-box;">
-                          Reset password
-                        </a>
-                      </td>
-                    </tr>
-                  </table>
-
-                  <!-- Info Box -->
-                  <div style="margin: 0 0 16px 0; padding: 16px 20px; background-color: #f9fafb; border-radius: 12px; border-left: 3px solid #000000;">
-                    <p style="margin: 0 0 6px 0; font-size: 13px; font-weight: 500; color: #000000;">
-                      Time Sensitive
-                    </p>
-                    <p style="margin: 0; font-size: 13px; font-weight: 400; color: #6b7280; line-height: 1.5;">
-                      This password reset link expires in 1 hour.
-                    </p>
-                  </div>
-
-                  <!-- Alternative Link -->
-                  <p style="margin: 0 0 8px 0; font-size: 12px; color: #6b7280; line-height: 1.5;">
-                    If the button doesn't work, copy this link:
-                  </p>
-                  <p style="margin: 0 0 24px 0; padding: 12px; background-color: #f9fafb; border-radius: 8px; font-size: 11px; color: #000000; word-break: break-all; font-family: 'Courier New', 'Consolas', monospace;">
-                    ${url}
-                  </p>
-                </td>
-              </tr>
-
-              <!-- Security Warning -->
-              <tr>
-                <td style="padding: 0 40px 24px 40px;">
-                  <div style="padding: 16px 20px; background-color: #fee2e2; border-radius: 12px; border-left: 3px solid #dc2626;">
-                    <p style="margin: 0 0 6px 0; font-size: 13px; font-weight: 500; color: #7f1d1d;">
-                      Security Alert
-                    </p>
-                    <p style="margin: 0; font-size: 12px; font-weight: 400; color: #991b1b; line-height: 1.5;">
-                      If you didn't request this, contact support immediately.
-                    </p>
-                  </div>
-                </td>
-              </tr>
-
-              <tr>
-                <td style="padding: 0 40px 40px 40px;">
-                  <div style="padding: 16px 20px; background-color: #fef3c7; border-radius: 12px; border-left: 3px solid #d97706;">
-                    <p style="margin: 0; font-size: 12px; font-weight: 400; color: #78350f; line-height: 1.5;">
-                      Warning: Never share this link with anyone.
-                    </p>
-                  </div>
-                </td>
-              </tr>
-
-              <!-- Footer -->
-              <tr>
-                <td style="background-color: #f9fafb; padding: 24px 40px; text-align: center; border-top: 1px solid #e5e7eb;">
-                  <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: 500; color: #000000;">
-                    The Retro Project
-                  </p>
-                  <p style="margin: 0 0 12px 0; font-size: 12px; color: #6b7280;">
-                    Need help? Reply to this email.
-                  </p>
-                  <p style="margin: 0; font-size: 11px; color: #9ca3af;">
-                    © ${new Date().getFullYear()} The Retro Project. All rights reserved.
-                  </p>
-                </td>
-              </tr>
-
-            </table>
-          </td>
-        </tr>
-      </table>
+    <body style="margin:0; padding:0; background:#f7f7f5; font-family:-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; -webkit-text-size-adjust:100%;">
+    <span style="display:none; max-height:0; overflow:hidden; opacity:0;">Reset your Retro password — this link expires in 10 minutes.</span>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f7f5; padding:48px 20px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px; background:#ffffff; border:1px solid #e8e6e1; border-radius:20px; overflow:hidden;">
+            <tr>
+              <td style="padding:44px 40px 0 40px;">
+                <p style="margin:0; font-family:ui-monospace, 'Cascadia Mono', Menlo, Consolas, monospace; font-size:11px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#8a8781;">
+                  Retro · Password reset
+                </p>
+                <h1 style="margin:14px 0 0 0; font-size:26px; font-weight:700; letter-spacing:-0.02em; line-height:1.2; color:#1a1a1a;">
+                  Reset your password
+                </h1>
+                <p style="margin:14px 0 0 0; font-size:15px; line-height:1.6; color:#1a1a1a;">
+                  Hello, <strong>${firstName}</strong>.
+                </p>
+                <p style="margin:10px 0 0 0; font-size:14px; line-height:1.7; color:#55534e;">
+                  We got a request to reset your password. Choose a new one below — if that wasn't you, just ignore this email.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding:30px 40px 0 40px;">
+                <a href="${url}" style="display:inline-block; padding:14px 36px; background:#1a1a1a; color:#ffffff; font-size:14px; font-weight:600; text-decoration:none; letter-spacing:-0.01em; border-radius:999px;">
+                  Set a new password
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:26px 40px 0 40px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fffbeb; border:1px solid #fde68a; border-radius:12px;">
+                  <tr>
+                    <td style="padding:14px 18px;">
+                      <p style="margin:0; font-size:13px; font-weight:600; color:#92400e;">Time sensitive</p>
+                      <p style="margin:4px 0 0 0; font-size:13px; line-height:1.6; color:#92400e;">This link expires in 10 minutes.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 40px 0 40px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f7f5; border-radius:12px;">
+                  <tr>
+                    <td style="padding:16px 18px;">
+                      <p style="margin:0 0 8px 0; font-size:12px; font-weight:600; color:#55534e;">Button not working? Paste this link</p>
+                      <p style="margin:0; font-family:ui-monospace, Menlo, Consolas, monospace; font-size:11px; line-height:1.7; color:#8a8781; word-break:break-all;">${url}</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 40px 0 40px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fef2f2; border:1px solid #fecaca; border-radius:12px;">
+                  <tr>
+                    <td style="padding:14px 18px;">
+                      <p style="margin:0; font-size:13px; font-weight:600; color:#991b1b;">Didn't ask for this?</p>
+                      <p style="margin:4px 0 0 0; font-size:13px; line-height:1.6; color:#991b1b;">Your account is safe — but never share this link with anyone.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:30px 40px 36px 40px; border-top:1px solid #f0efeb;">
+                <p style="margin:14px 0 0 0; font-size:12px; color:#8a8781;">Need a hand? Just reply to this email.</p>
+                <p style="margin:14px 0 0 0; font-size:12px; font-weight:600; color:#1a1a1a;">The Retro Project</p>
+                <p style="margin:6px 0 0 0; font-size:11px; color:#b0ada6;">© ${new Date().getFullYear()} Retro</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
     </body>
     </html>
   `,
@@ -272,56 +194,41 @@ const EMAIL_TEMPLATES = {
 // Plain text versions for email clients that don't support HTML
 const TEXT_TEMPLATES = {
   verification: (firstName, url) => `
-Email Verification
-Verify your account to get started.
+Verify your email — Retro
 
-Hello, ${firstName}
+Welcome, ${firstName}.
 
-Welcome! We're excited to have you on board.
+You're one tap away from getting started. Confirm this address so we know it's really you:
 
-To ensure the security of your account, please verify your email address by clicking the link below.
-
-VERIFY YOUR EMAIL:
 ${url}
 
-IMPORTANT:
-This verification link expires in 24 hours.
+This link expires in 10 minutes.
 
-SECURITY NOTE:
-If you didn't create this account, ignore this email.
+Didn't create a Retro account? Just ignore this email — nothing will happen.
 
-Need help? Reply to this email.
+Need a hand? Just reply to this email.
 
----
-© ${new Date().getFullYear()} The Retro Project. All rights reserved.
+The Retro Project
+© ${new Date().getFullYear()} Retro
   `,
 
   resetPassword: (firstName, url) => `
-Password Reset
-Reset your password securely.
+Reset your password — Retro
 
-Hello, ${firstName}
+Hello, ${firstName}.
 
-We received a request to reset your password.
+We got a request to reset your password. Choose a new one here:
 
-Click the link below to create a new password. If you didn't make this request, you can ignore this email.
-
-RESET YOUR PASSWORD:
 ${url}
 
-TIME SENSITIVE:
-This password reset link expires in 1 hour.
+TIME SENSITIVE: this link expires in 10 minutes.
 
-SECURITY ALERT:
-If you didn't request this, contact support immediately.
+Didn't ask for this? Your account is safe — but never share this link with anyone.
 
-WARNING:
-Never share this link with anyone.
+Need a hand? Just reply to this email.
 
-Need help? Reply to this email.
-
----
-© ${new Date().getFullYear()} The Retro Project. All rights reserved.
+The Retro Project
+© ${new Date().getFullYear()} Retro
   `,
 };
 
@@ -335,7 +242,7 @@ const sendEmail = async ({ to, subject, url, template, firstName }) => {
     const emailText = TEXT_TEMPLATES[template](firstName, url);
 
     const info = await transporter.sendMail({
-      from: '"The Retro Project" <noreply@retroproject.com>',
+      from: `"The Retro Project" <${FROM_EMAIL}>`,
       to,
       subject,
       text: emailText,
@@ -350,4 +257,4 @@ const sendEmail = async ({ to, subject, url, template, firstName }) => {
   }
 };
 
-export { sendEmail };
+export { sendEmail, EMAIL_TEMPLATES, TEXT_TEMPLATES };
